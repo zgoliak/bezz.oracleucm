@@ -1,0 +1,451 @@
+﻿<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>CoSign htmlIncludeOrString
+ </head>
+ <body>
+<@ dynamichtml extra_setup_search_results_action_popups @>
+	<$ include super.extra_setup_search_results_action_popups $>
+
+	<$ exec rsAppendNewRow( "PopupProps" ) $>
+	<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+	<$ exec setValue( "PopupProps", "class", "document" ) $>
+	<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
+
+	<$ exec rsAppendNewRow("PopupProps" ) $>
+	<$ exec setValue( "PopupProps", "label", lc( "wwVerifySignatures" ) ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+	<$ exec setValue( "PopupProps", "class", "document" ) $>
+	<$ exec setValue( "PopupProps", "id", "verifySignatures" ) $>
+
+	<$ exec rsAppendNewRow( "PopupProps" ) $>
+	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignatures" ) ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+	<$ exec setValue( "PopupProps", "class", "document" ) $>
+	<$ exec setValue( "PopupProps", "id", "reviewSignatures" ) $>
+<@ end @>
+<@ dynamichtml custom_docinfo_menus_setup @>
+	<$ include super.custom_docinfo_menus_setup $>
+
+	<$ exec rsAppendNewRow( "PageMenusData" ) $>
+	<$ PageMenusData.nodeId = "SIGN_WITH_COSIGN" $>
+	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
+	<$ PageMenusData.label = "wwSignWithCoSign" $>
+	<$ PageMenusData.type = "item" $>
+	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" $>
+	<$ PageMenusData.loadOrder = 10 $>
+
+	<$ exec rsAppendNewRow( "PageMenusData" ) $>
+	<$ PageMenusData.nodeId = "VERIFY_SIGNATURES" $>
+	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
+	<$ PageMenusData.label = "wwVerifySignatures" $>
+	<$ PageMenusData.type = "item" $>
+	<$ PageMenusData.href = "XXX" $>
+	<$ PageMenusData.loadOrder = 10 $>
+
+	<$ exec rsAppendNewRow( "PageMenusData" ) $>
+	<$ PageMenusData.nodeId = "REVIEW_SIGNATURES" $>
+	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
+	<$ PageMenusData.label = "wwReviewSignatures" $>
+	<$ PageMenusData.type = "item" $>
+	<$ PageMenusData.href = "XXX" $>
+	<$ PageMenusData.loadOrder = 10 $>
+<@ end @>
+<@ dynamichtml custom_search_results_action_popup @>
+	<$ include super.custom_search_results_action_popup $>
+
+	<tr><td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
+		onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
+		<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&<$ include idc_token_url_parameter $>&dDocName=<$ url( dDocName ) $>"
+		target="<$ popupLinkTarget $>"><$ lc( "wwSignWithCoSign" ) $></a></td></tr>
+
+	<tr><td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
+		onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
+		<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=XXX&<$ include idc_token_url_parameter $>&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $>"
+		target="<$ popupLinkTarget $>"><$ lc( "wwVerifySignatures" ) $></a></td></tr>
+
+	<tr><td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
+		onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
+		<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=XXX&<$ include idc_token_url_parameter $>&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $>"
+		target="<$ popupLinkTarget $>"><$ lc( "wwReviewSignatures" ) $></a></td></tr>
+<@ end @>
+<@ dynamichtml setup_workflow_action_popups @>
+	<$ include super.setup_workflow_action_popups $>
+
+	<$ exec rsAppendNewRow( "PopupProps" ) $>
+	<$ exec setValue( "PopupProps", "label", lc( "wwVerifySignature" ) ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+	<$ exec setValue( "PopupProps", "class", "document" ) $>
+	<$ exec setValue( "PopupProps", "id", "verifySignature" ) $>
+
+	<$ exec rsAppendNewRow( "PopupProps" ) $>
+	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignature" ) ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+	<$ exec setValue( "PopupProps", "class", "document" ) $>
+	<$ exec setValue( "PopupProps", "id", "reviewSignature" ) $>
+<@ end @>
+<@ dynamichtml wf_reviewer_doc_action_links @>
+	<$ include super.wf_reviewer_doc_action_links $>
+	<$ include wf_reviewer_doc_action_cosign_link $>
+<@ end @>
+<@ dynamichtml wf_reviewer_doc_action_cosign_link @>
+	<span style="white-space:nowrap">
+		[<a href="javascript:wfVerifySignature( '<$ dID $>', '<$ js( urlEscape7Bit( dWfName ) ) $>', '<$ js( urlEscape7Bit( dWfStepName ) ) $>' );" class="xuiLinkText1_Sm" style="font-weight:bold;padding-left:1px;padding-right:1px">
+			<$ lc( "wwVerifySignature" ) $></a>]&nbsp;</span>		
+	<span style="white-space:nowrap;padding-bottom:3px">
+		[<a href="javascript:wfReviewSignature( '<$ dID $>', '<$ js( urlEscape7Bit( dWfName ) ) $>', '<$ js( urlEscape7Bit( dWfStepName ) ) $>' );" class="xuiLinkText1_Sm" style="font-weight:bold;padding-left:1px;padding-right:1px">
+			<$ lc( "wwReviewSignature" ) $></a>]&nbsp;</span>
+<@ end @>
+<@ dynamichtml cosign_search_result_item_data_setup @>
+	<$ exec rsCreateResultSet( "RowData", "row" ) $>
+	<$ exec rsAppendNewRow( "RowData" ) $>
+	<$ exec rsCreateResultSet( "PopupData", "row" ) $>
+	<$ exec rsAppendNewRow( "PopupData" ) $>
+
+	<$ if showDocSelect $>
+		<$ exec setValue( "RowData", "select", "<$ include select_searchapi_results_form $>" ) $>
+	<$ endif $>
+
+	<$ if CustomViewColumns $>
+		<$ loop CustomViewColumns $>
+			<$ fieldName = row $>
+			<$ tempViewName = "" $>
+			<$ fieldIsTree = "" $>
+			<$ exec loadSchemaData( "SchemaFieldConfig", fieldName ) $>
+			<$ if dIsOptionList and isTrue( dIsOptionList ) and OptionViewKey $>
+				<$ tempViewName = OptionViewKey $>
+			<$ elseif dOptionListKey and dOptionListKey like "tree://*" and TreeDefinition $>
+				<$ fieldIsTree = 1 $>
+			<$ endif $>
+			<$ if tempViewName $>
+				<$ exec setValue( "RowData", fieldName, "<$ getFieldViewDisplayValue( \"" & fieldName & "\", \"" & tempViewName & "\", #active." & fieldName & " ) $>" ) $>
+			<$ elseif fieldIsTree $>
+				<$ exec setValue( "RowData", fieldName, "<$ getTreeDisplayValue( \"" & fieldName & "\", #active." & fieldName & " ) $>" ) $>
+			<$ else $>
+				<$ if dType like "Int" $>
+					<$ exec setValue( "RowData", fieldName, "<$ formatInteger( #active." & fieldName & " ) $>" ) $>
+				<$ elseif dType like "Decimal" $>
+					<$ exec setValue( "RowData", fieldName, "<$ formatDecimalForField( #active." & fieldName & ", '" & fieldName & "' ) $>" ) $>
+				<$ else $>
+					<$ exec setValue( "RowData", fieldName, "<$ #active." & fieldName & " $>" ) $>
+				<$ endif $>
+			<$ endif $>
+			<$ tempViewName = "" $>
+			<$ fieldIsTree = "" $>
+			<$ exec clearSchemaData( "SchemaFieldConfig", fieldName ) $>
+		<$ endloop $>
+		<$ include setup_special_column_row_data $>
+	<$ else $>
+		<$ hrefClassText="class=\"xuiLinkText2_sm\"" $>
+		<$ exec setValue( "RowData", "dDocName", "<$ inc( \"searchapi_result_doc_href_start\" ) $><$ #active.dDocName $><$ inc( \"searchapi_result_href_end\" ) $>" ) $>
+		<$ if isTrue( #active.ShowDescriptionInHeadlineView ) $>
+			<$ exec setValue( "RowData", "dDocTitle", "<$ include searchapi_result_text2 $>" ) $>
+		<$ else $>
+			<$ exec setValue( "RowData", "dDocTitle", "<$ if dDocTitle $><$ xml( dDocTitle ) $><$ else $><$ if TITLE $><$ xml( TITLE ) $><$ else $><$ lc( \"wwNoTitle\" ) $><$ endif $><$ endif $>" ) $>
+		<$ endif $>
+		<$ exec setValue( "RowData", "dInDate", "<$ formatDateOnly( #active.dInDate ) $>" ) $>
+		<$ exec setValue( "RowData", "dDocAuthor", "<$ #active.dDocAuthor $>" ) $>
+		<$ exec setValue( "RowData", "xSignatureStatus", "<$ #active.xSignatureStatus $>" ) $>
+		<$ exec setValue( "RowData", "xSigner", "<$ #active.xSigner $>" ) $>
+		<$ exec setValue( "RowData", "xSignTime", "<$ #active.xSignTime $>" ) $>
+		<$ exec setValue( "RowData", "xSignatureCount", "<$ #active.xSignatureCount $>" ) $>
+	<$ endif $>
+
+	<$ if not noInfoColumn $>
+		<$ include actions_search_result_column_item_data_setup $>
+	<$ endif $>
+
+	<$ if isTraySearch $>
+		<$ exec DocLinkTarget = "contentFrame" $>
+	<$ else $>
+		<$ exec DocLinkTarget = "_self" $>
+	<$ endif $>
+
+	<$ if RowData.dDocName $>
+		<$ if customTemplateId and not ( customTemplateId like baseTemplateId ) $>
+			<$ hrefClassText="class=\"xuiLinkText2_sm\"" $>
+			<$ contentLink = utGetValue( "customlisttemplates/" & strLower( customTemplateId ), "contentLink" ) $>
+			<$ if contentLink like "webviewable" $>
+				<$ RowData.dDocName = "<$ inc( \"searchapi_result_doc_href_start\" ) $><$ #active.dDocName $><$ inc( \"searchapi_result_href_end\" ) $>" $>
+			<$ elseif contentLink like "native" $>
+				<$ RowData.dDocName = "<$ inc( \"searchapi_result_native_href_start\" ) $><$ #active.dDocName $><$ inc( \"searchapi_result_href_end\" ) $>" $>
+			<$ elseif contentLink like "htmlWebviewable" $>
+				<$ RowData.dDocName = "<$ if dcShowExportLink() $><$ inc( \"searchapi_result_dchtml_href_start\" ) $><$ else $><$ inc( \"searchapi_result_doc_href_start\" ) $><$ endif $><$ #active.dDocName $><$ inc( \"searchapi_result_href_end\" ) $>" $>
+			<$ elseif contentLink like "htmlNative" $>
+				<$ RowData.dDocName = "<$ if dcShowExportLink() $><$ inc( \"searchapi_result_dchtml_href_start\" ) $><$ else $><$ inc( \"searchapi_result_native_href_start\" ) $><$ endif $><$ #active.dDocName $><$ inc( \"searchapi_result_href_end\" ) $>" $>
+			<$ elseif contentLink like "none" $>
+				<$ RowData.dDocName = "<$ dDocName $>" $>
+			<$ endif $>
+		<$ endif $>
+	<$ endif $>
+<@ end @>
+<@ dynamichtml cosign_search_result_create_item_includes @>
+	<$ resultSetClass = "document", resultSetType = "search" $>
+	<$ exec inc( "setup_search_results_action_popups" ) $>
+	<$ exec inc( "create_action_popup_container_include" ) $>
+	<$ exec inc( "create_slim_table_row_include" ) $>
+<@ end @>
+<@ dynamichtml cosign_table_header @>
+	<$ if tableCounter $>
+		<$ tableCounter = tableCounter + 1 $>
+	<$ else $>
+		<$ tableCounter = 0 $>
+	<$ endif $>
+	<$ columnCounter = 0 $>
+	<$ if slimTableCaptionStr and not slimTableCaption $>
+		<$ slimTableCaption = "<span class=\"xuiCaption\">" & slimTableCaptionStr & "</span> <br><br style=\"line-height:5px\">" $>
+	<$ endif $>
+
+	<!--IE table caption bug fix by not making it a caption if its IE and trays. Bug :9013446-->
+	<$ if slimTableCaption and ( strIndexOf( slimTableCaption, "<caption" ) == 0 ) $>
+		<$ captionAlreadyDefined = 1 $>
+	<$ endif $>
+	<$ if not captionAlreadyDefined $>
+		<$ if MSIE and UsingTrays and isRtl $>
+			<$ if slimTableCaption $><$ slimTableCaption $><$ endif $>
+		<$ else $>
+			<$ if slimTableCaption $> <$ slimTableCaption = "<caption>" &  slimTableCaption & "</caption>" $> <$ endif $>
+		<$ endif $>
+	<$ endif $>
+	<table id="table_<$ tableCounter $>" class="<$ if slimTableClass $><$ slimTableClass $><$ else $>xuiListTable<$ endif $>" style="width:<$ if slimTableWidth $><$ slimTableWidth $><$ else $>100%<$ endif $>;<$ if tableStyle $><$ tableStyle $><$ endif $>" cellpadding="<$ if slimTableCellPadding $><$ slimTableCellPadding $><$ else $>0<$ endif $>" cellspacing="<$ if slimTableCellSpacing $><$ slimTableCellSpacing $><$ else $>0<$ endif $>" <$ if tableSummary $>summary="<$ stripXml( lc( tableSummary ) ) $>"<$ endif $>>
+	<$ if ( not MSIE or not UsingTrays or not isRtl ) or captionAlreadyDefined $>
+		<$ if slimTableCaption $><$ slimTableCaption $><$ endif $>
+	<$ endif $>
+	 <tr>
+	<$ loop ColumnProperties $>
+		<$ if columnCounter > 0 $>
+	  <td class="xuiListResizeDragCell_Header" scope="col" id="column_<$ tableCounter $>_<$ columnCounter - 1 $>_resizer_column_<$ tableCounter $>_<$ columnCounter $>" <$ if dhtml_compatible_browser $>onmousedown="idc.dom.util.resizeColumns( 'column_<$ tableCounter $>_<$ columnCounter - 1 $>', 'column_<$ tableCounter $>_<$ columnCounter $>', event )" onmouseover="this.style.cursor='e-resize'" onmouseout="this.style.cursor='default'"<$ endif $>><div class="hidden"><$ lc( "wwColumnBreak" ) $></div></td>
+		<$ endif $>
+		<$ if ColumnProperties.cssHeaderClass $>
+			<$ tableHeaderCss = ColumnProperties.cssHeaderClass $>
+		<$ elseif slimTableHeaderCellClass $>
+			<$ tableHeaderCss = slimTableHeaderCellClass $>
+		<$ else $>
+			<$ tableHeaderCss = 'xuiListHeaderCell' $>
+		<$ endif $>
+	   <td id="column_<$ tableCounter $>_<$ columnCounter $>" <$ if ColumnProperties.headerURL $> onclick="location.href='<$ strTrimWs( ColumnProperties.headerURL ) $>'" onmouseover="this.style.cursor='pointer';this.className='<$ tableHeaderCss $> <$ tableHeaderCss $>-hover';" onmouseout= "this.style.cursor='default';this.className='<$ tableHeaderCss $>'"<$ endif $>  class="<$ tableHeaderCss $>" style="width:<$ if ColumnProperties.width $><$ ColumnProperties.width $><$ else $>auto<$ endif $>;" scope="col">
+		<$ include slim_table_header_cell $>
+	   </td>
+		<$ columnCounter = columnCounter + 1 $>
+	<$ endloop $>
+	  </tr>
+	<$ if not doNotCreateTableResultSetStubs $>
+		<$ include create_result_set_stubs_for_table_rows $>
+	<$ endif $>
+	<$ rowCounter = 0 $>
+	<$ popupImageCounter = 0 $>
+	<$ popupContainerCounter = 0 $>
+	<$ slipTableCaption = "" $>
+<@ end @>
+<@ dynamichtml cosign_search_result_table_header_setup @>
+	<$slimResults=1, useThumbnails="", colWidth_sm="55px", colWidth_med="80px", colWidth_lg="120px"$>
+	<$if not isTrue(#active.ShowRevisionsColumn)$><$noRevisionsColumn=1$><$endif$>
+	<$exec rsCreateResultSet("ColumnProperties", "id,width,headerLabel,rowAlign")$>
+	<$if showDocSelect$>
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$ColumnProperties.id = "select"$>
+		<$ColumnProperties.width = colWidth_sm$>
+		<$ColumnProperties.rowAlign = "center"$>
+		<$ColumnProperties.headerLabel = "wwSelect"$>
+	<$endif$>
+	<$if customTemplateId and not (baseTemplateId like customTemplateId)$>
+		<$columnsString = utGetValue("customlisttemplates/" & strLower(customTemplateId), "columns")$>
+	<$endif$>
+	<$atLeastOneAutoColumn = 0$>
+	<$if columnsString and strLength(columnsString) > 0$>
+		<$rsMakeFromString("CustomViewColumns", columnsString)$>
+		<$loop CustomViewColumns$>
+			<$exec rsAppendNewRow("ColumnProperties")$>
+			<$ColumnProperties.id = row$>
+			<$if (row like "myViewDescription") or (row like "dDocTitle")$>
+				<$atLeastOneAutoColumn = 1$>
+				<$ColumnProperties.width = "auto"$>
+			<$else$>
+				<$if CustomViewColumns.#row == CustomViewColumns.#numRows and (not atLeastOneAutoColumn)$>
+					<$ColumnProperties.width = "auto"$>
+					<$atLeastOneAutoColumn = 1$>
+				<$else$>
+					<$ColumnProperties.width = colWidth_lg$>
+				<$endif$>
+			<$endif$>
+			<$if strIndexOf(row, "x") == 0$>
+				<$exec loadSchemaData("SchemaFieldConfig", row)$>
+				<$ColumnProperties.headerLabel = dCaption$>
+				<$exec clearSchemaData("SchemaFieldConfig", row)$>
+			<$else$>
+				<$ColumnProperties.headerLabel = "ww" & row$>
+			<$endif$>
+			<$ColumnProperties.rowAlign = lineStartAlignment$>
+			<$if (strIndexOf(row, "x")) == 0 or (strIndexOf(row, "d")) == 0$>
+				<$if rsFindRowPrimary("SearchSortFields", row)$>
+					<$fieldName = row$>
+					<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+				<$endif$>
+			<$endif$>
+		<$endloop$>
+		<$if isFalse(atLeastOneAutoColumn)$>
+			<$ColumnProperties.width = "auto"$>
+		<$endif$>
+	<$else$>
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "dDocName"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_lg$>
+		<$ColumnProperties.headerLabel = "wwXuiId"$>
+		<$ColumnProperties.rowAlign = lineStartAlignment$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "dDocTitle"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = "auto"$>
+		<$if isTrue(#active.ShowDescriptionInHeadlineView)$>
+			<$ColumnProperties.headerLabel = "wwDescription"$>
+		<$else$>
+			<$ColumnProperties.headerLabel = "wwTitle"$>
+		<$endif$>
+		<$ColumnProperties.rowAlign = lineStartAlignment$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "dInDate"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_sm$>
+		<$ColumnProperties.headerLabel = "wwXuiDate"$>
+		<$ColumnProperties.rowAlign = "center"$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "dDocAuthor"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_sm$>
+		<$ColumnProperties.headerLabel = "wwAuthor"$>
+		<$ColumnProperties.rowAlign = "center"$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "xSignatureStatus"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_med$>
+		<$ColumnProperties.headerLabel = "wwSignatureStatus"$>
+		<$ColumnProperties.rowAlign = "center"$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "xSigner"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_sm$>
+		<$ColumnProperties.headerLabel = "wwSigner"$>
+		<$ColumnProperties.rowAlign = lineStartAlignment$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "xSignTime"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_med$>
+		<$ColumnProperties.headerLabel = "wwSignTime"$>
+		<$ColumnProperties.rowAlign = "center"$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+
+		<$exec rsAppendNewRow("ColumnProperties")$>
+		<$fieldName = "xSignatureCount"$>
+		<$ColumnProperties.id = fieldName$>
+		<$ColumnProperties.width = colWidth_med$>
+		<$ColumnProperties.headerLabel = "wwSignatureCount"$>
+		<$ColumnProperties.rowAlign = lineStartAlignment$>
+		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
+			<$ColumnProperties.headerURL = inc("my_view_header_searchapi_url")$>
+		<$endif$>
+	<$endif$>
+	<$ if not noInfoColumn $>
+		<$ exec rsAppendNewRow( "ColumnProperties" ) $>
+		<$ ColumnProperties.id = "actions" $>
+		<$ ColumnProperties.width = colWidth_med $>
+		<$ ColumnProperties.headerLabel = "wwXuiActions" $>
+		<$ ColumnProperties.rowAlign = "center" $>
+	<$ endif $>
+
+	[[% Allow profiles to modify the column header. %]]
+	<$ loop ColumnProperties $>
+		<$ ColumnProperties.headerLabel = getFieldConfigValue( id, "fieldCaption", ColumnProperties.headerLabel ) $>
+	<$ endloop $>
+	<$ tableSummary = "wwSearchResultsTable" $>
+<@ end @>
+<@ dynamichtml custom_navigation_menu_items @>
+	<$ if IsSysManager $>
+		<$ if not subMenu $><$ subMenu = "" $><$ endif $>
+		<$ include super.custom_navigation_menu_items $>
+
+		<$ exec rsAppendNewRow( "NavigationMenuItems" ) $>
+		[[% Appears that even after restart, the id is "cached" somewhere and the alteration of the code is not pleasing, will leave ID and simply alter label. %]]
+		<$ exec setValue( "NavigationMenuItems", "id", "ARX" ) $>
+		<$ exec setValue( "NavigationMenuItems", "parentId", "MENU_B" ) $>
+		<$ exec setValue( "NavigationMenuItems", "loadOrder", "60" ) $>
+		<$ exec setValue( "NavigationMenuItems", "label", lc( "wwCoSign" ) ) $>
+		<$ exec setValue( "NavigationMenuItems", "linkType", "" ) $>
+		<$ exec setValue( "NavigationMenuItems", "linkData", "" ) $>
+		<$ exec setValue( "NavigationMenuItems", "flags", "isAdmin" ) $>
+
+		<$ exec rsAppendNewRow( "NavigationMenuItems" ) $>
+		<$ exec setValue( "NavigationMenuItems", "id", "COSIGN" ) $>
+		<$ exec setValue( "NavigationMenuItems", "parentId", "ARX" ) $>
+		<$ exec setValue( "NavigationMenuItems", "loadOrder", "10" ) $>
+		<$ exec setValue( "NavigationMenuItems", "label", lc( "wwCoSignManagement" ) ) $>
+		<$ exec setValue( "NavigationMenuItems", "linkType", "cgi" ) $>
+		<$ exec setValue( "NavigationMenuItems", "linkData", "IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>" ) $>
+		<$ exec setValue( "NavigationMenuItems", "flags", "" ) $>
+	<$ endif $>
+<@ end @>
+// ================================================================
+// This include will be called to show our overrides on a query, update, or checkin
+// page.  This one handles all three custom fields.
+//
+// "fieldName" is the proper variable to address the field.
+// ================================================================
+<@ dynamichtml std_edit_entry @>
+	<$ if fieldName and ( fieldName like "xCoSignContentProfile" ) $>
+		<$ include cosign_content_profile_field_entry $>
+	<$ else $>
+		<$ include super.std_edit_entry $>
+	<$ endif $>
+<@ end @>
+// ================================================================
+// This include will be called to display the xCoSignContentProfile 
+// select button on the query, update, and checkin pages.
+// ================================================================
+<@ dynamichtml cosign_content_profile_field_entry @>
+	<$ include super.std_edit_entry $>
+	<$ if isQuery and isTrue( isQuery ) $></td><td><$ endif $>
+	<$ myQuery = 'dDocType <matches> `CoSignRequestProtocol`' $>
+	<input type="hidden" name="p_name" value="" />
+	<input type="button" value="<$ lc( "wwBrowse" ) $>..." onClick="window.open
+( '<$ HttpCgiPath $>?IdcService=COSIGN_RESULTS_POPUP&FormName=<$ formName $>&ElementName=<$ fieldName $>&ReturnField=dDocTitle&QueryText=<$ url( myQuery ) $>','pick','width=500,height=500' )">
+<@end@>
+ </body>
+</html>

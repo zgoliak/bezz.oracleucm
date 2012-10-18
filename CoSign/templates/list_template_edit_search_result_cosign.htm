@@ -1,0 +1,680 @@
+<$include std_doctype_html_decl$>
+
+<head>
+	<$baseTemplateId = "SearchResultsClassic"$>
+	
+	<$if listTemplateAction like "new"$>
+		<$defaultPageTitle=lc("wwCreateClassicViewSearchResultTemplate")$>
+	<$else$>
+		<$defaultPageTitle=lc("wwEditSearchResultTemplate", listTemplateId)$>
+	<$endif$>
+
+	<$include std_html_head_declarations$>
+	
+	<$exec loadDocMetaDefinition()$>
+	<$exec inc("load_document_profile")$>
+
+	<$if not onLoadScript$>
+		<$onLoadScript = ""$>
+	<$endif$>
+	<$onLoadScript = onLoadScript & "buildDynamicFormFromFieldValues();"$>
+	
+	<$if listTemplateAction like "edit"$>
+		<$exec utLoadResultSet("pne_portal", "CustomListTemplates")$>
+		<$exec rsFindRowPrimary("CustomListTemplates", listTemplateId)$>
+		<$listTemplateLabel = CustomListTemplates.label$>
+		
+		<$Text2 = utGetValue("customlisttemplates/" & listTemplateId, "Text2")$>
+		<$text2Columns = utGetValue("customlisttemplates/" & listTemplateId, "text2Columns")$>
+		<$Text3 = utGetValue("customlisttemplates/" & listTemplateId, "Text3")$>
+		<$text3Columns = utGetValue("customlisttemplates/" & listTemplateId, "text3Columns")$>
+
+		<$if not isTrue(#env.DisableAdvancedDescriptionFormForListTemplates)$>
+			<$showAdvancedDescriptionEditor = utGetValue("customlisttemplates/" & listTemplateId, "showAdvancedDescriptionEditor")$>
+		<$endif$>
+		<$if not isTrue(#env.DisableCustomIdocScriptForListTemplates)$>
+			<$customIdocScript = utGetValue("customlisttemplates/" & listTemplateId, "customIdocScript")$>
+			<$if customIdocScript and strLength(customIdocScript) > 0$>
+				<$showAdditionalAdvancedOptions = "1"$>
+			<$endif$>
+		<$endif$>
+		
+		<$contentLink = utGetValue("customlisttemplates/" & listTemplateId, "contentLink")$>
+	<$endif$>
+	
+	<$if not showAdvancedDescriptionEditor$>
+		<$showAdvancedDescriptionEditor = "0"$>
+	<$endif$>
+	<$if not showAdditionalAdvancedOptions$>
+		<$showAdditionalAdvancedOptions = "0"$>
+	<$endif$>
+	
+	<$rsetName = "CoreFields"$>
+	<$exec inc("create_core_fields_result_set")$>
+	
+	<$rsetName = "CustomFields"$>
+	<$exec inc("create_custom_fields_result_set")$>
+	
+	<$rsetName = "ExtraFields"$>
+	<$exec inc("create_extra_fields_result_set")$>
+	<$exec rsAppendNewRow("ExtraFields")$>
+	<$exec setValue("ExtraFields", "dName", "myNativeFileLink")$>
+	<$exec setValue("ExtraFields", "label", lc("wwmyNativeFileLink"))$>
+	<$exec setValue("ExtraFields", "dIsSearchable", "1")$>
+	<$exec setValue("ExtraFields", "dIsEnabled", "1")$>
+
+	<$include custom_modify_search_result_template_classic_field_data$>
+	<$include custom_modify_search_result_template_field_data$>
+	
+	<$exec rsSort("CoreFields", "label", "string", "asc")$>
+	<$exec rsSort("CustomFields", "label", "string", "asc")$>
+	<$exec rsSort("ExtraFields", "label", "string", "asc")$>
+
+<script language="JavaScript">
+var g_showAdvancedDescriptionForm = <$if isFalse(showAdvancedDescriptionEditor)$>false<$else$>true<$endif$>;
+var g_showAdditionalAdvanced = <$if isFalse(showAdditionalAdvancedOptions)$>false<$else$>true<$endif$>;
+
+<$loop CoreFields$>
+	var g_<$dName$>_labelKey = "<$js(labelKey)$>";
+<$endloop$>
+<$loop CustomFields$>
+	var g_<$dName$>_labelKey = "<$js(labelKey)$>";
+<$endloop$>
+<$loop ExtraFields$>
+	var g_<$dName$>_labelKey = "<$js(labelKey)$>";
+<$endloop$>
+
+function buildDynamicFormFromFieldValues()
+{
+	if (g_showAdvancedDescriptionForm != document.ListTemplateForm.showAdvancedDescriptionEditorBox.checked)
+	{
+		showHideAdvancedDescriptionEditor(true);
+	}
+	
+	<$if not isTrue(#env.DisableAdvancedDescriptionFormForListTemplates)$>
+	var isAdditionalAdvancedShown = true;
+	if (document.getElementById("specialAdvancedOptions").style.display == "none")
+	{
+		isAdditionalAdvancedShown = false;
+	}
+	if (isAdditionalAdvancedShown != g_showAdditionalAdvanced)
+	{
+		g_showAdditionalAdvanced = false;
+		showHideSpecialAdvanced();
+	}
+	<$endif$>
+	
+	addText2List(document.ListTemplateForm.text2Columns.value);
+	addText3List(document.ListTemplateForm.text3Columns.value);
+	idc.dom.deselectAllSelectOptions("availableFieldsForText");
+	idc.dom.deselectAllSelectOptions("text2FieldList");
+	idc.dom.deselectAllSelectOptions("text3FieldList");
+}
+
+function showHideSpecialAdvanced()
+{
+	var specialAdvancedOptions = document.getElementById("specialAdvancedOptions");
+	var specialAdvancedLink = document.getElementById("specialAdvancedLink");
+
+	g_showAdditionalAdvanced = !g_showAdditionalAdvanced;
+
+	if (g_showAdditionalAdvanced)
+	{
+		specialAdvancedLink.innerHTML = "<$js(lc("wwHideExtraAdvancedOptions"))$>";
+		specialAdvancedOptions.style.display = "";
+	}
+	else
+	{
+		specialAdvancedLink.innerHTML = "<$js(lc("wwShowAllAdvancedOptions"))$>";
+		specialAdvancedOptions.style.display = "none";
+	}
+}
+
+function showHideAdvancedDescriptionEditor(forceChange)
+{
+	if (typeof(forceChange) == "undefined")
+	{
+		forceChange = false;
+	}
+
+	var doChange = true;
+	if (g_showAdvancedDescriptionForm)
+	{
+		if (!forceChange && !confirm('<$js(lc("wwListTemplateConfirmHideAdvancedDescriptionEditor"))$>'))
+		{
+			doChange = false;
+		}
+	}
+	
+	if (doChange)
+	{
+		if (!forceChange)
+		{
+			calculateText2Text3();
+		}
+	
+		g_showAdvancedDescriptionForm = !g_showAdvancedDescriptionForm;
+		if (g_showAdvancedDescriptionForm)
+		{
+			document.getElementById("text2Label").htmlFor = "Text2";
+			document.getElementById("text2FieldList").style.display = "none";
+			document.getElementById("Text2").style.display = "";
+			document.getElementById("text3Label").htmlFor = "Text3";
+			document.getElementById("text3FieldList").style.display = "none";
+			document.getElementById("Text3").style.display = "";
+			document.getElementById("removeFromText2Container").style.display = "none";
+			document.getElementById("moveText2FieldsUpDownContainer").style.display = "none";
+			document.getElementById("removeFromText3Container").style.display = "none";
+			document.getElementById("moveText3FieldsUpDownContainer").style.display = "none";
+			idc.dom.enableDisabledOptions("availableFieldsForText");
+		}
+		else
+		{
+			document.getElementById("text2Label").htmlFor = "text2FieldList";
+			document.getElementById("text2FieldList").style.display = "";
+			document.getElementById("Text2").style.display = "none";
+			document.getElementById("text3Label").htmlFor = "text3FieldList";
+			document.getElementById("text3FieldList").style.display = "";
+			document.getElementById("Text3").style.display = "none";
+			document.getElementById("removeFromText2Container").style.display = "";
+			document.getElementById("moveText2FieldsUpDownContainer").style.display = "";
+			document.getElementById("removeFromText3Container").style.display = "";
+			document.getElementById("moveText3FieldsUpDownContainer").style.display = "";
+			idc.dom.deselectAllSelectOptions("text2FieldList");
+			idc.dom.deselectAllSelectOptions("text3FieldList");
+			
+			var text2Columns = document.ListTemplateForm.text2Columns.value
+			var text3Columns = document.ListTemplateForm.text3Columns.value
+			idc.dom.disableOptions("availableFieldsForText", text2Columns.split(","));
+			idc.dom.disableOptions("availableFieldsForText", text3Columns.split(","));
+		}
+		
+		if (g_showAdvancedDescriptionForm)
+		{
+			document.ListTemplateForm.showAdvancedDescriptionEditor.value = 1;
+		}
+		else
+		{
+			document.ListTemplateForm.showAdvancedDescriptionEditor.value = 0;
+		}
+	}
+	else
+	{
+		document.getElementById("showAdvancedDescriptionEditorBox").checked = g_showAdvancedDescriptionForm;
+	}
+}
+
+function recalculateText2List()
+{
+	document.ListTemplateForm.text2Columns.value = idc.dom.selectListToString("text2FieldList");
+}
+
+function recalculateText3List()
+{
+	document.ListTemplateForm.text3Columns.value = idc.dom.selectListToString("text3FieldList");
+}
+
+function addText2List(list)
+{
+	var columns = list.split(",");
+	idc.dom.moveOptionsInList("availableFieldsForText", "text2FieldList", false, true, columns);
+}
+
+function addText3List(list)
+{
+	var columns = list.split(",");
+	idc.dom.moveOptionsInList("availableFieldsForText", "text3FieldList", false, true, columns);
+}
+
+function addToText2()
+{
+	if (!g_showAdvancedDescriptionForm)
+	{
+		idc.dom.moveOptions("availableFieldsForText", "text2FieldList", false, true);
+		recalculateText2List();
+	}
+	else
+	{
+		var fields = document.getElementById('availableFieldsForText');
+		var text2 = document.getElementById('Text2');
+		for (var i = 0; i < fields.options.length; i++)
+		{
+			var option = fields.options[i];
+			if (option.selected)
+			{
+				if (text2.value.length > 0)
+				{
+					text2.value += '<br>';
+				}
+				
+				text2.value += text2ValueForField(option);
+			}
+		}
+	}
+}
+
+function text2ValueForField(option)
+{
+	var fieldName = option.value;
+	var caption = option.text;
+	var value = "";
+	if (fieldName == "myNativeFileLink")
+	{
+		value += '<span class="xsmall"><span class="infoLabel"><$js(lcCaption("wwNativeFile"))$></span> ';
+		value += '<\$include searchapi_result_native_href_start\$><\$lc("wwListTemplateDownloadText")\$><\$include searchapi_result_href_end\$></span>';
+	}
+	else
+	{
+		value += '<span class="xsmall"><span class="infoLabel"><' + '$lcCaption("' + eval("g_" + option.value + "_labelKey;") + '")$' + '></span> ' + commonValueForField(fieldName) + '</span>';
+	}
+	
+	<$include custom_search_result_template_classic_text2_field_values$>
+	<$include custom_search_result_template_text2_field_values$>
+	
+	return value;
+}
+
+function commonValueForField(fieldName)
+{
+	var value = "";
+	var fieldDef = getFieldDefinition(fieldName);
+	
+	if (fieldDef && fieldDef.viewName)
+	{
+		value += '<\$getFieldViewDisplayValue("' + fieldName + '", "' + fieldDef.viewName + '", #active.' + fieldName + ')\$>';
+	}
+	else if (fieldDef && fieldDef.fieldType == g_schemaDefinition.TREE_FIELD_TYPE)
+	{
+		value += '<\$getTreeDisplayValue("' + fieldName + '", #active.' + fieldName + ')\$>';
+	}
+	else if (fieldName == "WebFileSize" || fieldName == "VaultFileSize")
+	{
+		value += '<\$(' + fieldName + '+1023)/1024\$>K';
+	}
+	else
+	{
+		if (fieldDef && fieldDef.type === "Int") {
+			value += '<\$formatInteger(' + fieldName + ')\$>';
+		}
+		else if (fieldDef && fieldDef.type === "Decimal") {
+			value += '<\$formatDecimalForField(' + fieldName + ', "' + fieldName + '")\$>';
+		}
+		else {
+			value += '<\$' + fieldName + '\$>';
+		}
+	}
+	
+	return value;
+}
+
+function removeFromText2()
+{
+	idc.dom.moveOptions("text2FieldList", "availableFieldsForText", true, false);
+	recalculateText2List();
+}
+
+function moveText2FieldsUp()
+{
+	idc.dom.moveOptionsUp("text2FieldList");
+	recalculateText2List();
+}
+
+function moveText2FieldsDown()
+{
+	idc.dom.moveOptionsDown("text2FieldList");
+	recalculateText2List();
+}
+
+function addToText3()
+{
+	if (!g_showAdvancedDescriptionForm)
+	{
+		idc.dom.moveOptions("availableFieldsForText", "text3FieldList", false, true);
+		recalculateText3List();
+	}
+	else
+	{
+		var fields = document.getElementById('availableFieldsForText');
+		var text3 = document.getElementById('Text3');
+		for (var i = 0; i < fields.options.length; i++)
+		{
+			var option = fields.options[i];
+			if (option.selected)
+			{
+				if (text3.value.length > 0)
+				{
+					text3.value += ', ';
+				}
+				
+				text3.value += text3ValueForField(option);
+			}
+		}
+	}
+}
+
+function text3ValueForField(option)
+{
+	var fieldName = option.value;
+	var value = "";
+	if (fieldName == "myNativeFileLink")
+	{
+		value += '<\$include searchapi_result_native_href_start\$><\$lc("wwListTemplateDownloadNativeText")\$><\$include searchapi_result_href_end\$>';
+	}
+	else
+	{
+		value += commonValueForField(fieldName);
+	}
+	
+	<$include custom_search_result_template_classic_text3_field_values$>
+	<$include custom_search_result_template_text3_field_values$>
+	
+	return value;
+}
+
+function removeFromText3()
+{
+	idc.dom.moveOptions("text3FieldList", "availableFieldsForText", true, false);
+	recalculateText3List();
+}
+
+function moveText3FieldsUp()
+{
+	idc.dom.moveOptionsUp("text3FieldList");
+	recalculateText3List();
+}
+
+function moveText3FieldsDown()
+{
+	idc.dom.moveOptionsDown("text3FieldList");
+	recalculateText3List();
+}
+
+function calculateText2Text3()
+{
+	var text2 = "";
+	var text3 = "";
+
+	var text2Fields = document.getElementById("text2FieldList");
+	for (var i = 0; i < text2Fields.options.length; i++)
+	{
+		if (text2.length > 0)
+		{
+			text2 += '<br>';
+		}
+		
+		text2 += text2ValueForField(text2Fields.options[i]);
+	}
+	
+	var text3Fields = document.getElementById("text3FieldList");
+	for (var i = 0; i < text3Fields.options.length; i++)
+	{
+		if (text3.length > 0)
+		{
+			text3 += ', ';
+		}
+		
+		text3 += text3ValueForField(text3Fields.options[i]);
+	}
+	
+	document.getElementById("Text2").value = text2;
+	document.getElementById("Text3").value = text3;
+}
+
+function prepateListTemplateFormSubmit(frm)
+{
+	if (!g_showAdvancedDescriptionForm)
+	{
+		calculateText2Text3();
+	}
+	
+	if (strTrim(frm.customListTemplateId.value).length == 0)
+	{
+		alert(lc("wwListTemplateMustSpecifyId"));
+		return false;
+	}
+	
+	if (strTrim(frm.customListTemplateId.value).indexOf(' ') >= 0)
+	{
+		alert(lc("wwListTemplateCannotContainSpaces"));
+		return false;
+	}
+	
+	if (strTrim(frm.customListTemplateId.value).indexOf("'") >= 0)
+	{
+		alert(lc("wwListTemplateContainsInvalidCharacters"));
+		return false;
+	}
+	
+	if (strTrim(frm.label.value).length == 0)
+	{
+		alert(lc("wwListTemplateMustSpecifyLabel"));
+		return false;
+	}
+	
+	var listTemplateId = strTrim(frm.customListTemplateId.value);
+	var listTemplateIdFileName = listTemplateId.toLowerCase();
+	
+	frm.topicString1.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":Text2:Text2";
+	frm.topicString2.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":Text3:Text3";
+	frm.topicString3.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":contentLink:contentLink";
+	frm.topicString4.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":text2Columns:text2Columns";
+	frm.topicString5.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":text3Columns:text3Columns";
+	frm.topicString6.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":showAdvancedDescriptionEditor:showAdvancedDescriptionEditor";
+	frm.topicString7.value = "updateKeyByName:customlisttemplates/" + listTemplateIdFileName + ":customIdocScript:customIdocScript";
+	frm.numTopics.value = "7";
+	
+	return true;
+}
+
+function resetAllSettings()
+{
+	<$if isFalse(showAdvancedDescriptionEditor)$>
+		if (g_showAdvancedDescriptionForm)
+		{
+			showHideAdvancedDescriptionEditor(true);
+		}
+		
+		idc.dom.removeAllOptions("text2FieldList");
+		idc.dom.removeAllOptions("text3FieldList");
+		idc.dom.enableDisabledOptions("availableFieldsForText");
+		<$if text2Columns$>addText2List("<$js(text2Columns)$>");<$endif$>
+		<$if text3Columns$>addText3List("<$js(text3Columns)$>");<$endif$>
+		idc.dom.deselectAllSelectOptions("text2FieldList");
+		idc.dom.deselectAllSelectOptions("text3FieldList");
+	<$else$>
+		if (!g_showAdvancedDescriptionForm)
+		{
+			showHideAdvancedDescriptionEditor(true);
+		}
+	<$endif$>
+	document.ListTemplateForm.Text2.value = "<$js(#active.Text2)$>";
+	document.ListTemplateForm.Text3.value = "<$js(#active.Text3)$>";
+	document.ListTemplateForm.showAdvancedDescriptionEditorBox.checked = g_showAdvancedDescriptionForm;
+	document.ListTemplateForm.text2Columns.value = "<$js(#active.text2Columns)$>";
+	document.ListTemplateForm.text3Columns.value = "<$js(#active.text3Columns)$>";
+	idc.dom.deselectAllSelectOptions("availableFieldsForText");
+	
+	document.ListTemplateForm.customListTemplateId.value = '<$js(#active.listTemplateId)$>';
+	document.ListTemplateForm.label.value = '<$js(#active.listTemplateLabel)$>';
+	
+	<$if not isTrue(#env.DisableCustomIdocScriptForListTemplates)$>
+		<$if isTrue(showAdditionalAdvancedOptions)$>
+			if (!g_showAdditionalAdvanced)
+			{
+				showHideSpecialAdvanced();
+			}
+		<$else$>
+			if (g_showAdditionalAdvanced)
+			{
+				showHideSpecialAdvanced();
+			}
+		<$endif$>
+		
+		document.ListTemplateForm.customIdocScript.value = '<$js(#active.customIdocScript)$>';
+	<$endif$>
+	
+	for (var i = 0; i < document.ListTemplateForm.contentLink.length; i++)
+	{
+		if (document.ListTemplateForm.contentLink[i].value == '<$js(#active.contentLink)$>')
+		{
+			document.ListTemplateForm.contentLink[i].click();
+		}
+	}
+}
+
+<$include custom_search_result_template_classic_javascript$>
+<$include custom_search_result_template_javascript$>
+
+</script>
+</head>
+
+<$include body_def$>
+<$include std_page_begin$>
+<$include std_header$>
+
+<$breadcrumbInclude = "list_template_breadcrumb"$>
+<$headerHelpPage = "QH_CreateSearchTemplateClassic"$>
+<$include std_page_heading$>
+
+<$include list_template_form_start$>
+<input type="hidden" name="text2Columns" value="<$if text2Columns$><$xml(text2Columns)$><$endif$>" />
+<input type="hidden" name="text3Columns" value="<$if text3Columns$><$xml(text3Columns)$><$endif$>" />
+
+<$subheadingText = lc("wwBasicInformation")$>
+<$subheadingHelpPage = "QH_CreateSearchTemplateClassicBasicSection"$>
+<$include std_page_subheading$>
+
+<table border="0" cellpadding="0" summary="" class="idcFormTable">
+	<tr class="idcRequiredEntry">
+		<td class="idcFieldCaption idcCheckinUpdateCaption"><label for="customListTemplateId">* <$lcCaption("wwListTemplateId")$></label></td><td><input type="text" id="customListTemplateId" name="customListTemplateId" value="<$if listTemplateId$><$xml(listTemplateId)$><$endif$>" /></td>
+	</tr>
+	<tr class="idcRequiredEntry">
+		<td class="idcFieldCaption idcCheckinUpdateCaption"><label for="customListTemplateLabel">* <$lcCaption("wwListTemplateLabel")$></label></td><td><input type="text" id="customListTemplateLabel" name="label" value="<$if listTemplateLabel$><$xml(listTemplateLabel)$><$endif$>" /></td>
+	</tr>
+</table>
+
+<$subheadingText = lc("wwCustomizeDescriptionColumnHeader")$>
+<$subheadingHelpPage = "QH_CreateSearchTemplateClassicCustomizeDescriptionSection"$>
+<$include std_page_subheading$>
+
+<table border="0" cellpadding="0" cellspacing="0" summary="">
+<tr>
+	<td style="text-align:center;padding:5px;">
+		<label for="availableFieldsForText"><span class="title"><$lc("wwAvailableFields")$></span></label>
+	</td>
+	<td style="text-align:center;padding:5px;">
+		<label id="text2Label" for="<$if isFalse(showAdvancedDescriptionEditor)$>text2FieldList<$else$>Text2<$endif$>"><span class="title"><$lc("wwMainInformation")$></span></label>
+	</td>
+</tr>
+<tr>
+	<td style="padding-right:10px;">
+		<select name="availableFieldsForText" id="availableFieldsForText" multiple="multiple"
+		  size="21" width="250" style="width:250px" onchange="return idc.dom.deselectDisabledOptions(this)">
+			<$optGroupFilter = "isTrue(getValue(rsetName, \"dIsSearchable\")) and isTrue(getValue(rsetName, \"dIsEnabled\")) and not (getValue(rsetName, \"dName\") like \"myViewDescription\")"$>
+
+			<$rsetName = "ExtraFields"$>
+			<$optGroupLabel = lc("wwSpecialFieldsOptGroupLabel")$>
+			<$include create_field_opt_group_from_rset$>
+		  
+			<$rsetName = "CoreFields"$>
+			<$optGroupLabel = lc("wwCoreFieldsOptGroupLabel")$>
+			<$include create_field_opt_group_from_rset$>
+			
+			<$rsetName = "CustomFields"$>
+			<$optGroupLabel = lc("wwCustomFieldsOptGroupLabel")$>
+			<$include create_field_opt_group_from_rset$>
+		</select>
+	</td>
+	<td valign="top">
+		<table border="0" cellpadding="0" cellspacing="0" summary="">
+			<tr>
+				<td align="center" valign="middle" style="padding:0px 4px 0px 4px;vertical-align:middle;">
+					<a href="javascript:addToText2();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_right.gif" alt="<$stripXml(lc("wwMoveFieldToMainInfo"))$>" /></a><div id="removeFromText2Container" <$if isTrue(showAdvancedDescriptionEditor)$>style="display:none;"<$endif$>><br /><br /><a href="javascript:removeFromText2();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_left.gif" alt="<$stripXml(lc("wwMoveFieldToAvailFields"))$>" /></a></div>
+				</td>
+				<td style="padding:5px;">
+					<select name="text2FieldList" id="text2FieldList" multiple="multiple" size="11" width="250" style="width:250px;<$if isTrue(showAdvancedDescriptionEditor)$>display:none;<$endif$>"></select>
+					<textarea name="Text2" id="Text2" style="width:350px;<$if isFalse(showAdvancedDescriptionEditor)$>display:none;<$endif$>" rows="<$if MSIE$>9<$else$>8<$endif$>"><$if Text2$><$Text2$><$endif$></textarea>
+				</td>
+				<td align="center" valign="middle" style="padding:0px 4px 0px 4px;vertical-align:middle;">
+					<div id="moveText2FieldsUpDownContainer" <$if isTrue(showAdvancedDescriptionEditor)$>style="display:none;"<$endif$>><a href="javascript:moveText2FieldsUp();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_up.gif" alt="<$stripXml(lc("wwMoveFieldUp"))$>" /></a><br /><br /><br /><a href="javascript:moveText2FieldsDown();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_down.gif" alt="<$stripXml(lc("wwMoveFieldDown"))$>" /></a></div>
+				</td>
+			</tr>
+			<tr>
+				<td></td>
+				<td style="text-align:center;padding-top:8px;padding-bottom:8px;">
+					<label id="text3Label" for="<$if isFalse(showAdvancedDescriptionEditor)$>text3FieldList<$else$>Text3<$endif$>"><span class="title"><$lc("wwAdditionalInformation")$></span></label>
+				</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td align="center" valign="middle" style="padding:0px 4px 0px 4px;vertical-align:middle;">
+					<a href="javascript:addToText3();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_right.gif" alt="<$stripXml(lc("wwMoveFieldToAddInfo"))$>" /></a><div id="removeFromText3Container" <$if isTrue(showAdvancedDescriptionEditor)$>style="display:none;"<$endif$>><br /><br /><a href="javascript:removeFromText3();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_left.gif" alt="<$stripXml(lc("wwMoveFieldToAvailFields"))$>" /></a></div>
+				</td>
+				<td style="padding:5px;">
+					<select name="text3FieldList" id="text3FieldList" multiple="multiple" size="7" width="250" style="width:250px;<$if isTrue(showAdvancedDescriptionEditor)$>display:none;<$endif$>"></select>
+					<textarea name="Text3" id="Text3" style="width:350px;<$if isFalse(showAdvancedDescriptionEditor)$>display:none;<$endif$>" rows="<$if MSIE$>9<$else$>8<$endif$>"><$if Text3$><$Text3$><$endif$></textarea>
+				</td>
+				<td align="center" valign="middle" style="padding:0px 4px 0px 4px;vertical-align:middle;">
+					<div id="moveText3FieldsUpDownContainer" <$if isTrue(showAdvancedDescriptionEditor)$>style="display:none;"<$endif$>><a href="javascript:moveText3FieldsUp();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_up.gif" alt="<$stripXml(lc("wwMoveFieldUp"))$>" /></a><br /><br /><br /><a href="javascript:moveText3FieldsDown();"><img border="0" src="<$HttpSkinRoot$>ArrowBtn_down.gif" alt="<$stripXml(lc("wwMoveFieldDown"))$>" /></a></div>
+				</td>
+			</tr>
+		</table>
+	</td>
+</tr>
+<$if not isTrue(#env.DisableAdvancedDescriptionFormForListTemplates)$>
+<tr>
+	<td colspan="2" align="center" style="padding-top:5px;">
+		<input type="checkbox" name="showAdvancedDescriptionEditorBox" id="showAdvancedDescriptionEditorBox" <$if isTrue(showAdvancedDescriptionEditor)$>checked="checked"<$endif$> onclick="showHideAdvancedDescriptionEditor();" /> <label for="showAdvancedDescriptionEditorBox"><$lc("wwShowAdvancedDescriptionEditorForm")$></label>
+		<input type="hidden" name="showAdvancedDescriptionEditor" value="<$if isTrue(showAdvancedDescriptionEditor)$>1<$else$>0<$endif$>" />
+	</td>
+</tr>
+<$endif$>
+</table>
+
+<$subheadingText = lc("wwAdvancedOptions")$>
+<$subheadingHelpPage = "QH_CreateSearchTemplateClassicAdvancedOptions"$>
+<$if not isTrue(#env.DisableCustomIdocScriptForListTemplates)$>
+	<$subheadingSecondaryText = "<a id=\"specialAdvancedLink\" class=\"xuiLinkText2_Sm_NoVisited\" href=\"javascript:showHideSpecialAdvanced();\">" & lc("wwShowAllAdvancedOptions") & "</a>"$>
+<$endif$>
+<$include std_page_subheading$>
+
+<table border="0" cellpadding="0" summary="">
+<tr>
+	<td>
+		<p><$lc("wwListTemplateMainInformationLinksTo")$></p>
+	</td>
+	<td>
+		<table border="0" cellpadding="0">
+			<tr><td style="padding:0px 0px 2px 2px;"><input type="radio" id="contentLink_1" name="contentLink" value="webviewable" <$if not contentLink or contentLink like "webviewable"$>checked="checked"<$endif$> /> <label for="contentLink_1"><$lc("wwWebViewableRendition")$></label></td></tr>
+			<tr><td style="padding:0px 0px 2px 2px;"><input type="radio" id="contentLink_2" name="contentLink" value="native" <$if contentLink and contentLink like "native"$>checked="checked"<$endif$> /> <label for="contentLink_2"><$lc("wwNativeRendition")$></label></td></tr>
+			<tr><td style="padding:0px 0px 2px 2px;"><input type="radio" id="contentLink_3" name="contentLink" value="htmlWebviewable" <$if contentLink and contentLink like "htmlWebviewable"$>checked="checked"<$endif$> /> <label for="contentLink_3"><$lc("wwDCHtmlRenditionDefaultToWebViewable")$></label></td></tr>
+			<tr><td style="padding:0px 0px 2px 2px;"><input type="radio" id="contentLink_4" name="contentLink" value="htmlNative" <$if contentLink and contentLink like "htmlNative"$>checked="checked"<$endif$> /> <label for="contentLink_4"><$lc("wwDCHtmlRenditionDefaultToNative")$></label></td></tr>
+			<tr><td style="padding:0px 0px 2px 2px;"><input type="radio" id="contentLink_5" name="contentLink" value="none" <$if contentLink and contentLink like "none"$>checked="checked"<$endif$> /> <label for="contentLink_5"><$lc("wwNoRendition")$></label></td></tr>
+		</table>
+	</td>
+</tr>
+</table>
+
+<br style="line-height:15px;" />
+<$if not isTrue(#env.DisableCustomIdocScriptForListTemplates)$>
+<table border="0" cellpadding="0" id="specialAdvancedOptions" style="display:none;" summary="">
+<tr>
+	<td style="padding-bottom:15px;">
+		<p><$lc("wwListTemplateCustomIdocDescription")$></p>
+		<$if listTemplateAction like "edit"$>
+			<$customScript = utGetValue("customlisttemplates/" & listTemplateId, "customIdocScript")$>
+		<$endif$>
+		<textarea name="customIdocScript" style="width:100%" rows="8" cols="60"><$if customIdocScript$><$customIdocScript$><$endif$></textarea>
+	</td>
+</tr>
+</table>
+<$else$>
+	<input type="hidden" name="customIdocScript" value="" />
+<$endif$>
+
+<$include list_template_form_end$>
+
+<$include std_page_end$>
+
+</body>
+</html>

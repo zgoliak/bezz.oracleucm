@@ -1,0 +1,42 @@
+<$ include std_doctype_html_decl $>
+<html>
+ <head>
+<$ include std_html_head_declarations $>
+  <title>(Query Picker)</title>
+ </head>
+<$ include body_def $>
+  Please select a document from the list:<br><br>
+<$ executeService('GET_SEARCH_RESULTS') $>
+  <table border="1">
+   <tr>
+    <td><b>&nbsp;</b></td>
+    <td><b>ID</b></td>
+    <td><b>Title</b></td>
+    <td><b>Type</b></td>
+    <td><b>Author</b></td>
+   </tr>
+<$ loop SearchResults $>
+   <tr>
+    <td>
+     <script langauge="javascript">
+      function post_value<$ SearchResults.dDocName $>() {
+       opener.document.<$ #active.FormName $>.<$ #active.ElementName $>.value =
+	     document.frm<$ SearchResults.dDocName $>.c_name.value;
+       self.close();
+      }
+     </script>
+     <form name="frm<$ SearchResults.dDocName $>" method="post" action="">
+      <input type="hidden" name="c_name" size="12" value="<$ getValue( 'SearchResults', #active.ReturnField ) $>" />
+      <input type="button" value="Select" onclick="post_value<$ SearchResults.dDocName $>();" />
+     </form>
+    </td>
+    <td><$ SearchResults.dDocName $></td>
+    <td><$ SearchResults.dDocTitle $></td>
+    <td><$ SearchResults.dDocType $></td>
+    <td><$ SearchResults.dDocAuthor $></td>
+   </tr>
+<$ endloop $>
+  </table>
+<$ include std_page_end $>
+ </body>
+</html>

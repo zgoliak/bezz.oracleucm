@@ -1,0 +1,37 @@
+﻿<?hda version="11gR1-11.1.1.6.0-idcprod1-111219T111403" jcharset="UTF8" encoding="utf-8"?>
+@Properties LocalData
+blDateFormat=M/d{/yy}{ h:mm[:ss]{ a}}!mAM,PM!tUTC
+@end
+@ResultSet CoSign_IntradocTemplate
+5
+name
+class
+formtype
+filename
+description
+LIST_TEMPLATE_EDIT_SEARCH_RESULT_COSIGN
+PortalPage
+ListTemplates
+list_template_edit_search_result_cosign.htm
+Allows editing and creating of list templates based on SearchResultsCosign.
+COSIGN_MANAGEMENT
+CoSignAdministration
+CoSignAdministration
+CoSign_Management.htm
+CoSign Management
+COSIGN_MANAGEMENT_FORM
+CoSignAdministration
+CoSignAdministration
+CoSign_Management_Form.htm
+CoSign Management Form
+COSIGN_SIGN_DOCUMENT_FRAME
+CoSignAdministration
+CoSignAdministration
+CoSign_Sign_Document_Frame.htm
+CoSign Sign Document Frame
+COSIGN_RESULTS_POPUP
+CoSign
+CoSign
+CoSign_Results_Popup.htm
+CoSign Popup selection of request/profile(s)
+@end

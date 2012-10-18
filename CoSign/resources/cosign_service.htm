@@ -1,0 +1,127 @@
+﻿<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>
+CoSign service</head>
+<body>
+
+<@table CoSign_Services@>
+<table border=1><caption><strong>Scripts For Custom Services</strong></caption>
+<tr>
+	<td>Name</td><td>Attributes</td><td>Actions</td>
+</tr>
+<tr>
+	<td>COSIGN_SIGNDOCUMENT</td>
+	<td>DocService
+		2
+		COSIGN_SIGN_DOCUMENT_FRAME
+		null
+		documents<br>
+		!csUnableToCheckOut(dDocName)</td>
+	<td>3:lockContent::4:!csUnableToLockContent(dDocName)
+		3:mapResultSet:QlatestNonDeletedIDByName,dID,dID:2:!csUnableToCheckOut(dDocName)!csItemNoLongerInSystem
+		3:mapResultSet:QdocID,dRevClassID,dRevClassID:2:null
+		3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToCheckOut(dDocName)
+		3:doSubService:CHECKOUT_SUB:8:null
+		3:processSignRequest:::null</td>
+</tr>
+<tr>
+	<td>COSIGN_CHECKIN_SIGNEDDOCUMENT</td>
+	<td>DocService
+		50
+		REDIRECT_TEMPLATE
+		null
+		null<br>
+		!csUnableToCheckIn(dDocName)</td>
+	<td>3:processSignedDocument:::null
+		3:mapResultSet:QlatestNonDeletedIDByName,dID,dID:2:!csUnableToCheckOut(dDocName)!csItemNoLongerInSystem
+		3:mapResultSet:QdocID,dRevClassID,dRevClassID:0:!csItemNoLongerInSystem1(dDocName)
+		3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToBuildCheckInForm2(dDocName)
+		3:doSubService:CHECKIN_SEL_FORM_SUB:0:null
+		3:prepareCheckinSecurity::0:null
+		3:checkSecurity::0:null
+		3:doSubService:CHECKIN_SEL_SUB:12:null
+		3:prepareRedirect:IdcService=DOC_INFO&dID=<$dID$>&dDocName=<$url(dDocName)$><$if IsWorkflowInfo$>&IsWorkflowInfo=<$IsWorkflowInfo$><$endif$>:0:null</td>
+</tr>
+<tr>
+	<td>COSIGN_VERIFYSIGNATURES</td>
+	<td>DocService
+		2
+		REDIRECT_TEMPLATE
+		null
+		documents<br>
+		!csUnableToUpdateInfo(dDocName)</td>
+	<td>3:doSubService:UPDATE_DOCINFO_SUB:12:null
+		3:prepareRedirect:IdcService=DOC_INFO&dID=<$dID$>&dDocName=<$url(dDocName)$><$if IsWorkflowInfo$>&IsWorkflowInfo=<$IsWorkflowInfo$><$endif$>:0:null</td>
+</tr>
+<tr>
+	<td>COSIGN_MANAGEMENT_FORM</td>
+	<td>Service
+		50
+		COSIGN_MANAGEMENT_FORM
+		null
+		null<br>
+		!csUnableToBuildCheckInForm</td>
+	<td>3:loadMetaOptionsLists::0:!csErrorRetrievingOptionLists</td>
+</tr>
+<tr>
+	<td>COSIGN_LOAD_SIGNREQUEST</td>
+	<td>DocService
+		50
+		null
+		null
+		null<br>
+		Unable to load sign request</td>
+	<td>3:readXMLToBinder::0:</td>
+</tr>
+<tr>
+	<td>COSIGN_MANAGEMENT</td>
+	<td>Service
+		50
+		COSIGN_MANAGEMENT
+		null
+		null<br>
+		!csUnableToBuildCheckInForm</td>
+	<td>3:loadMetaOptionsLists::0:!csErrorRetrievingOptionLists</td>
+</tr>
+<tr>
+	<td>COSIGN_CHECKIN_NEW_PROFILE</td>
+	<td>DocService
+		2
+		REDIRECT_TEMPLATE
+		null
+		documents<br>
+		!csUnableToCheckInContentItem</td>
+	<td>3:prepareCheckinSecurity::0:null
+		3:checkSecurity::0:null
+		3:generateCoSignProfile:::null
+		3:doScriptableAction:checkin_new_subservice_selector:0:null
+		3:prepareRedirect:IdcService=CHECKIN_CONFIRM_FORM&dID=<$ dID $>&dDocTitle=<$ urlEscape7Bit( dDocTitle ) $>&dDocName=<$ urlEscape7Bit( dDocName ) $>&dDocAuthor=<$ url( dDocAuthor ) $>:0:null</td>
+</tr>
+<tr>
+	<td>COSIGN_CHECKIN_SEL_PROFILE</td>
+	<td>DocService
+		2
+		REDIRECT_TEMPLATE
+		null
+		documents<br>
+		!csUnableToCheckIn(dDocName)</td>
+	<td>3:prepareCheckinSecurity::0:null
+		3:checkSecurity::0:null
+		3:generateCoSignProfile:::null
+		3:doSubService:CHECKIN_SEL_SUB:12:null
+		3:prepareRedirect:IdcService=CHECKIN_CONFIRM_FORM&dID=<$dID$>&dDocTitle=<$urlEscape7Bit(dDocTitle)$>&dDocName=<$urlEscape7Bit(dDocName)$>&dDocAuthor=<$url(dDocAuthor)$>:0:null</td>
+</tr>
+<tr>
+	<td>COSIGN_RESULTS_POPUP</td>
+	<td>Service
+		50
+		COSIGN_RESULTS_POPUP
+		null
+		null<br>
+		Unable to launch popup</td>
+	<td></td>
+</table>
+<@end@>
+</body>
+</html>

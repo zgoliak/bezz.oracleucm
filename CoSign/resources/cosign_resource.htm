@@ -1,0 +1,123 @@
+﻿<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>CoSign htmlIncludeOrString
+ </head>
+ <body>
+<@table CoSign_StandardListTemplates@>
+  <table border=1>
+   <caption>
+   <strong>
+   <tr>
+    <td>sltId</td>
+    <td>sltLabel</td>
+    <td>sltClass</td>
+    <td>sltEditTemplate</td>
+    <td>sltEnabled</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>wwCoSignTemplate</td>
+    <td>searchResults</td>
+    <td>LIST_TEMPLATE_EDIT_SEARCH_RESULT_COSIGN</td>
+    <td>1</td>
+   </tr>
+  </table>
+<@end@>
+<@table CoSign_StandardListTemplateResourceIncludes@>
+  <table border=1>
+   <caption>
+   <strong>
+   <tr>
+    <td>sltId</td>
+    <td>sltResourceName</td>
+    <td>sltResourceInclude</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>headerSetup</td>
+    <td>cosign_search_result_table_header_setup</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>header</td>
+    <td>cosign_table_header</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>itemSetup</td>
+    <td>cosign_search_result_item_data_setup</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>createItemIncludes</td>
+    <td>cosign_search_result_create_item_includes</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>item</td>
+    <td>slim_table_row_include</td>
+   </tr>
+   <tr>
+    <td>SearchResultsCoSign</td>
+    <td>footer</td>
+    <td>slim_table_footer</td>
+   </tr>
+  </table>
+<@end@>
+<@table CoSign_ServiceHandlers@>
+  <table border=1>
+   <caption>
+   <strong>
+   <tr>
+    <td>serviceName</td>
+    <td>handler</td>
+    <td>searchOrder</td>
+   </tr>
+   <tr>
+    <td>DocService</td>
+    <td>com.bezzotech.oracleucm.arx.CoSignServiceHandler</td>
+    <td>1</td>
+   </tr>
+  </table>
+<@end@>
+<@table CoSign_IdcTracingSections@>
+  <table border=1>
+   <caption>
+   <strong>
+   <tr>
+    <td>itsSection</td>
+    <td>itsDescription</td>
+    <td>itsDefaultEnabled</td>
+   </tr>
+   <tr>
+    <td>bezzotechcosign</td>
+    <td>bezTraceBezzotechCoSign</td>
+    <td>false</td>
+   </tr>
+  </table>
+<@end@>
+<@table CoSign_PublishedStaticFiles@>
+  <table border=1>
+   <caption>
+   <strong>
+   <tr>
+    <td>srcPath</td>
+    <td>path</td>
+    <td>class</td>
+    <td>loadOrder</td>
+    <td>doPublishScript</td>
+    <td>canDeleteDir</td>
+   </tr>
+   <tr>
+    <td>publish/resources</td>
+    <td>resources</td>
+    <td>resources:cosign</td>
+    <td>10</td>
+    <td><$ doPublish = 1 $></td>
+    <td>1</td>
+   </tr>
+  </table>
+<@end@>
+ </body>
+</html>

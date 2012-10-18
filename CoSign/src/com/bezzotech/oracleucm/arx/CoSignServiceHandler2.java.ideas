@@ -1,0 +1,1142 @@
+package com.bezzotech.oracleucm.arx;
+
+import intradoc.common.Errors;
+import intradoc.common.ExecutionContext;
+import intradoc.common.FileUtils;
+import intradoc.common.Report;
+import intradoc.common.ServiceException;
+import intradoc.common.StringUtils;
+
+import intradoc.data.DataBinder;
+import intradoc.data.DataException;
+import intradoc.data.DataResultSet;
+import intradoc.data.IdcProperties;
+import intradoc.data.ResultSet;
+import intradoc.data.ResultSetUtils;
+
+import intradoc.filestore.FileStoreProvider;
+import intradoc.filestore.FileStoreUtils;
+import intradoc.filestore.IdcFileDescriptor;
+
+import intradoc.server.Service;
+import intradoc.server.ServiceData;
+import intradoc.server.ServiceHandler;
+import intradoc.server.ServiceManager;
+
+import intradoc.shared.SecurityUtils;
+import intradoc.shared.SharedObjects;
+import intradoc.shared.UserData;
+
+import intradoc.util.IdcVector;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.Scanner;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+
+import org.xml.sax.SAXException;
+
+import sun.misc.BASE64Decoder;
+
+public class CoSignServiceHandler extends ServiceHandler {
+ private static boolean m_undo = false;
+ /** Flag to storeTempFile to disable automatic cleanup of the temp file. */
+ public final int F_NO_CLEANUP = 0x10000000;
+ /**
+  *  TODO: Need to implement better Cookie handling
+  */
+// private static Map < String, String > cookie = new HashMap < String, String > ();
+ private static String m_cookie = "";
+
+ public void generateCoSignProfile() throws ServiceException {
+  String s = WSC.XMLUtils.getStringFromDoc( buildSigProfile( 
+  String s1 = super.m_binder.getNextFileCounter() + ".xml";
+  String s2 = super.m_binder.getTemporaryDirectory() + s1;
+  try {
+   FileOutputStream fileoutputstream = new FileOutputStream( s2 );
+   OutputStreamWriter outputstreamwriter = new OutputStreamWriter( fileoutputstream, "UTF8" );
+   outputstreamwriter.write( s );
+   outputstreamwriter.close();
+  } catch( Exception exception ) {
+   super.m_service.createServiceException( null, exception.getMessage() );
+  }
+  super.m_binder.addTempFile( s2 );
+  super.m_binder.putLocal( "primaryFile", s1 );
+  super.m_binder.putLocal( "primaryFile:path", s2 );
+ }
+
+ public void processSignRequest() throws ServiceException {
+  Report.debug( "bezzotechcosign", "Content Item" + super.m_binder.getLocal( "dDocName" ) + 
+    " has been checked out.", null );
+  Report.debug( "bezzotechcosign", super.m_binder.toString(), null );
+
+  DataBinder requestBinder = new DataBinder();
+  requestBinder.putLocal( "docName", super.m_binder.getLocal( "dDocName" ) );
+  requestBinder.putLocal( "docID", super.m_binder.getLocal( "dID" ) );
+  ResultSet rset = getDocInfo( requestBinder.getLocal( "docID" ) );
+  requestBinder.putLocal( "contentType", ResultSetUtils.getValue( rset, "dFormat" ) );
+  requestBinder.putLocal( "CoSignProfile", ResultSetUtils.getValue( rset, "xCoSignContentProfile" ) );
+  DataResultSet drset = new DataResultSet();
+  drset.copy( rset );
+  requestBinder.addResultSet( "DOC_INFO", drset );
+  Report.debug( "bezzotechcosign", "Required metadata for Signing Ceremony have been gathered " +
+    "from content item.", null );
+  Report.debug( "bezzotechcosign", requestBinder.toString(), null );
+
+  readFileToBinderStream( requestBinder );
+  String msg = "";
+  try { processFileUpload( requestBinder ); }
+  catch ( Exception e ) {
+   msg = e.getMessage();
+   m_undo = true;
+  }
+
+  drset = retrieveSignRequest( requestBinder );
+  if ( drset.getNumRows() > 1 ) {
+   throw new ServiceException( "We found more than 1 Sign Request Protocol, please contact your " +
+     "system administrator." );
+  }
+  Report.debug( "bezzotechcosign", "Successfully located Sign Request Protocol.", null );
+  readFileToBinderStream( drset, requestBinder );
+  try { processSignRequest( requestBinder ); }
+  catch ( Exception e ) {
+   msg = e.getMessage();
+   m_undo = true;
+  }
+
+  if ( m_undo ) {
+   rollback( requestBinder, msg );
+  }
+ }
+
+ public void processSignedDocument() throws ServiceException {
+  DataBinder requestBinder = new DataBinder();
+  requestBinder.putLocal( "sessionId", super.m_binder.getLocal( "sessionId" ) );
+  if ( requestBinder.getLocal( "sessionId" ) == null )
+   super.m_service.createServiceException( null, "csInvalidSessionId" );
+  requestBinder.putLocal( "docID", super.m_binder.getLocal( "dID" ) );
+  if ( requestBinder.getLocal( "docID" ) == null )
+   super.m_service.createServiceException( null, "csInvalidDocId" );
+
+  String msg = "";
+  try { processDownloadRequest( requestBinder ); }
+  catch ( Exception e ) {
+   msg = e.getMessage();
+   m_undo = true;
+  }
+
+  if ( m_undo ) {
+   rollback( requestBinder, msg );
+  }
+ }
+
+ public void readXMLToBinder() throws ServiceException {
+  DataBinder binder = new DataBinder();
+  binder.mergeResultSetRowIntoLocalData( getDocInfo( super.m_binder.getLocal( "dID" ) ) );
+  binder.putLocal( FileStoreProvider.SP_RENDITION_ID, FileStoreProvider.R_PRIMARY );
+  StringBuffer content = new StringBuffer();
+  try {
+   String primaryFilePath = getFilePath( binder );
+   Report.debug( "bezzotechcosign", "File path: " + primaryFilePath, null );
+   Document dom = WSC.XMLUtils.parseXmlFile( primaryFilePath );
+   Report.debug( "bezzotechcosign", "Document for parsing has been prepared", null );
+   WSC.parseWSCResponse( dom, super.m_binder );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+ }
+/*
+ private Document parseXmlFile( String path ) throws ServiceException {
+  Document dom = null;
+  DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+  try {
+   DocumentBuilder db = dbf.newDocumentBuilder();
+   dom = db.parse( path );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+  return dom;
+ }
+
+ private void parseDocument( Document dom ) throws ServiceException {
+  Element docEle = dom.getDocumentElement();
+
+  buildSigProfileResultSet( docEle );
+
+  buildReasonsResultSets( docEle );
+
+  copyLogicToLocal( docEle );
+
+  copyUrlToLocal( docEle );
+
+  copyAuthToLocal( docEle );
+  Report.debug( "bezzotechcosign", super.m_binder.toString(), null );
+ }
+
+ private void copyAuthToLocal( Element docEle ) throws ServiceException {
+  NodeList nl = docEle.getElementsByTagName( "Auth" );
+  if ( nl != null && nl.getLength() > 0 ) {
+   String [] fieldNames = { "username", "password" };
+   super.m_binder.m_localData.putAll( buildLocalProperties( ( Element )nl.item( 0 ), fieldNames ) );
+  }
+ }
+
+ private void copyUrlToLocal( Element docEle ) throws ServiceException {
+  NodeList nl = docEle.getElementsByTagName( "Url" );
+  if ( nl != null && nl.getLength() > 0 ) {
+   String [] fieldNames = { "finishURL", "fileUploadURL", "errorHandleURL" };
+   super.m_binder.m_localData.putAll( buildLocalProperties( ( Element )nl.item( 0 ), fieldNames ) );
+  }
+ }
+
+ private void copyLogicToLocal( Element docEle ) throws ServiceException {
+  NodeList nl = docEle.getElementsByTagName( "Logic" );
+  if ( nl != null && nl.getLength() > 0 ) {
+   String [] fieldNames = { "changePass", "uploadImage", "isWorkflowMode", "allowAdHoc",
+     "enforceReason", "allowUserReason", "workingMode", "verify" };
+   super.m_binder.m_localData.putAll( buildLocalProperties( ( Element )nl.item( 0 ), fieldNames ) );
+  }
+ }
+
+ private IdcProperties buildLocalProperties( Element ele, String [] fieldNames ) throws ServiceException {
+  IdcProperties props = new IdcProperties();
+  for ( int i = 0; i < fieldNames.length; i++ ) {
+   props.setProperty( fieldNames[ i ], getElementText( fieldNames[ i ], ele ) );
+  }
+  Report.debug( "bezzotechcosign", "Properties built: " + props.toString(), null );
+  return props;
+ }
+
+ private void buildReasonsResultSets( Element docEle ) throws ServiceException {
+  NodeList nl = docEle.getElementsByTagName( "SignReasons" );
+  if ( nl != null && nl.getLength() > 0 ) {
+   String [] fieldNames = { "reason" };
+   DataResultSet drset = ( DataResultSet )super.m_binder.getResultSet( "SignReason" );
+   if ( drset == null ) { drset = new DataResultSet( fieldNames ); }
+   for ( int i = 0; i < nl.getLength(); i++ ) {
+    buildResultSetRow( drset, fieldNames, ( Element )nl.item( i ) );
+   }
+   super.m_binder.addResultSet( "SignReason", drset );
+  }
+  nl = docEle.getElementsByTagName( "RejectReasons" );
+  if ( nl != null && nl.getLength() > 0 ) {
+   String [] fieldNames = { "reason" };
+   DataResultSet drset = ( DataResultSet )super.m_binder.getResultSet( "RejectReason" );
+   if ( drset == null ) { drset = new DataResultSet( fieldNames ); }
+   for ( int i = 0; i < nl.getLength(); i++ ) {
+    buildResultSetRow( drset, fieldNames, ( Element )nl.item( i ) );
+   }
+   super.m_binder.addResultSet( "RejectReason", drset );
+  }
+ }
+
+ private void buildSigProfileResultSet( Element docEle ) throws ServiceException {
+  NodeList nl = docEle.getElementsByTagName( "SigProfiles" );
+  if ( nl != null && nl.getLength() > 0 ) {
+   Report.debug( "bezzotechcosign", "Found Sig Profiles", null );
+   String [] fieldNames = { "fieldName", "x", "y", "width", "height", "pageNumber", "visible",
+     "showTitle", "title", "dateFormat", "timeFormat", "extTimeformat", "signer", "date", "logo",
+     "graphicalImage", "initials" };
+   DataResultSet drset = ( DataResultSet )super.m_binder.getResultSet( "SigProfile" );
+   if ( drset == null ) { drset = new DataResultSet( fieldNames ); }
+   Report.debug( "bezzotechcosign", "DataResultSet found: " + drset.toString(), null );
+   for ( int i = 0; i < nl.getLength(); i++ ) {
+    nl = ( ( Element )nl.item( i ) ).getElementsByTagName( "SigProfile" );
+    if ( nl != null && nl.getLength() > 0 ) {
+     Report.debug( "bezzotechcosign", "Found Sig Profile", null );
+     buildResultSetRow( drset, fieldNames, ( Element )nl.item( i ) );
+    }
+   }
+   super.m_binder.addResultSet( "SigProfile", drset );
+  }
+ }
+
+ private void buildResultSetRow( DataResultSet drset, String [] fieldNames, Element ele ) throws ServiceException {
+  Vector < String > row = ( Vector < String > )drset.createEmptyRow();
+  for ( int i = 0; i < fieldNames.length; i++ ) {
+   NodeList nl = ele.getElementsByTagName( fieldNames[ i ] );
+   if ( nl != null && nl.getLength() > 0 ) {
+    Report.debug( "bezzotechcosign", "Nodes found: " + nl.getLength(), null );
+    if ( nl.getLength() > 1 ) {
+     Report.debug( "bezzotechcosign", "Getting Element Text Collection '" + fieldNames[ i ] + "' from NodeList", null );
+     row.addAll( getElementTextCollection( nl ) );
+    } else {
+     row.set( i, getElementText( fieldNames[ i ], ele ) );
+    }
+   }
+  }
+  Report.debug( "bezzotechcosign", "Row built: " + row.toString(), null );
+  drset.addRow( row );
+ }
+
+ private String getElementText( String fieldName, Element ele ) throws ServiceException {
+  Report.debug( "bezzotechcosign", "Getting Element Text '" + fieldName + "' from Element '" + ele.getTagName() + "'", null );
+  NodeList nl = ele.getElementsByTagName( fieldName );
+  if ( nl != null && nl.getLength() > 0 ) {
+   Report.debug( "bezzotechcosign", "NodeList found: " + nl.getLength(), null );
+   Element el = ( Element )nl.item( 0 );
+   if ( el != null ) {
+    return el.getTextContent();
+   }
+   Report.debug( "bezzotechcosign", "No Element with name '" + fieldName +
+     "' was found within element '" + ele.getTagName() + "'", null );
+  } else {
+   Report.debug( "bezzotechcosign", "No Element with name '" + fieldName +
+     "' was found within element '" + ele.getTagName() + "'", null ); 
+  }
+
+  return "";
+ }
+
+ private Vector getElementTextCollection( NodeList nl ) throws ServiceException {
+  Vector < String > returnValues = new Vector < String > ();
+  for ( int i = 0; i < nl.getLength(); i++ ) {
+   Element ele = ( Element )nl.item( i );
+   
+   returnValues.add( ele.getTextContent() );
+  }
+
+  return returnValues;
+ }
+*/
+ protected static class WSC {
+  final static String m_appName = "CoSign";
+
+  public static Element buildSigProfile( Document doc, DataBinder binder ) throws ServiceException {
+   Element root = doc.createElement( "request" );
+   root.appendChild( buildSigProfiles( binder, doc ) );
+   root.appendChild( buildSignReasons( binder, doc ) );
+   root.appendChild( buildRejectReasons( binder, doc ) );
+//   root.appendChild( buildDocument( binder, doc ) );
+   root.appendChild( buildLogic( doc ) );
+   root.appendChild( buildUrl( doc ) );
+   root.appendChild( buildAuth( binder, doc ) );
+   return root;
+  }
+
+  public static Element buildSignRequest( Document doc, DataBinder binder ) throws ServiceException {
+   Element root = doc.createElement( "request" );
+   root.appendChild( buildSigProfiles( binder, doc ) );
+   root.appendChild( buildSignReasons( binder, doc ) );
+   root.appendChild( buildRejectReasons( binder, doc ) );
+   root.appendChild( buildDocument( binder, doc ) );
+   root.appendChild( buildLogic( doc ) );
+   root.appendChild( buildUrl( doc ) );
+   root.appendChild( buildAuth( binder, doc ) );
+   return root;
+  }
+
+  public static void parseWSCResponse( Document doc, DataBinder binder ) throws ServiceException {
+   Element docEle = doc.getDocumentElement();
+   parseSigProfiles( docEle, binder );
+   parseSignReasons( docEle, binder );
+   parseRejectReasons( docEle, binder );
+   parseLogic( docEle, binder );
+   parseAuth( docEle, binder );
+   parseUrl( docEle, binder );
+  }
+
+  private static void parseSigProfiles( Element root, DataBinder binder ) throws ServiceException {
+   NodeList nl = XMLUtils.getNodeList( root, "SigProfiles" );
+   if ( XMLUtils.isNodeListValid( nl ) ) {
+    IdcVector rowNames = WCCUtils.getEnvironmentalsAsList( "SigProfiles" );
+    String rowName = ( String )rowNames.get( 0 );
+    IdcVector fieldNames = WCCUtils.getEnvironmentalsAsList( rowName );
+    DataResultSet drset = WCCUtils.getResultSet( "SigProfiles", fieldNames, binder );
+    for ( int i = 0; i < nl.getLength(); i++ ) {
+     nl = XMLUtils.getNodeList( ( Element )nl.item( i ), rowName );
+     if ( XMLUtils.isNodeListValid( nl ) ) {
+      WCCUtils.buildResultSetRow( drset, fieldNames, ( Element )nl.item( i ) );
+     }
+    }
+    binder.addResultSet( "SigProfiles", drset );
+   }
+  }
+
+  private static void parseSignReasons( Element root, DataBinder binder ) throws ServiceException {
+   NodeList nl = XMLUtils.getNodeList( root, "SignReasons" );
+   if ( XMLUtils.isNodeListValid( nl ) ) {
+    IdcVector fieldNames = WCCUtils.getEnvironmentalsAsList( "SignReasons" );
+    DataResultSet drset = WCCUtils.getResultSet( "SignReasons", fieldNames, binder );
+    for ( int i = 0; i < nl.getLength(); i++ ) {
+     WCCUtils.buildResultSetRow( drset, fieldNames, ( Element )nl.item( i ) );
+    }
+    binder.addResultSet( "SignReasons", drset );
+   }
+  }
+
+  private static void parseRejectReasons( Element root, DataBinder binder ) throws ServiceException {
+   NodeList nl = XMLUtils.getNodeList( root, "RejectReasons" );
+   if ( XMLUtils.isNodeListValid( nl ) ) {
+    IdcVector fieldNames = WCCUtils.getEnvironmentalsAsList( "RejectReasons" );
+    DataResultSet drset = WCCUtils.getResultSet( "RejectReasons", fieldNames, binder );
+    for ( int i = 0; i < nl.getLength(); i++ ) {
+     WCCUtils.buildResultSetRow( drset, fieldNames, ( Element )nl.item( i ) );
+    }
+    binder.addResultSet( "RejectReasons", drset );
+   }
+  }
+
+  private static void parseLogic( Element root, DataBinder binder ) throws ServiceException {
+   NodeList nl = XMLUtils.getNodeList( root, "Logic" );
+   if ( XMLUtils.isNodeListValid( nl ) ) {
+    IdcVector fieldNames = WCCUtils.getEnvironmentalsAsList( "Logic" );
+    binder.m_localData.putAll( WCCUtils.getLocalAsProperties( ( Element )nl.item( 0 ), fieldNames ) );
+   }
+  }
+
+  private static void parseAuth( Element root, DataBinder binder ) throws ServiceException {
+   NodeList nl = XMLUtils.getNodeList( root, "Auth" );
+   if ( XMLUtils.isNodeListValid( nl ) ) {
+    IdcVector fieldNames = WCCUtils.getEnvironmentalsAsList( "Auth" );
+    binder.m_localData.putAll( WCCUtils.getLocalAsProperties( ( Element )nl.item( 0 ), fieldNames ) );
+   }
+  }
+
+  private static void parseUrl( Element root, DataBinder binder ) throws ServiceException {
+   NodeList nl = XMLUtils.getNodeList( root, "Url" );
+   if ( XMLUtils.isNodeListValid( nl ) ) {
+    IdcVector fieldNames = WCCUtils.getEnvironmentalsAsList( "Url" );
+    binder.m_localData.putAll( WCCUtils.getLocalAsProperties( ( Element )nl.item( 0 ), fieldNames ) );
+   }
+  }
+
+  private static Element buildSigProfiles( DataBinder binder, Document doc ) {
+   return XMLUtils.appendChildrenFromResultSet( "SigProfiles", "SigProfile", doc, binder );
+  }
+
+  private static Element buildSignReasons( DataBinder binder, Document doc ) {
+   return XMLUtils.appendChildrenFromResultSet( "SignReasons", null, doc, binder );
+  }
+
+  private static Element buildRejectReasons( DataBinder binder, Document doc ) {
+   return XMLUtils.appendChildrenFromResultSet( "RejectReasons", null, doc, binder );
+  }
+
+  private static Element buildDocument( DataBinder binder, Document doc ) throws ServiceException {
+   return XMLUtils.appendChildrenFromLocal( "Document", doc, binder );
+  }
+
+  private static Element buildLogic( Document doc ) throws ServiceException {
+   return XMLUtils.appendChildrenFromEnvironmental( "Logic", doc );
+  }
+
+  private static Element buildUrl( Document doc ) throws ServiceException {
+   return XMLUtils.appendChildrenFromEnvironmental( "Url", doc );
+  }
+
+  private static Element buildAuth( DataBinder binder, Document doc ) throws ServiceException {
+   return XMLUtils.appendChildrenFromLocal( "Auth", doc, binder );
+  }
+
+  protected static class WCCUtils {
+   public static IdcVector getEnvironmentalsAsList( String rootName ) throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering getEnvironmentalsAsList, passed in attributes:" +
+      "\nrootName: " + rootName, null );
+    String envStr = SharedObjects.getEnvironmentValue( m_appName + "." + rootName + ".fields" );
+    if ( envStr == null ) {
+     throw new ServiceException( m_appName + " has not been properly configured" );
+    }
+    IdcVector fields = ( IdcVector )StringUtils.parseArray( envStr, ';', '\\' );
+    if ( fields.isEmpty() ) {
+     throw new ServiceException( m_appName + " has not been properly configured" );
+    }
+    return fields;
+   }
+
+   public static DataResultSet getResultSet( String rsName, IdcVector fieldNames, DataBinder binder ) {
+    Report.debug( "bezzotechcosign", "Entering getResultSet, passed in attributes:" +
+      "\nfieldNames: \nbinderName: " + rsName, null );
+    DataResultSet drset = ( DataResultSet )binder.getResultSet( rsName );
+    if ( drset == null ) { drset = new DataResultSet( fieldNames ); }
+    return drset;
+   }
+
+   public static IdcVector getNodeListAsList( NodeList nl ) throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering getNodeListAsList, passed in attributes:" +
+      "\nnl:", null );
+    IdcVector returnValues = new IdcVector();
+    for ( int i = 0; i < nl.getLength(); i++ ) {
+     Element ele = ( Element )nl.item( i );
+     returnValues.add( ele.getTextContent() );
+    }
+    return returnValues;
+   }
+
+   public static IdcProperties getLocalAsProperties( Element ele, IdcVector fieldNames )
+    throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering getLocalAsProperties, passed in attributes:" +
+      "\nele: " + ele.getTagName() + "\nfieldNames", null );
+    IdcProperties props = new IdcProperties();
+    for ( int i = 0; i < fieldNames.size(); i++ ) {
+     props.setProperty( ( String )fieldNames.get( i ),
+       getElementText( ( String )fieldNames.get( i ), ele ) );
+    }
+    return props;
+   }
+
+   public static void buildResultSetRow( DataResultSet drset, IdcVector fieldNames, Element ele )
+     throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering buildResultSetRow, passed in attributes:" +
+      "\ndrset: \nfieldNames: \nele: " + ele.getTagName(), null );
+    IdcVector row = ( IdcVector )drset.createEmptyRow();
+    for ( int i = 0; i < fieldNames.size(); i++ ) {
+     NodeList nl = XMLUtils.getNodeList( ele, ( String )fieldNames.get( i ) );
+     if ( XMLUtils.isNodeListValid( nl ) ) {
+      if ( nl.getLength() > 1 ) {
+       Report.debug( "bezzotechcosign",
+         "Getting Element Text Collection '" + fieldNames.get( i ) + "' from NodeList", null );
+       row.addAll( WCCUtils.getNodeListAsList( nl ) );
+      } else {
+       row.set( i, XMLUtils.getElementText( ( String )fieldNames.get( i ), ele ) );
+      }
+     }
+    }
+    Report.debug( "bezzotechcosign", "Row built: " + row.toString(), null );
+    drset.addRow( row );
+   }
+  }
+
+  protected static class XMLUtils {
+   /**
+    *  rootName - String - Name of Environmental base to retrieve from binder (this should also be
+    *    the name of the expect XML Node we will be passing back
+    *  Note: Environmental variable "fields" will be expected to return the field names available to
+    *    retrieve
+    *  Note: Environmental variables will be expected to be presented in the following format:
+    *  {Application Name}.{XML Node name}.{Field Name}
+    *  Where: "Application Name" will be stored within the application code
+    *    "XML Node Name" will be determined by the expected XML output
+    *    "Field Name" will be determined by the expected XML output
+    */
+   public static org.w3c.dom.Element appendChildrenFromEnvironmental( String rootName,
+     org.w3c.dom.Document doc ) throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering appendChildrenFromEnvironmental," +
+      " passed in attributes:\nrootName: " + rootName, null );
+    IdcVector fields = WCCUtils.getEnvironmentalsAsList( rootName );
+    org.w3c.dom.Element root = doc.createElement( rootName );
+    for ( Enumeration fieldsEnum = fields.elements(); fieldsEnum.hasMoreElements(); ) {
+     String fieldName = ( String )fieldsEnum.nextElement();
+     org.w3c.dom.Element child = doc.createElement( fieldName );
+     root.appendChild( child );
+     org.w3c.dom.Text text = doc.createTextNode(
+       SharedObjects.getEnvironmentValue( m_appName + "." + rootName + "." + fieldName ) );
+     child.appendChild( text );
+    }
+    return root;
+   }
+
+   /**
+    *  rootName - String - Name of Local base to retrieve from binder (this should also be
+    *    the name of the expect XML Node we will be passing back
+    *  Note: Local variable "fields" will be expected to return the field names available to
+    *    retrieve
+    *  Note: Local variables will be expected to be presented in the following format:
+    *  {Application Name}.{XML Node name}.{Field Name}
+    *  Where: "Application Name" will be stored within the application code
+    *    "XML Node Name" will be determined by the expected XML output
+    *    "Field Name" will be determined by the expected XML output
+    */
+   public static org.w3c.dom.Element appendChildrenFromLocal( String rootName,
+     org.w3c.dom.Document doc, DataBinder binder ) throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering appendChildrenFromLocal, passed in attributes:" +
+      "\nrootName: " + rootName, null );
+    String locStr = binder.getLocal( m_appName + "." + rootName + ".fields" );
+    if ( locStr == null ) {
+     throw new ServiceException( m_appName + " has not been installed properly" );
+    }
+    IdcVector fields = ( IdcVector )StringUtils.parseArray( locStr, ';', '\\' );
+    if ( fields.isEmpty() ) {
+     throw new ServiceException( m_appName + " has not been installed properly" );
+    }
+    org.w3c.dom.Element root = doc.createElement( rootName );
+    for ( Enumeration fieldsEnum = fields.elements(); fieldsEnum.hasMoreElements(); ) {
+     String fieldName = ( String )fieldsEnum.nextElement();
+     org.w3c.dom.Element child = doc.createElement( fieldName );
+     root.appendChild( child );
+     org.w3c.dom.Text text = doc.createTextNode(
+       binder.getLocal( m_appName + "." + rootName + "." + fieldName ) );
+     child.appendChild( text );
+    }
+    return root;
+   }
+
+   /**
+    *  rootName - String - Name of ResultSet to to retrieve from binder (this should also be the name
+    *    of the expect XML Node we will be passing back
+    *  rowName - String - In the XML this will represent the ResultSets with multiple rows
+    *  Note: If a null rowName is passed in, the root Element will father the child Elements
+    */
+   public static org.w3c.dom.Element appendChildrenFromResultSet( String rootName, String rowName,
+     org.w3c.dom.Document doc, DataBinder binder ) {
+    Report.debug( "bezzotechcosign", "Entering appendChildrenFromResultSet, passed in attributes:" +
+      "\nrootName: " + rootName + "\nrowName: " + rowName, null );
+    org.w3c.dom.Element root = null;
+    DataResultSet drset = ( DataResultSet )binder.getResultSet( rootName );
+    if ( !drset.isEmpty() && drset.isRowPresent() ) {
+     root = doc.createElement( rootName );
+     do {
+      if ( rowName == null ) {
+       appendChildrenFromResultSetCurrentRow( drset, root, doc );
+      } else {
+       org.w3c.dom.Element row = doc.createElement( rowName );
+       appendChildrenFromResultSetCurrentRow( drset, row, doc );
+      }
+     } while ( drset.next() );
+    }
+    return root;
+   }
+
+   /**
+    *  drset - DataResultSet - from which the field names and row values are to be extracted 
+    *  root - Element - XML Element to which the children will be attached
+    *  Note: The DataResultSet will be expected to have the same field names as the XML output fields
+    */
+   public static void appendChildrenFromResultSetCurrentRow( DataResultSet drset,
+     org.w3c.dom.Element root, org.w3c.dom.Document doc ) {
+    Report.debug( "bezzotechcosign", "Entering appendChildrenFromResultSetCurrentRow," +
+      " passed in attributes:\ndrset: \nroot: " + root.getTagName(), null );
+    for ( int field = 0; field < drset.getNumFields(); field++ ) {
+     org.w3c.dom.Element child = doc.createElement( drset.getFieldName( field ) );
+     root.appendChild( child );
+     org.w3c.dom.Text text = doc.createTextNode( drset.getStringValue( field ) );
+     child.appendChild( text );
+    }
+   }
+
+   public static boolean isNodeListValid( NodeList nl ) {
+    return ( nl != null && nl.getLength() > 0 );
+   }
+
+   public static NodeList getNodeList( org.w3c.dom.Element ele, String tagName ) {
+    Report.debug( "bezzotechcosign", "Entering getNodeList, passed in attributes:" +
+      "\ntagName: " + tagName + "\nele: " + ele.getTagName(), null );
+    return ele.getElementsByTagName( tagName );
+   }
+
+   public static String getElementText( String tagName, org.w3c.dom.Element ele )
+     throws ServiceException {
+    Report.debug( "bezzotechcosign", "Entering getElementText, passed in attributes:" +
+      "\ntagName: " + tagName + "\nele: " + ele.getTagName(), null );
+    NodeList nl = getNodeList( ele, tagName );
+    if ( isNodeListValid( nl ) ) {
+     org.w3c.dom.Element el = ( org.w3c.dom.Element )nl.item( 0 );
+     if ( el != null ) {
+      return el.getTextContent();
+     }
+     Report.debug( "bezzotechcosign", "No Node with name '" + tagName +
+       "' was found within Node '" + ele.getTagName() + "'", null );
+    } else {
+     Report.debug( "bezzotechcosign", "No Node with name '" + tagName +
+       "' was found within Node '" + ele.getTagName() + "'", null ); 
+    }
+    return "";
+   }
+
+   public static org.w3c.dom.Document parseXmlFile( String path ) throws ServiceException {
+    org.w3c.dom.Document dom = null;
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    try {
+     DocumentBuilder db = dbf.newDocumentBuilder();
+     dom = db.parse( path );
+    } catch ( Exception e ) {
+     throw new ServiceException( e.getMessage() );
+    }
+    return dom;
+   }
+
+   public static org.w3c.dom.Document getNewDocument() {
+    org.w3c.dom.Document dom = null;
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    try {
+     DocumentBuilder db = dbf.newDocumentBuilder();
+	 dom = db.newDocument();
+    } catch ( Exception e ) {
+     throw new ServiceException( e.getMessage() );
+    }
+    return dom;
+   }
+
+   public String getStringFromDoc(org.w3c.dom.Document doc) {
+    org.w3c.dom.ls.DOMImplementationLS domImplementation =
+      (org.w3c.dom.ls.DOMImplementationLS) doc.getImplementation();
+    org.w3c.dom.ls.LSSerializer lsSerializer = domImplementation.createLSSerializer();
+    return lsSerializer.writeToString(doc);   
+   }
+  }
+ }
+
+ private ResultSet getDocInfo( String dID ) throws ServiceException {
+  DataBinder db = new DataBinder();
+  db.putLocal( "dID", dID );
+  ResultSet rset = null;
+  try {
+   rset = super.m_workspace.createResultSet( "QdocInfo", db );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+  if ( rset.isEmpty() ) {
+   //This should never happen
+  }
+  return rset;
+ }
+
+ // ******** This method also exists in the ConvertToPDFServiceHandler component. ******** 
+ // ******** This method is gratuitously taken from BezzotechLib's FileStoreUtils class. ********
+ /** Return a path to a file based on fileData.  This file may need to be copied from a storage
+  *  provider onto the local filesystem.  In this case, the file will be one of the DataBinder's
+  *  temporary files, meaning it will be automatically cleaned up when the service request
+  *  terminates.  Under no circumstances should the caller of this API manipulate or delete the
+  *  file.
+  *  @return The path to the file.
+  *  @param fileData DataBinder containing file metadata.
+  *  @binder.in FileStoreProvider.SP_RENDITION_ID One of the FileStoreProvider R_ constants.
+  *  @binder.in all other docmeta for the file.
+  *  @throws DataException if the file cannot be found using the provided metadata.
+  *  @throws ServiceException if an error occurs while reading/transferring the file.
+  */
+ private String getFilePath( DataBinder fileData ) throws DataException, ServiceException {
+  String path;
+  ExecutionContext context = super.m_service;
+  FileStoreProvider fileStore = super.m_service.m_fileStore;
+  IdcFileDescriptor d = fileStore.createDescriptor( fileData, new HashMap(), context );
+  FileStoreUtils utils = new intradoc.filestore.FileStoreUtils();
+  if ( utils.isStoredOnFileSystem( d, fileStore ) ) {
+   path = d.getProperty( FileStoreProvider.SP_PATH );
+  } else {
+   long counter = fileData.getNextFileCounter();
+   path = fileData.getTemporaryDirectory();
+   String extension = fileData.getLocal( "dExtension" );
+   fileData.addTempFile( path );
+   if ( extension == null ) extension = "";
+   else extension = "." + extension;
+   path = FileUtils.getAbsolutePath( path, "" + counter + extension );
+   try {
+    fileStore.copyToLocalFile( d, new File( path ), null );
+   } catch ( Exception e ) {
+    ServiceException se = new ServiceException( e, "csTranslationUnableToCopyVault", path );
+    throw se;
+   }
+  }
+  return path;
+ }
+
+ private static String PostFile( String i_Url, DataBinder binder ) throws Exception {
+  return PostRequest( i_Url, binder.m_inStream, binder.getLocal( "contentType" ), null );
+ }
+
+ private static String PostXML( String i_Url, BufferedInputStream _in, String docID ) throws Exception {
+  return PostRequest( i_Url, _in, "application/x-www-form-urlencoded", docID );
+ }
+
+ private static String PostRequest( String i_Url, BufferedInputStream i_Content,
+   String i_ContentType, String docID ) throws Exception {
+  Report.debug( "bezzotechcosign", "Passed in URL: " + i_Url, null );
+  Report.debug( "bezzotechcosign", "Avialable file size: " + i_Content.available(), null );
+  Report.debug( "bezzotechcosign", "Passed in Content-Type: " + i_ContentType, null );
+
+  StringBuffer response = new StringBuffer();
+  URL url = new URL( i_Url );
+  HttpURLConnection httpCon = ( HttpURLConnection ) url.openConnection();
+  httpCon.setRequestProperty( "Content-Type", i_ContentType );
+  httpCon.setDoOutput( true );
+  httpCon.setDoInput( true );
+  httpCon.setRequestMethod( "POST" );
+  if ( docID != null ) {
+   httpCon.setRequestProperty( "Cookie", m_cookie );
+  }
+  httpCon.setChunkedStreamingMode(1);
+
+  BufferedOutputStream _out = new BufferedOutputStream( httpCon.getOutputStream() );
+  byte[] baBuffer = new byte[1 * 1024];int len = 0;
+  while ( ( len = i_Content.read( baBuffer, 0, baBuffer.length ) ) >= 0 ) {
+   _out.write( baBuffer, 0, len );
+//   Report.debug( "bezzotechcosign", "buffer length loading: " + len, null );
+  }
+  i_Content.close();
+  _out.flush();
+  _out.close();
+
+  BufferedReader _in = null;
+  InputStream _is = null;
+  if ( httpCon.getResponseCode() <= 400 ) {
+   _is = httpCon.getInputStream();
+  } else {
+   /* error from server */
+   _is = httpCon.getErrorStream();
+  }
+  _in = new BufferedReader( new InputStreamReader( _is ) );String strBuffer = null;
+  while ( ( strBuffer = _in.readLine() ) != null ) {
+   response.append( strBuffer );
+  }
+
+  if ( docID == null ) {
+   String headerName = null;
+   for ( int i=1; ( headerName = httpCon.getHeaderFieldKey( i ) ) != null; i++ ) {
+    if ( headerName.equalsIgnoreCase( "Set-Cookie" ) ) {
+     StringTokenizer st = new StringTokenizer( httpCon.getHeaderField( i ), ";" );
+
+     // the specification dictates that the first name/value pair in the string is the cookie name
+     //and value, so let's handle them as a special case:
+     if ( st.hasMoreTokens() ) {
+      String token  = st.nextToken();
+      String name = token.substring( 0, token.indexOf( "=" ) );
+      String value = token.substring( token.indexOf( "=" ) + 1, token.length() );
+      m_cookie = name + "=" + value;
+     }
+/*   while (st.hasMoreTokens()) {
+    String token  = st.nextToken();
+    cookie.put( token.substring( 0, token.indexOf( "=" ) ).toLowerCase(),
+     token.substring( token.indexOf( "=" ) + 1, token.length() ) );
+   }
+*/    }
+   }
+   Report.debug( "bezzotechcosign", "Found cookies: " + m_cookie.toString(), null );
+  }
+
+  _is.close();
+  _in.close();
+  httpCon.disconnect();
+  return response.toString();
+ }
+
+ /** Return a temporary file path.  
+  * @param extension Extension to put on the file name.  
+  * @param nameFlags If this contains F_NO_CLEANUP do not register the file for automatic cleanup.
+  * @throws ServiceException if a DataBinder is not configured with this request.
+  * @return a temporary file path.
+  */
+ // ******** This method also exists in the ConvertToPDFServiceHandler component. ******** 
+ // ******** This method is gratuitously taken from BezzotechLib's FileStoreUtils class. ********
+ private String getTemporaryFileName( String extension, int nameFlags, Service s )
+   throws ServiceException {
+  if ( super.m_binder == null )
+   super.m_service.createServiceException( null, "csUnableToCreateTempFile" );
+  long counter = super.m_binder.getNextFileCounter();
+  String nodeId = SharedObjects.getEnvironmentValue( "ClusterNodeName" );
+  String fileName;
+  if ( nodeId != null ) {
+   fileName = "trans-" + nodeId + "-" + counter + extension;
+  } else {
+   fileName = "trans-" + counter + extension;
+  }
+  String tempDir = super.m_binder.getTemporaryDirectory();
+  fileName = FileUtils.getAbsolutePath( tempDir, fileName );
+  if ( ( nameFlags & F_NO_CLEANUP ) == 0 )
+   super.m_binder.addTempFile( fileName );
+  return fileName;
+ }
+
+ /** Execute a service as the current user.
+  * @param binder The service request binder
+  * @throws ServiceException if the service fails.
+  */
+ private void executeServiceSimple( DataBinder binder ) throws ServiceException {
+  try {
+   ServiceManager sm = new ServiceManager();
+   String serviceName = binder.getLocal( "IdcService" );
+   if ( serviceName == null ) {
+    super.m_service.createServiceExceptionEx( null, "!csIDCServiceMissing", Errors.RESOURCE_MISCONFIGURED );
+   }
+   ServiceData sd = sm.getService( serviceName );
+   Service s = sm.getInitializedService( serviceName, binder, super.m_workspace );
+   UserData user = ( UserData )super.m_service.getCachedObject( "UserData" );
+   if ( user == null ) {
+    user = SecurityUtils.createDefaultAdminUserData();
+   }
+   s.setUserData( user );
+   s.doRequest();
+  } catch ( DataException e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+ }
+
+ /**
+  *  Read docFile into fileInputStream
+  */
+ private void readFileToBinderStream( DataBinder inBinder ) throws ServiceException {
+  DataBinder binder = new DataBinder();
+  binder.mergeResultSetRowIntoLocalData( inBinder.getResultSet( "DOC_INFO" ) );
+  binder.putLocal( FileStoreProvider.SP_RENDITION_ID, FileStoreProvider.R_PRIMARY );
+  BufferedInputStream _content = null;
+  try {
+   String primaryFilePath = getFilePath( binder );
+   _content = new BufferedInputStream( new FileInputStream( new File( primaryFilePath ) ) );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+  inBinder.m_inStream = _content;
+  Report.debug( "bezzotechcosign", "Content item has been read into the binder input stream for " +
+    "the Signing Ceremony.", null );
+ }
+
+ /**
+  *  TODO: Setup Environmental variable, "WSC-URL", would like to have this as an install
+  *  preference.
+  *  String WSC_URL = SharedObjects.getEnvironmentValue("CoSign_WSC_URL");
+  */
+ private String uploadFileToWSC( DataBinder inBinder ) throws ServiceException {
+  String WSC_URL = SharedObjects.getEnvironmentValue("CoSign_WSC_URL");
+  String response = "";
+  try {
+   response = PostFile( WSC_URL + "?id=" + inBinder.getLocal( "docName" ), inBinder );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+  return response;
+ }
+
+ private void processFileUpload( DataBinder inBinder ) throws ServiceException {
+  String message = uploadFileToWSC( inBinder );
+  Report.debug( "bezzotechcosign", "WSC Response: " + message, null );
+
+  Pattern rcPattern = Pattern.compile( "<returnCode>([^<>]*)</returnCode>" );
+  Matcher m = rcPattern.matcher( message );
+  if ( m.find() ) {
+   Report.debug( "bezzotechcosign", " WSC Response Return Code: " + m.group( 1 ), null );
+   if ( Integer.parseInt( m.group( 1 ) ) == Errors.SUCCESS ) {
+    Pattern diPattern = Pattern.compile( "<docId>([^<>]*)</docId>" );
+    m = diPattern.matcher( message );
+    if ( m.find() ) {
+     Report.debug( "bezzotechcosign", "WSC Response docId: " + m.group( 1 ), null );
+     if ( !m.group( 1 ).equals( inBinder.getLocal( "docName" ) ) ) {
+      Report.debug( "bezzotechcosign", "docId did not match from WSC", null);
+      super.m_service.createServiceException( null, "csInvalidDocId" );
+     }
+    } else {
+     Report.debug( "bezzotechcosign", "Did not find docId from WSC", null);
+     super.m_service.createServiceException( null, "csInvalidDocId" );
+    }
+   } else {
+    Report.debug( "bezzotechcosign", "Did not find success from WSC", null);
+    super.m_service.createServiceException( null, "csWSCFailed" );
+   }
+  } else {
+   Report.debug( "bezzotechcosign", "Did not find success from WSC", null);
+   super.m_service.createServiceException( null, "csWSCResponseInvalid" );
+  }
+ }
+
+ private void processSignRequest( DataBinder inBinder ) throws ServiceException {
+  String message = uploadRequestToWSC( inBinder );
+  Report.debug( "bezzotechcosign", "WSC Response: " + message, null );
+
+  Pattern rcPattern = Pattern.compile( "<returnCode>([^<>]*)</returnCode>" );
+  Matcher m = rcPattern.matcher( message );
+  if ( m.find() ) {
+   Report.debug( "bezzotechcosign", "Return Code: " + m.group( 1 ), null );
+   if ( Integer.parseInt( m.group( 1 ) ) == Errors.SUCCESS ) {
+    Pattern siPattern = Pattern.compile( "<sessionId>([^<>]*)</sessionId>" );
+    m = siPattern.matcher( message );
+    if ( m.find() ) {
+     Report.debug( "bezzotechcosign", "Session Id: " + m.group( 1 ), null );
+     super.m_binder.putLocal( "WSC_Session", m.group( 1 ) ); 
+    } else {
+     Report.debug( "bezzotechcosign", "Did not find session from WSC", null);
+     super.m_service.createServiceException( null, "csInvalidSessionId" );
+    }
+   } else {
+    Report.debug( "bezzotechcosign", "Did not find success from WSC", null);
+    super.m_service.createServiceException( null, "csWSCFailed" );
+   }
+  } else {
+   Report.debug( "bezzotechcosign", "Did not find success from WSC", null);
+   super.m_service.createServiceException( null, "csWSCResponseInvalid" );
+  }
+ }
+
+ /**
+  *  Query for the particular Sign Request Protocol (SRP) to send, currently we are using a
+  *  one-to-one architecture where each SRP only contains a single Signature Profile, so locating
+  *  the correct profile is as simple as finding its SRP.
+  */
+ private DataResultSet retrieveSignRequest( DataBinder inBinder ) throws ServiceException {
+  String sql = "SELECT dID FROM Revisions WHERE dDocType = 'CoSignRequestProtocol' AND " +
+    "dDocTitle = '" + inBinder.getLocal( "CoSignProfile" ) + "'";
+ ResultSet rset = null;
+  try {
+   rset = super.m_workspace.createResultSetSQL( sql );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  } finally {
+   if ( rset.isEmpty() ) {
+    super.m_service.createServiceException( null, "csNoProtocolsFound" );
+   }
+  }
+  DataResultSet drset = new DataResultSet();
+  drset.copy( rset );
+  return drset;
+ }
+
+ /**
+  *  Read the Sign Request Protocol (SRP) into a String Buffer, make certain to append 
+  *  query-string variable id "inputXML" to beginning (This is required for WSC to receive), for
+  *  submission.
+  */
+ private void readFileToBinderStream( DataResultSet drset, DataBinder inBinder ) throws ServiceException {
+  DataBinder binder = new DataBinder();
+  binder.mergeResultSetRowIntoLocalData( getDocInfo( ResultSetUtils.getValue( drset, "dID" ) ) );
+  binder.putLocal( FileStoreProvider.SP_RENDITION_ID, FileStoreProvider.R_PRIMARY );
+  StringBuffer content = new StringBuffer();
+  BufferedReader _read = null;
+  try {
+   String primaryFilePath = getFilePath( binder );
+   _read = new BufferedReader( new FileReader( new File( primaryFilePath ) ) );
+   String line = null;
+   while( ( line = _read.readLine() ) != null ) {
+    content.append( line );
+   }
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  } finally {
+   try {
+    _read.close();
+   } catch ( Exception e ) {
+    super.m_service.createServiceException( null, e.getMessage() );
+   }
+  }
+  content.insert( 0, "inputXML=" );
+  Report.debug( "bezzotechcosign", "Read Sign Request Protocol into String Buffer", null );
+  Report.debug( "bezzotechcosign", content.toString(), null );
+
+  BufferedInputStream _xml = null;
+  try {
+   _xml = new BufferedInputStream( new ByteArrayInputStream( content.toString().getBytes() ) );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+  inBinder.m_inStream = _xml;
+ }
+
+ private String uploadRequestToWSC( DataBinder inBinder ) throws ServiceException {
+  String WSC_URL = SharedObjects.getEnvironmentValue("CoSign_WSC_URL");
+  String response = "";
+  try {
+   Report.debug( "bezzotechcosign", "bytes stored: " + inBinder.m_inStream.available(), null );
+   response = PostXML( WSC_URL + "?docId=" + inBinder.getLocal( "docName" ), inBinder.m_inStream,
+     inBinder.getLocal( "docName" ) );
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  }
+  return response;
+ }
+
+ private void rollback( DataBinder inBinder, String error ) throws ServiceException {
+  DataBinder undoBinder = new DataBinder();
+  undoBinder.putLocal( "IdcService", "UNDO_CHECKOUT_BY_NAME" );
+  undoBinder.putLocal( "dDocName", inBinder.getLocal( "docID" ) );
+  executeServiceSimple( undoBinder );
+  super.m_service.createServiceException( null, error );
+ }
+
+ private String downloadSignedFile( DataBinder inBinder ) throws ServiceException {
+  StringBuffer response = null;
+  InputStream _is = null;
+  String strBuffer = null;
+  try {
+   String WSC_URL_PULL = SharedObjects.getEnvironmentValue("CoSign_WSC_URL_PULL");
+   URL url = new URL( WSC_URL_PULL + "?sessionID=" + inBinder.getLocal( "sessionID" ) );
+   Report.debug( "bezzotechcosign", "Pulling Url built: " + url.toString(), null );
+   HttpURLConnection httpCon = ( HttpURLConnection ) url.openConnection();
+   httpCon.setDoOutput( true );
+   Report.debug( "bezzotechcosign", "Response code: " + httpCon.getResponseCode(), null );
+   if ( httpCon.getResponseCode() <= 400 ) {
+    Report.debug( "bezzotechcosign", "Received content: " + httpCon.getContentLength(), null );
+    _is = httpCon.getInputStream();
+    BufferedReader _in = new BufferedReader( new InputStreamReader( _is ) );
+    while ( ( strBuffer = _in.readLine() ) != null ) {
+     response.append( strBuffer );
+    }
+   } else {
+    /* error from server */
+    _is = httpCon.getErrorStream();
+    BufferedReader _in = new BufferedReader( new InputStreamReader( _is ) );
+    while ( ( strBuffer = _in.readLine() ) != null ) {
+     response.append( strBuffer );
+    }
+    _in.close();
+    super.m_service.createServiceException( null, "WSC Error response: " + response.toString() );
+   }
+  } catch ( Exception e ) {
+   super.m_service.createServiceException( null, e.getMessage() );
+  } finally {
+   try {
+    if( _is != null )
+     _is.close();
+   } catch ( Exception e ) {
+    super.m_service.createServiceException( null, e.getMessage() );
+   }
+  }
+  return response.toString();
+ }
+
+ private void processDownloadRequest( DataBinder inBinder ) throws Exception {
+  String message = downloadSignedFile( inBinder );
+  Report.debug( "bezzotechcosign", "WSC Pull response: " + message, null );
+
+  Pattern rcPattern = Pattern.compile( "<returnCode>([^<>]*)</returnCode>" );
+  Matcher m = rcPattern.matcher( message );
+  if ( m.find() ) {
+   Report.debug( "bezzotechcosign", "Return Code: " + m.group( 1 ), null );
+   if ( Integer.parseInt( m.group( 1 ) ) == Errors.SUCCESS ) {
+    Pattern cPattern = Pattern.compile( "<content>([^<>]*)</content>" );
+    m = cPattern.matcher( message );
+    if ( m.find() ) {
+     String match, content;
+     content = m.group( 1 );
+     /**
+      *  This cannot be permitted to stay
+      */
+     BASE64Decoder decoder = new BASE64Decoder();
+     byte[] buffer = decoder.decodeBuffer( content );
+     int bytesRead = buffer.length;
+     String file = getTemporaryFileName( ".pdf", 0x0, super.m_service );
+     Report.debug( "bezzotechcosign", "Temporary filename: " + file, null );
+     BufferedOutputStream _bos = new BufferedOutputStream( new FileOutputStream( file ) );
+     _bos.write( buffer, 0, bytesRead );
+     _bos.close();
+     super.m_binder.putLocal( "primaryFile:path", file );
+     super.m_binder.putLocal( "dExtension", "pdf" );
+     super.m_binder.putLocal( "dWebExtension", "pdf" );
+     super.m_binder.putLocal( "dDocName", inBinder.getLocal( "docID" ) );
+    } else {
+     Report.debug( "bezzotechcosign", "Did not find content from WSC", null);
+     super.m_service.createServiceException( null, "csWSCResponseInvalid" );
+    }
+   } else {
+    Report.debug( "bezzotechcosign", "Did not find success from WSC", null);
+    super.m_service.createServiceException( null, "csWSCResponseInvalid" );
+   }
+  } else {
+   Report.debug( "bezzotechcosign", "Did not find success from WSC", null);
+   super.m_service.createServiceException( null, "csWSCResponseInvalid" );
+  }
+ }
+}
