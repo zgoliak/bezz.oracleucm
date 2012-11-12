@@ -17,8 +17,7 @@ public class SharedObjects {
 	/** An ExecutionContext associated with this request. */
 	protected ExecutionContext m_context;
 
-	/** Use getSharedObjects() to get a reference to a SharedObjects instance.
-		*/
+	/** Use getSharedObjects() to get a reference to a SharedObjects instance. */
 	protected SharedObjects() {
 	}
 
@@ -38,10 +37,10 @@ public class SharedObjects {
 	}
 
 	/** Get a DataBinder out of m_context.  If m_context is a pointer to a 
-			* <span class="code">intradoc.server.Service</span>, call <span class="code">getBinder()</span>
-			* otherwise use <span class="code">getCachedObject("DataBinder")</span> to get the binder.
-			* @return The DataBinder associated with this SharedObjects object, or null.
-			*/
+	 * <span class="code">intradoc.server.Service</span>, call <span class="code">getBinder()</span>
+	 * otherwise use <span class="code">getCachedObject("DataBinder")</span> to get the binder.
+	 * @return The DataBinder associated with this SharedObjects object, or null.
+	 */
 	protected DataBinder getBinder() {
 		if ( m_context instanceof Service ) {
 			return ( ( Service )m_context ).getBinder();
@@ -67,15 +66,15 @@ public class SharedObjects {
 	}
 
 	/** Return the value for the SharedObject variable named by key.
-		* If this SharedObjects instance has a DataBinder, it will be fetched from the 
-		* DataBinder rather than the global SharedObjects.  Generally speaking, this
-		* method should be avoided and getConfig() should be used again.  Any optional 
-		* config * entries should have a default value provided either by a component 
-		* environment file or component preference prompts.
-		* @see #getConfig
-		* @param key key name to lookup
-		* @return value of key or null if not defined
-		*/
+	 * If this SharedObjects instance has a DataBinder, it will be fetched from the 
+	 * DataBinder rather than the global SharedObjects.  Generally speaking, this
+	 * method should be avoided and getConfig() should be used again.  Any optional 
+	 * config * entries should have a default value provided either by a component 
+	 * environment file or component preference prompts.
+	 * @see #getConfig
+	 * @param key key name to lookup
+	 * @return value of key or null if not defined
+	 */
 	public String checkConfig( String key ) {
 		String val = null;
 		DataBinder binder = getBinder();
@@ -85,9 +84,9 @@ public class SharedObjects {
 	}
 
 	/** Return a list of values for a given key prefix.
-		* @param keyPrefix prefix to look for key names to start with.
-		* @return a List of values for the key starting with keyPrefix.
-		*/
+	 * @param keyPrefix prefix to look for key names to start with.
+	 * @return a List of values for the key starting with keyPrefix.
+	 */
 	public Map < String, String > getConfigSet( String keyPrefix ) {
 		Map < String, String > l = new HashMap();
 		Properties props = intradoc.shared.SharedObjects.getSafeEnvironment();

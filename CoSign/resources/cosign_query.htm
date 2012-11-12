@@ -1,0 +1,82 @@
+﻿<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>CoSign query
+	</head>
+	<body>
+<@table CoSign_Queries@>
+		<table border=1><caption><strong>Query Definition Table</strong></caption>
+			<tr>
+				<td>name</td><td>queryStr</td><td>parameters</td>
+			</tr>
+			<tr>
+				<td>IcosignSignatureDetails</td>
+				<td>INSERT INTO CoSignSignatureDetails (sID, dID, dDocName, fieldName, status, signingTime,
+				  signerEmail, signerName, signReason, certErrorStatus, x, y, width, height, pageNumber,
+				  dateFormat, timeFormat, graphicalImage, signer, signDate, initials, logo, showTitle,
+				  showReason, title, reason) VALUES (CoSignSignatureDetailsID.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?,
+				  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)</td>
+				<td>dID int
+				  dDocName varchar
+				  CoSign.Field.fieldName varchar
+				  CoSign.Field.status varchar
+				  CoSign.Field.signingTime date
+				  CoSign.Field.signerEmail varchar
+				  CoSign.Field.signerName varchar
+				  CoSign.Field.signReason varchar
+				  CoSign.Field.certErrorStatus varchar
+				  CoSign.SigDetails.x int
+				  CoSign.SigDetails.y int
+				  CoSign.SigDetails.width int
+				  CoSign.SigDetails.height int
+				  CoSign.SigDetails.pageNumber int
+				  CoSign.SigDetails.dateFormat varchar
+				  CoSign.SigDetails.timeformat varchar
+				  CoSign.SigDetails.graphicalImage varchar
+				  CoSign.SigDetails.signer varchar
+				  CoSign.SigDetails.date varchar
+				  CoSign.SigDetails.initials varchar
+				  CoSign.SigDetails.logo varchar
+				  CoSign.SigDetails.showTitle varchar
+				  CoSign.SigDetails.showReason varchar
+				  CoSign.SigDetails.title varchar
+				  CoSign.SigDetails.reason varchar</td>
+			</tr>
+			<tr>
+				<td>IcosignHistory</td>
+				<td>INSERT INTO CoSignHistory (ID, PerformingUser, DatePerformed, Operation, ErrorMessage,
+				  dDocName, dID) VALUES (CoSignHistoryID.NEXTVAL, ?, ?, ?, ?, ?, ?)</td>
+				<td>User varchar
+				  date date
+				  Operation varchar
+				  Error varchar
+				  dDocName varchar
+				  dID int</td>
+			</tr>
+			<tr>
+				<td>QsignatureProfileID</td>
+				<td>SELECT MAX( Revisions.dID ) dID
+						FROM Revisions, DocMeta
+						WHERE Revisions.dID=DocMeta.dID AND Revisions.dRevRank=0 AND Revisions.dStatus<>'DELETED'
+						AND xCoSignSignatureTag=? AND xCoSignRequiredSignatures in (?)
+						AND dDocType='CoSignSignatureProfile'</td>
+				<td>xCoSignSignatureTag varchar
+						xCoSignRequiredSignatures varchar.in</td>
+			</tr>
+			<tr>
+				<td>QsignatureCountByName</td>
+				<td>SELECT xSignatureCount
+						FROM Revisions, DocMeta
+						WHERE Revisions.dDocName=? AND Revisions.dID=DocMeta.dID
+						AND Revisions.dRevRank=0 AND Revisions.dStatus<>'DELETED'</td>
+				<td>dDocName varchar</td>
+			</tr>
+			<tr>
+				<td>QcosignSignatureDetails</td>
+				<td>SELECT * FROM CoSignSignatureDetails WHERE dID = ?</td>
+				<td>dID int</td>
+			</tr>
+		</table>
+<@end@>
+	</body>
+</html>

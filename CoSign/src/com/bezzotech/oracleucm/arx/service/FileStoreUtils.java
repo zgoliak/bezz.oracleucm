@@ -50,25 +50,25 @@ public class FileStoreUtils {
 	}
 
 	/** Return a working FileStoreUtils object for a service.
-		* @param context ExecutionContext to find a FileStoreProvider in.
-		* @throws ServiceException if a FileStoreProvider cannot be found.
-		* @return a ready-to-use FileStoreUtils object.
-		*/
+	 * @param context ExecutionContext to find a FileStoreProvider in.
+	 * @throws ServiceException if a FileStoreProvider cannot be found.
+	 * @return a ready-to-use FileStoreUtils object.
+	 */
 	static public FileStoreUtils getFileStoreUtils( ExecutionContext context ) 
 			throws ServiceException {
 		return new FileStoreUtils( context );
 	}
 
 	/** Return a temporary file path.  
-		* @param extension Extension to put on the file name.  
-		* @param nameFlags If this contains F_NO_CLEANUP do not register the file for automatic cleanup.
-		* @throws ServiceException if a DataBinder is not configured with this request.
-		* @return a temporary file path.
-		*/
+	 * @param extension Extension to put on the file name.  
+	 * @param nameFlags If this contains F_NO_CLEANUP do not register the file for automatic cleanup.
+	 * @throws ServiceException if a DataBinder is not configured with this request.
+	 * @return a temporary file path.
+	 */
 	// ******** This method also exists in the ConvertToPDFServiceHandler component. ******** 
 	public String getTemporaryFileName( String extension, int nameFlags ) throws ServiceException {
 		if ( m_binder == null ) throw new ServiceException(
-			"!$Unable to create temp file name, FileStoreUtils not constructed using a Service object." );
+				"!$Unable to create temp file name, FileStoreUtils not constructed using a Service object." );
 		long counter = m_binder.getNextFileCounter();
 		String nodeId = m_shared.checkConfig( "ClusterNodeName" );
 		String fileName;
@@ -82,18 +82,18 @@ public class FileStoreUtils {
 	}
 
 	/** Return a path to a file based on fileData.  This file
-		* may need to be copied from a storage provider onto the local 
-		* filesystem.  In this case, the file will be one of the 
-		* DataBinder's temporary files, meaning it will be automatically cleaned up
-		* when the service request terminates.  Under no circumstances should
-		* the caller of this API manipulate or delete the file.
-		* @return The path to the file.
-		* @param fileData DataBinder containing file metadata.
-		* @binder.in FileStoreProvider.SP_RENDITION_ID One of the FileStoreProvider R_ constants.
-		* @binder.in all other docmeta for the file.
-		* @throws DataException if the file cannot be found using the provided metadata.
-		* @throws ServiceException if an error occurs while reading/transferring the file.
-		*/
+	 * may need to be copied from a storage provider onto the local 
+	 * filesystem.  In this case, the file will be one of the 
+	 * DataBinder's temporary files, meaning it will be automatically cleaned up
+	 * when the service request terminates.  Under no circumstances should
+	 * the caller of this API manipulate or delete the file.
+	 * @return The path to the file.
+	 * @param fileData DataBinder containing file metadata.
+	 * @binder.in FileStoreProvider.SP_RENDITION_ID One of the FileStoreProvider R_ constants.
+	 * @binder.in all other docmeta for the file.
+	 * @throws DataException if the file cannot be found using the provided metadata.
+	 * @throws ServiceException if an error occurs while reading/transferring the file.
+	 */
 	public String getFilePath( DataBinder fileData ) throws DataException, ServiceException {
 		String path;
 		IdcFileDescriptor d = m_fileStore.createDescriptor( fileData, new HashMap(), m_context );

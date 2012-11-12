@@ -1,10 +1,12 @@
 ##Navigate to development folder##
-cd \Oracle\Middleware\user_projects\domains\UCM2\ucm\cs\custom\CoSign
+cd Documents\GitHub\bezz.oracleucm\CoSign
 ##Compile Java code in src directory and place in classes directory using the WCC IdcServer.jar library dependency##
-\Oracle\Middleware\jdk160_29\bin\javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar src\com\bezzotech\oracleucm\arx\*.java
+\Oracle\Middleware\jdk160_29\bin\javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar src\com\bezzotech\oracleucm\arx\*.java src\com\bezzotech\oracleucm\arx\common\*.java src\com\bezzotech\oracleucm\arx\service\*.java src\com\bezzotech\oracleucm\arx\shared\*.java
 ##Compile Java code in src directory and place in classes directory using the WCC IdcServer.jar and Apache HttpClient library dependencies##
 \Oracle\Middleware\jdk160_29\bin\javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar;.\lib\httpclient-4.2.1.jar;.\lib\httpcore-4.2.1.jar;.\lib\commons-logging-1.1.1.jar src\com\bezzotech\oracleucm\arx\*.java
 ##Compress compiled Java code into library##
 \Oracle\Middleware\jdk160_29\bin\jar cfv classes.jar -C classes .
 ##Compress source Java code into library##
 \Oracle\Middleware\jdk160_29\bin\jar cfv classes_src.jar -C src .
+##Move compiled jar to active server folder
+copy *.jar \Oracle\Middleware\user_projects\domains\UCM2\ucm\cs\custom\CoSign\

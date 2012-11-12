@@ -4,9 +4,11 @@ ComponentName=CoSign
 blDateFormat=M/d{/yy}{ h:mm[:ss]{ a}}!mAM,PM!tAmerica/Chicago
 classpath=$COMPONENT_DIR/classes.jar
 classpathorder=-1
-hasPreferenceData=0
+hasInstallStrings=1
+hasPreferenceData=1
+installID=CoSign
 preventAdditionalComponentDowngrade=0
-version=2012_09_17-dev(build 1)
+version=2012_10_12-dev(build 3.2)
 @end
 @ResultSet ClassAliases
 3
@@ -20,6 +22,10 @@ type
 location
 parameter
 loadOrder
+extraAfterServicesLoadInit
+com.bezzotech.oracleucm.arx.CoSignFilters
+createCoSignTables
+1
 @end
 @ResultSet ResourceDefinition
 4
@@ -49,6 +55,14 @@ CoSign_Services
 10
 environment
 cosign_environment.cfg
+null
+10
+query
+resources/cosign_query.htm
+CoSign_Queries
+10
+resource
+resources/cosign_schema.htm
 null
 10
 @end
@@ -81,5 +95,9 @@ itsSection
 CoSign_PublishedStaticFiles
 PublishedStaticFiles
 null
+10
+CoSign_SchemaSharedObjectsTableViews
+SchemaSharedObjectsTableViews
+tableViewKey
 10
 @end

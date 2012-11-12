@@ -6,27 +6,18 @@
  <body>
 <@ dynamichtml extra_setup_search_results_action_popups @>
 	<$ include super.extra_setup_search_results_action_popups $>
-
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
 	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
-	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "userHasRole( 'CoSignSigner' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' )" ) $>
 	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
 	<$ exec setValue( "PopupProps", "class", "document" ) $>
 	<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
 
-	<$ exec rsAppendNewRow("PopupProps" ) $>
-	<$ exec setValue( "PopupProps", "label", lc( "wwVerifySignatures" ) ) $>
-	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
-	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
-	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
-	<$ exec setValue( "PopupProps", "class", "document" ) $>
-	<$ exec setValue( "PopupProps", "id", "verifySignatures" ) $>
-
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignatures" ) ) $>
-	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
-	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' )" ) $>
 	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
 	<$ exec setValue( "PopupProps", "class", "document" ) $>
 	<$ exec setValue( "PopupProps", "id", "reviewSignatures" ) $>
@@ -38,54 +29,47 @@
 	<$ PageMenusData.nodeId = "SIGN_WITH_COSIGN" $>
 	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
 	<$ PageMenusData.label = "wwSignWithCoSign" $>
+	<$ PageMenusData.ifClause = "userHasRole( 'CoSignSigner' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' )" $>
 	<$ PageMenusData.type = "item" $>
 	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" $>
-	<$ PageMenusData.loadOrder = 10 $>
-
-	<$ exec rsAppendNewRow( "PageMenusData" ) $>
-	<$ PageMenusData.nodeId = "VERIFY_SIGNATURES" $>
-	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
-	<$ PageMenusData.label = "wwVerifySignatures" $>
-	<$ PageMenusData.type = "item" $>
-	<$ PageMenusData.href = "XXX" $>
 	<$ PageMenusData.loadOrder = 10 $>
 
 	<$ exec rsAppendNewRow( "PageMenusData" ) $>
 	<$ PageMenusData.nodeId = "REVIEW_SIGNATURES" $>
 	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
 	<$ PageMenusData.label = "wwReviewSignatures" $>
+	<$ PageMenusData.ifClause = "NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' )" $>
 	<$ PageMenusData.type = "item" $>
-	<$ PageMenusData.href = "XXX" $>
+	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" $>
 	<$ PageMenusData.loadOrder = 10 $>
 <@ end @>
+[%%
+ %% TODO:
+	%% Need to implement ifClause around links
+	%%]
 <@ dynamichtml custom_search_results_action_popup @>
 	<$ include super.custom_search_results_action_popup $>
-
-	<tr><td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
-		onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
-		<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&<$ include idc_token_url_parameter $>&dDocName=<$ url( dDocName ) $>"
-		target="<$ popupLinkTarget $>"><$ lc( "wwSignWithCoSign" ) $></a></td></tr>
-
-	<tr><td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
-		onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
-		<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=XXX&<$ include idc_token_url_parameter $>&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $>"
-		target="<$ popupLinkTarget $>"><$ lc( "wwVerifySignatures" ) $></a></td></tr>
-
-	<tr><td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
-		onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
-		<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=XXX&<$ include idc_token_url_parameter $>&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $>"
-		target="<$ popupLinkTarget $>"><$ lc( "wwReviewSignatures" ) $></a></td></tr>
+	<$ if NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) $>
+		<$ if userHasRole( 'CoSignSigner' ) $>
+	<tr>
+		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
+				onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
+			<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&<$ include idc_token_url_parameter $>&dDocName=<$ url( dDocName ) $>"
+					target="<$ popupLinkTarget $>"><$ lc( "wwSignWithCoSign" ) $></a>
+		</td>
+	</tr>
+		<$ endif $>
+	<tr>
+		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
+				onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
+			<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&<$ include idc_token_url_parameter $>&dID=<$ url( dID ) $>"
+					target="<$ popupLinkTarget $>"><$ lc( "wwReviewSignatures" ) $></a>
+		</td>
+	</tr>
+	<$ endif $>
 <@ end @>
 <@ dynamichtml setup_workflow_action_popups @>
 	<$ include super.setup_workflow_action_popups $>
-
-	<$ exec rsAppendNewRow( "PopupProps" ) $>
-	<$ exec setValue( "PopupProps", "label", lc( "wwVerifySignature" ) ) $>
-	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
-	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
-	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
-	<$ exec setValue( "PopupProps", "class", "document" ) $>
-	<$ exec setValue( "PopupProps", "id", "verifySignature" ) $>
 
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignature" ) ) $>
@@ -100,9 +84,6 @@
 	<$ include wf_reviewer_doc_action_cosign_link $>
 <@ end @>
 <@ dynamichtml wf_reviewer_doc_action_cosign_link @>
-	<span style="white-space:nowrap">
-		[<a href="javascript:wfVerifySignature( '<$ dID $>', '<$ js( urlEscape7Bit( dWfName ) ) $>', '<$ js( urlEscape7Bit( dWfStepName ) ) $>' );" class="xuiLinkText1_Sm" style="font-weight:bold;padding-left:1px;padding-right:1px">
-			<$ lc( "wwVerifySignature" ) $></a>]&nbsp;</span>		
 	<span style="white-space:nowrap;padding-bottom:3px">
 		[<a href="javascript:wfReviewSignature( '<$ dID $>', '<$ js( urlEscape7Bit( dWfName ) ) $>', '<$ js( urlEscape7Bit( dWfStepName ) ) $>' );" class="xuiLinkText1_Sm" style="font-weight:bold;padding-left:1px;padding-right:1px">
 			<$ lc( "wwReviewSignature" ) $></a>]&nbsp;</span>
@@ -160,6 +141,7 @@
 		<$ exec setValue( "RowData", "xSigner", "<$ #active.xSigner $>" ) $>
 		<$ exec setValue( "RowData", "xSignTime", "<$ #active.xSignTime $>" ) $>
 		<$ exec setValue( "RowData", "xSignatureCount", "<$ #active.xSignatureCount $>" ) $>
+		<$ exec setValue( "RowData", #env.coSignSignatureProfileMetaField, "<$ getValue( '#active', #env.coSignSignatureProfileMetaField ) $>" ) $>
 	<$ endif $>
 
 	<$ if not noInfoColumn $>
@@ -207,7 +189,6 @@
 		<$ slimTableCaption = "<span class=\"xuiCaption\">" & slimTableCaptionStr & "</span> <br><br style=\"line-height:5px\">" $>
 	<$ endif $>
 
-	<!--IE table caption bug fix by not making it a caption if its IE and trays. Bug :9013446-->
 	<$ if slimTableCaption and ( strIndexOf( slimTableCaption, "<caption" ) == 0 ) $>
 		<$ captionAlreadyDefined = 1 $>
 	<$ endif $>
@@ -345,7 +326,7 @@
 		<$exec rsAppendNewRow("ColumnProperties")$>
 		<$fieldName = "xSignatureStatus"$>
 		<$ColumnProperties.id = fieldName$>
-		<$ColumnProperties.width = colWidth_med$>
+		<$ColumnProperties.width = colWidth_sm$>
 		<$ColumnProperties.headerLabel = "wwSignatureStatus"$>
 		<$ColumnProperties.rowAlign = "center"$>
 		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
@@ -355,7 +336,7 @@
 		<$exec rsAppendNewRow("ColumnProperties")$>
 		<$fieldName = "xSigner"$>
 		<$ColumnProperties.id = fieldName$>
-		<$ColumnProperties.width = colWidth_sm$>
+		<$ColumnProperties.width = colWidth_med$>
 		<$ColumnProperties.headerLabel = "wwSigner"$>
 		<$ColumnProperties.rowAlign = lineStartAlignment$>
 		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
@@ -366,7 +347,7 @@
 		<$exec rsAppendNewRow("ColumnProperties")$>
 		<$fieldName = "xSignTime"$>
 		<$ColumnProperties.id = fieldName$>
-		<$ColumnProperties.width = colWidth_med$>
+		<$ColumnProperties.width = colWidth_lg$>
 		<$ColumnProperties.headerLabel = "wwSignTime"$>
 		<$ColumnProperties.rowAlign = "center"$>
 		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
@@ -376,7 +357,7 @@
 		<$exec rsAppendNewRow("ColumnProperties")$>
 		<$fieldName = "xSignatureCount"$>
 		<$ColumnProperties.id = fieldName$>
-		<$ColumnProperties.width = colWidth_med$>
+		<$ColumnProperties.width = colWidth_sm$>
 		<$ColumnProperties.headerLabel = "wwSignatureCount"$>
 		<$ColumnProperties.rowAlign = lineStartAlignment$>
 		<$if rsFindRowPrimary("SearchSortFields", fieldName)$>
@@ -408,6 +389,7 @@
 		<$ exec setValue( "NavigationMenuItems", "parentId", "MENU_B" ) $>
 		<$ exec setValue( "NavigationMenuItems", "loadOrder", "60" ) $>
 		<$ exec setValue( "NavigationMenuItems", "label", lc( "wwCoSign" ) ) $>
+		<$ exec setValue( "NavigationMenuItems", "ifClause", "userHasRole( 'CoSignAdmin' )" ) $>
 		<$ exec setValue( "NavigationMenuItems", "linkType", "" ) $>
 		<$ exec setValue( "NavigationMenuItems", "linkData", "" ) $>
 		<$ exec setValue( "NavigationMenuItems", "flags", "isAdmin" ) $>
@@ -422,30 +404,127 @@
 		<$ exec setValue( "NavigationMenuItems", "flags", "" ) $>
 	<$ endif $>
 <@ end @>
-// ================================================================
-// This include will be called to show our overrides on a query, update, or checkin
-// page.  This one handles all three custom fields.
-//
-// "fieldName" is the proper variable to address the field.
-// ================================================================
+[%% ================================================================
+ %% This include will be called to show our overrides on a query, update, or checkin
+ %% page.  This one handles all three custom fields.
+ %%
+ %% "fieldName" is the proper variable to address the field.
+ %%]
 <@ dynamichtml std_edit_entry @>
-	<$ if fieldName and ( fieldName like "xCoSignContentProfile" ) $>
+	<$ if NOT isProfileCheckIn AND ( fieldName AND ( fieldName like #env.coSignSignatureProfileMetaField ) ) $>
 		<$ include cosign_content_profile_field_entry $>
 	<$ else $>
 		<$ include super.std_edit_entry $>
 	<$ endif $>
 <@ end @>
-// ================================================================
-// This include will be called to display the xCoSignContentProfile 
-// select button on the query, update, and checkin pages.
-// ================================================================
+[%% ================================================================
+ %% This include will be called to display the #env.coSignSignatureProfileMetaField 
+ %% select button on the query, update, and checkin pages.
+ %%]
 <@ dynamichtml cosign_content_profile_field_entry @>
 	<$ include super.std_edit_entry $>
 	<$ if isQuery and isTrue( isQuery ) $></td><td><$ endif $>
-	<$ myQuery = 'dDocType <matches> `CoSignRequestProtocol`' $>
+	<$ myQuery = 'dDocType <matches> `CoSignSignatureProfile`' $>
 	<input type="hidden" name="p_name" value="" />
 	<input type="button" value="<$ lc( "wwBrowse" ) $>..." onClick="window.open
-( '<$ HttpCgiPath $>?IdcService=COSIGN_RESULTS_POPUP&FormName=<$ formName $>&ElementName=<$ fieldName $>&ReturnField=dDocTitle&QueryText=<$ url( myQuery ) $>','pick','width=500,height=500' )">
-<@end@>
+( '<$ HttpCgiPath $>?IdcService=COSIGN_RESULTS_POPUP&FormName=<$ formName $>&ElementName=<$ fieldName $>&ReturnField=xCoSignSignatureTag&QueryText=<$ url( myQuery ) $>','pick','width=500,height=500' )">
+<@ end @>
+[%% ================================================================
+ %% Set isEditMode on page
+ %% Set fieldName on call
+ %% Set fieldId on call
+ %% Set fieldDefault on call
+ %%]
+<@ dynamichtml cosign_memo_entry @>
+	<$ fieldRows = 2, fieldColumns = 1 $>
+	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
+	<$ include compute_std_field_value $>
+	<$ include std_memo_entry $>
+	<$ exec inc( 'std_field_cleanup' ) $>
+<@ end @>
+[%% ================================================================
+ %% Set isEditMode on page
+ %% Set fieldName on call
+ %% Set fieldId on call
+ %% Set fieldEditWidth on call
+ %% Set setReadOnly on call
+ %% Set fieldDisabled on call
+ %% Set fieldDefault on call
+ %%]
+<@ dynamichtml cosign_edit_entry @>
+	<$ fieldType = 'Text', fieldEditWidth = '' $>
+	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
+	<$ include compute_std_field_value $>
+	<$ if fieldValue AND ( setReadOnly AND isTrue( setReadOnly ) ) $>
+		<$ fieldReadOnly = 1, setReadOnly = 0 $>
+	<$ endif $>
+	<$ inc( 'std_edit_entry' ) $>
+	<$ exec inc( 'std_field_cleanup' ) $>
+<@ end @>
+[%% ================================================================
+ %% Override out of box
+ %% Reason: basically it was never being called?!?
+ %%]
+<@ dynamichtml std_edit_entry_inputfield_attributes @>
+	<$ include super.std_edit_entry_inputfield_attributes $>
+	<$ if fieldOnBlur $>onblur="<$ fieldOnBlur $>"<$ endif $>
+	<$ if fieldOnChange $>onchange="<$ fieldOnChange $>"<$ endif$>
+	<$ if fieldOnFocus $>onfocus="<$ fieldOnFocus $>"<$ endif$>
+	<$ if fieldReadOnly $>readonly="readonly"<$ endif $>
+	<$ if fieldDisabled $>disabled="disabled"<$ endif $>
+	<$ if fieldOnKeyPress $>onkeypress="<$ fieldOnKeyPress $>"<$ endif $>
+<@ end @>
+<@ dynamichtml cosign_checkbox_entry @>
+ <$ checkboxValueStyle = 'infoLabel' $>
+	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
+	<$ checkboxValue = getValue( '#active', fieldName ) $>
+	<$ if not checkboxValue $><$ checkboxValue = getValue( '#active', fieldId ) $><$ endif $>
+	<$ if not checkboxValue $><$ if checked $><$ checked = 1 $><$ else $><$ checked = '' $><$ endif $>
+	<$ elseif fieldCheckValue like checkboxValue $><$ checked = 1 $>
+	<$ else $><$ checked = '' $><$ endif $>
+	<input type="checkbox" id="<$ fieldId $>" name="<$ fieldName $>" value="<$ fieldCheckValue $>" 
+	<$ if fieldDisabled $>disabled="disabled" <$ endif $>
+ <$ if checkboxStyle $>class="<$ checkboxStyle $>" <$ endif $>
+	<$ if checked $>checked <$ endif $>
+	<$ if checkboxFieldFunction $>onClick="<$ checkboxFieldFunction $>" <$ endif $>/>
+	<$ if fieldCaption $>
+	<label for="<$ fieldId $>"><span class="<$ checkboxValueStyle $>"><$ fieldCaption $></span></label>
+	<$ endif $>
+	<$ exec inc( 'std_field_cleanup' ) $>
+<@ end @>
+[%% ================================================================
+ %% Set isEditMode on page
+ %% Set fieldName on call
+ %% Set fieldId on call
+ %% Set fieldValue on call
+ %% Set radioFieldCaption on call
+ %%]
+<@ dynamichtml cosign_radio_entry @>
+ <$ radioValueStyle = 'infoLabel' $>
+	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
+	<$ radioValue = getValue( '#local', fieldName ) $>
+	<$ if fieldValue like radioValue $><$ checked = 1 $>
+	<$ elseif radioValue and checked $><$ checked = '' $><$ endif $>
+	<input type="radio" id="<$ fieldId $>" name="<$ fieldName $>" value="<$ fieldValue $>" 
+ <$ if radioStyle $>class="<$ radioStyle $>" <$ endif $>
+	<$ if checked $>checked <$ endif $>
+	<$ if radioDisabled $>disabled="disabled" <$ endif $>
+	<$ if radioFieldFunction $>onClick="<$ radioFieldFunction $>" <$ endif $>/>
+	<$ if radioFieldCaption $>
+	<label for="<$ fieldId $>"><span class="<$ radioValueStyle $>"><$ radioFieldCaption $></span></label>
+	<$ endif $>
+ <$ exec inc( 'std_field_cleanup' ) $>
+<@ end @>
+<@ dynamichtml std_field_cleanup @>
+ <$ include super.std_field_cleanup $>
+	<$ exec ddSetLocalEmpty( 'cosign_field_cleanup_vars' ) $>
+<@ end @>
+
+<@ dynamicdata cosign_field_cleanup_vars @>
+name
+radioStyle
+checkboxStyle
+<@ end @>
+
  </body>
 </html>
