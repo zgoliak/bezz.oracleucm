@@ -1,0 +1,26 @@
+<$ columns = 'sID,fieldName,status,signingTime,signerEmail,signerName,signReason,certErrorStatus' $>
+<$ include std_doctype_html_decl $>
+	<head>
+<$ include std_html_head_declarations $>
+	</head>
+<$ include body_def $>
+<$ include std_page_begin $>
+<$ exec rsMakeFromString( 'COLUMNS', columns ) $>
+<$ loop COLUMNS $>
+	<$ lc( 'ww' & #active.row ) $>
+<$ endloop $>
+<br />
+<$ loop SignatureReview $>
+	<$ loop COLUMNS $>
+		<$ value = getValue( '#active', #active.row ) $>
+		<$ if NOT value $><$ value = getValue( '#active', strUpper( #active.row ) ) $><$ endif $>
+		<$ if #active.row like 'status|certErrorStatus' $>
+			<$ value = lc( 'ww' & #active.row & value ) $>
+		<$ endif $>
+		<$ value $>
+	<$ endloop $>
+<$ endloop $>
+<$ include std_page_end $>
+	</body>
+</html>
+<!--<$ trace("#all", "mylogs") $><$ mylogs $>-->
