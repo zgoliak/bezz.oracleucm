@@ -89,6 +89,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 	 */
 	public void processSignRequest() throws ServiceException {
+		Report.trace( "bezzotechcosign", "Entering processSignRequest, passed in binder:" + super.m_binder.toString(), null );
 		super.m_binder.putLocal( "CoSign.Document.fields", "fileID;contentType;content" );
 		super.m_binder.putLocal( "CoSign.Document.fileID", super.m_binder.getLocal( "dDocName" ) );
 		super.m_binder.putLocal( "docId", super.m_binder.getLocal( "dID" ) );
@@ -101,9 +102,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		DataResultSet drset = new DataResultSet();
 		drset.copy( rset );
 		super.m_binder.addResultSet( "DOC_INFO", drset );
-		Report.debug( "bezzotechcosign", "Required metadata for Signing Ceremony have been gathered from" +
-				" content item.", null );
-		Report.debug( "bezzotechcosign", super.m_binder.toString(), null );
+		Report.trace( "bezzotechcosign", "Required metadata for Signing Ceremony have been gathered from" +
+				" content item, resulting binder: " + super.m_binder.toString(), null );
 
 		super.m_binder.putLocal( "CoSign.Document.content", PLACEHOLDER_CONTENT );
 		String SignRequest = m_WSC.buildSignRequest();
@@ -117,15 +117,18 @@ public class CoSignServiceHandler extends ServiceHandler {
 			super.m_binder.putLocal( "SignRequest", SignRequest );
 			m_WSC.processSignRequest();
 		} catch ( UnsupportedEncodingException e ) {
+		Report.debug( "bezzotechcosign", "Rollback trigger > m_undo: " + m_undo, null );
 			e.printStackTrace();
 			msg += e.getMessage();
 			m_undo = true;
 		} catch ( Exception e ) {
+		Report.debug( "bezzotechcosign", "Rollback trigger > m_undo: " + m_undo, null );
 			e.printStackTrace();
 			msg += e.getMessage();
 			m_undo = true;
 		} finally {
-			if ( super.m_binder.getLocal( "WSC_Session" ) == null ) {
+		Report.debug( "bezzotechcosign", "Rollback trigger > m_undo: " + m_undo, null );
+			if( super.m_binder.getLocal( "WSC_Session" ) == null ) {
 				msg += "\n\tNo Session found";
 				m_undo = true;
 			}
@@ -133,7 +136,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 		log ( msg );
 
-		if ( m_undo ) {
+		Report.debug( "bezzotechcosign", "Rollback trigger > m_undo: " + m_undo, null );
+		if( m_undo ) {
 			m_cmutils.rollback( msg );
 		}
 	}
@@ -142,14 +146,24 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 	 */
 	public void processSignedDocument() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering processSignedDocument, passed in binder:", null );
-		if ( super.m_binder.getLocal( "sessionId" ) == null )
-			super.m_service.createServiceException( null, "csInvalidSessionId" );
-		if ( super.m_binder.getLocal( "docId" ) == null )
-			super.m_service.createServiceException( null, "csInvalidDocId" );
-
+		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder:" + super.m_binder.toString(), null );
 		String msg = "";
-		try { m_WSC.processDownloadRequest(); }
+		if( super.m_binder.getLocal( "errorMessage" ) != null ) {
+			msg = super.m_binder.getLocal( "errorMessage" );
+			m_undo = true;
+		}
+		if( super.m_binder.getLocal( "sessionId" ) == null ) {
+			msg = "csInvalidSessionId";
+			m_undo = true;
+		}
+		if( super.m_binder.getLocal( "docId" ) == null ) {
+			msg = "csInvalidDocId";
+			m_undo = true;
+		}
+		super.m_binder.putLocal( "dDocName", super.m_binder.getLocal( "docId" ) );
+		super.m_binder.putLocal( "dID", "" );
+
+		try { if( !m_undo ) m_WSC.processDownloadRequest(); }
 		catch ( Exception e ) {
 			msg += e.getMessage();
 			m_undo = true;
@@ -157,50 +171,31 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 		log ( msg );
 
-		if ( m_undo ) {
+		if( m_undo )
 			m_cmutils.rollback( msg );
+		else
+		 m_cmutils.checkin();
+
+		if( super.m_binder.getLocal( "dWorkflowState").length() > 0 )
+			m_cmutils.approve();
 		}
-	}
 
 	/**
 	 *
 		*/
 	public void processReviewRequest() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering processSignedDocument, passed in binder:", null );
+		Report.trace( "bezzotechcosign", "Entering processReviewRequest, passed in binder:", null );
 		ResultSet rset = m_cmutils.getSignatureReview( super.m_binder.getLocal( "dID" ) );
 		if( rset.isEmpty() ) {
-			super.m_binder.putLocal( "CoSign.Document.fields", "fileID;contentType;content" );
-			super.m_binder.putLocal( "docId", super.m_binder.getLocal( "dID" ) );
-			rset = m_cmutils.getDocInfo( super.m_binder.getLocal( "docId" ) );
-			super.m_binder.putLocal( "CoSign.Document.fileID", ResultSetUtils.getValue( rset, "dDocName" ) );
-			super.m_binder.putLocal( "CoSign.Document.contentType",
-					ResultSetUtils.getValue( rset, "dExtension" ) );
-			super.m_binder.putLocal( "CoSignProfile",
-					ResultSetUtils.getValue( rset, m_shared.getConfig( "coSignSignatureProfileMetaField" ) ) );
+			ResultSet diRSet = m_cmutils.getDocInfo( super.m_binder.getLocal( "dID" ) );
 			DataResultSet drset = new DataResultSet();
-			drset.copy( rset );
+			drset.copy( diRSet );
 			super.m_binder.addResultSet( "DOC_INFO", drset );
-			super.m_binder.putLocal( "CoSign.Document.content", PLACEHOLDER_CONTENT );
-			String VerifyRequest = m_WSC.buildVerifyRequest();
-
-			String msg = "";
-			try {
-				String file = m_cmutils.getFileAsString();
-				String input = VerifyRequest.replaceAll( PLACEHOLDER_CONTENT, file );
-				String output = URLEncoder.encode( input, "UTF-8" );
-				VerifyRequest = "inputXML=" + output;
-				super.m_binder.putLocal( "VerifyRequest", VerifyRequest );
-				m_WSC.processVerifyRequest();
-				rset = m_cmutils.getSignatureReview( super.m_binder.getLocal( "dID" ) );
-			} catch ( UnsupportedEncodingException e ) {
-				e.printStackTrace();
-				msg += e.getMessage();
-				m_undo = true;
-			} catch ( Exception e ) {
-				e.printStackTrace();
-				msg += e.getMessage();
-				m_undo = true;
-			}
+			super.m_binder.m_inStream = m_cmutils.getFileAsStream();
+			m_WSC.processVerifyRequest();
+			if( super.m_binder.getLocal( "dID" ).equals( "" ) )
+				return;
+			rset = m_cmutils.getSignatureReview( super.m_binder.getLocal( "dID" ) );
 		}
 		DataResultSet drset = new DataResultSet();
 		drset.copy( rset );
@@ -224,7 +219,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 		*/
 	private void log( String msg ) throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering log, passed in binder:", null );
+		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
 		DataBinder binder = new DataBinder();
 		binder.putLocal( "User", super.m_binder.getLocal( "dUser" ) );
 		binder.putLocal( "Operation", super.m_binder.getLocal( "IdcService" ) );
@@ -235,8 +230,19 @@ public class CoSignServiceHandler extends ServiceHandler {
 		try {
 			m_workspace.execute( "IcosignHistory", binder );
 		} catch ( DataException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		}
+	}
+
+	/**
+	 *
+		*/
+	private void throwFullError( Exception e ) throws ServiceException {
+			StringBuilder sb = new StringBuilder();
+			for(StackTraceElement element : e.getStackTrace()) {
+				sb.append(element.toString());
+				sb.append("\n");
+			}
+			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
 	}
 }
