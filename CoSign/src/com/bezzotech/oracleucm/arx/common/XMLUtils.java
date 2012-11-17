@@ -67,14 +67,14 @@ public class XMLUtils {
 	 *
 	 */
 	public Document getNewDocument() throws ServiceException {
+		Report.debug( "bezzotechcosign", "Entering getNewDocument", null );
 		Document dom = null;
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		try {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			dom = documentBuilder.newDocument();
 		} catch ( ParserConfigurationException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		}
 		return dom;
 	}
@@ -91,14 +91,11 @@ public class XMLUtils {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			dom = documentBuilder.parse( path );
 		} catch ( ParserConfigurationException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		} catch ( IOException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		} catch ( SAXException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		}
 		return dom;
 	}
@@ -113,14 +110,11 @@ public class XMLUtils {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			dom = documentBuilder.parse( new InputSource( new StringReader( contents ) ) );
 		} catch ( ParserConfigurationException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		} catch ( SAXException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		} catch ( IOException e ) {
-			e.printStackTrace();
-			throw new ServiceException( e.getMessage() );
+			throwFullError( e );
 		}
 		return dom;
 	}
@@ -138,6 +132,9 @@ public class XMLUtils {
 	 */
 	public Element appendChildrenFromEnvironmental( String appName, Document doc, String rootName,
 			boolean appendTo ) throws ServiceException {
+		Report.debug( "bezzotechcosign", "Entering appendChildrenFromEnvironmental, passed in parameters:" +
+				"\n\tappName: " + appName + "\n\tdoc:\n\trootName: " + rootName + "\n\tappendTo: " + appendTo,
+				null );
 		Map fields = m_shared.getConfigSet( appName + "." + rootName );
 		Element root;
 		if ( appendTo ) root = ( Element )doc.getElementsByTagName( rootName ).item( 0 );
@@ -171,7 +168,6 @@ public class XMLUtils {
 		String locStr = m_binder.getLocal( appName + "." + rootName + ".fields" );
 		if ( locStr == null )
 			throw new ServiceException( appName + " has not been installed properly" );
-		Report.debug( "bezzotechcosign", "Local fields: " + locStr, null );
 
 		Vector fields = ( Vector )StringUtils.parseArray( locStr, ';', '\\' );
 		if ( fields.isEmpty() )
@@ -181,15 +177,11 @@ public class XMLUtils {
 		for ( Enumeration fieldsEnum = fields.elements(); fieldsEnum.hasMoreElements(); ) {
 			String fieldName = ( String )fieldsEnum.nextElement();
 			String fieldValue = m_binder.getLocal( appName + "." + rootName + "." + fieldName );
-			Report.debug( "bezzotechcosign", "Extracted fieldName: " + fieldName +
-					"\n\tExtracted fieldValue: " + fieldValue, null );
 			if ( fieldValue != null || fieldValue != "" ) {
 				Vector fieldValues = StringUtils.parseArray( fieldValue, ',', '\\' );
 				for ( Enumeration fieldValuesEnum = fieldValues.elements(); fieldValuesEnum.hasMoreElements(); ) {
 					Element child = doc.createElement( fieldName );
 					fieldValue = ( String )fieldValuesEnum.nextElement();
-					Report.debug( "bezzotechcosign", "Extracted fieldName: " + fieldName +
-							"\n\tExtracted fieldValue: " + fieldValue, null );
 					Text text = doc.createTextNode( fieldValue );
 					child.appendChild( text );
 					root.appendChild( child );
@@ -208,7 +200,7 @@ public class XMLUtils {
 	 *
 	 */
 	public void parseChildrenToLocal( String appName, Element root, String baseName ) {
-		Report.debug( "bezzotechcosign", "Entering parseChildrenToLocal, passed in parameter(s):" +
+		Report.trace( "bezzotechcosign", "Entering parseChildrenToLocal, passed in parameter(s):" +
 				"\n\tappName: " + appName + "\n\troot:\n\tbaseName: " + baseName, null );
 		Element base = ( Element )root.getElementsByTagName( baseName ).item( 0 );
 		NodeList children = base.getChildNodes();
@@ -220,8 +212,6 @@ public class XMLUtils {
 				String fieldName = child.getTagName();
 				String localValue = m_binder.getLocal( appName + "." + baseName + "." + fieldName );
 				String fieldValue = child.getTextContent();
-				Report.debug( "bezzotechcosign", "Extracted fieldName: " + fieldName +
-						"\n\tExtracted fieldValue: " + fieldValue + "\n\tlocalValue: " + localValue, null );
 				if ( localValue != null ) { fieldValue += "," + localValue; }
 				m_binder.putLocal( appName + "." + baseName + "." + fieldName, fieldValue );
 				fields = fields + (fields == "" ? "" : ";") + fieldName;
@@ -234,6 +224,7 @@ public class XMLUtils {
 	 *
 	 */
 	public String getStringFromDocument( Document doc ) {
+		Report.trace( "bezzotechcosign", "Entering getStringFromDocument", null );
 		DOMImplementation domImpl = doc.getImplementation();
 		DOMImplementationLS domImplLS = (DOMImplementationLS)domImpl.getFeature("LS", "3.0");
 		LSSerializer serializer = domImplLS.createLSSerializer();
@@ -244,5 +235,31 @@ public class XMLUtils {
 		lsOutput.setCharacterStream(output);
 		serializer.write(doc, lsOutput);
 		return output.toString();
+	}
+
+	/**
+	 *
+		*/
+	public Element appendTextNodeToChild( Document doc, Element root, String name, String value )
+			throws ServiceException {
+		NodeList nl = root.getElementsByTagName( name );
+		if( nl == null || nl.getLength() == 0 ) throw new ServiceException( "csCoSignNotConfigProperly" );
+		Node n = nl.item( 0 );
+		Text t = doc.createTextNode( value );
+		n.appendChild( t );
+		return root;
+	}
+
+	/**
+	 *
+		*/
+	private void throwFullError( Exception e ) throws ServiceException {
+			StringBuilder sb = new StringBuilder();
+			for(StackTraceElement element : e.getStackTrace()) {
+				sb.append(element.toString());
+				sb.append("\n");
+			}
+			Report.debug( "bezzotechcosign", e.getMessage() + "\n" + sb.toString(), null );
+			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
 	}
 }
