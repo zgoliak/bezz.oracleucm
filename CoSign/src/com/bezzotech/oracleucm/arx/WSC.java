@@ -141,17 +141,20 @@ public class WSC {
 	/**
 	 *
 	 */
-	private void parseWSCResponse( String response ) throws ServiceException {
+	private void parseWSCResponse( String response, boolean isFullResponse ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering parseWSCResponse, passed in parameters:\n\tresponse: " +
 				response, null );
 		m_doc = m_xmlutil.getNewDocument( response );
 		m_doc_root = m_doc.getDocumentElement();
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Error" );
-		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Session" );
-		parseDocument();
-		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Result" );
-		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SigDetails" );
-		parseVerify();
+		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS )
+			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Session" );
+		if( isFullResponse ) {
+			parseDocument();
+			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Result" );
+			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SigDetails" );
+			parseVerify();
+		}
 	}
 
 	/**
@@ -163,24 +166,11 @@ public class WSC {
 				m_binder.getLocal( "CoSign.Document.fileID" ), m_binder.getLocal( "SignRequest" ),
 				"application/x-www-form-urlencoded" );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
-		Pattern rcPattern = Pattern.compile( "<returnCode>([^<>]*)</returnCode>" );
-		Matcher m = rcPattern.matcher( message );
-		if( m.find() ) {
-			if( Integer.parseInt( m.group( 1 ) ) == Errors.SUCCESS ) {
-				Pattern siPattern = Pattern.compile( "<sessionId>([^<>]*)</sessionId>" );
-				m = siPattern.matcher( message );
-				if( m.find() ) {
-					m_binder.putLocal( "WSC_Session", m.group( 1 ) ); 
-				} else {
-					throw new ServiceException( "csInvalidSessionId" );
-				}
-			} else {
-				Pattern emPattern = Pattern.compile( "<errorMessage >([^<>]*)</errorMessage >" );
-				m = emPattern.matcher( message );
-				throw new ServiceException( m.group( 1 ) );
-			}
+		parseWSCResponse( message, false );
+		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS ) {
+			m_binder.putLocal( "WSC_Session", m_binder.getLocal( "CoSign.Session.sessionId" ) ); 
 		} else {
-			throw new ServiceException( "csWSCResponseInvalid" );
+			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
 	}
 
@@ -192,60 +182,52 @@ public class WSC {
 		String message = postRequestToWSC( "/pullSignedDoc.ashx?sessionID=" +
 				m_binder.getLocal( "sessionId" ), null, null );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
-		Pattern rcPattern = Pattern.compile( "<returnCode>([^<>]*)</returnCode>" );
-		Matcher m = rcPattern.matcher( message );
-		if( m.find() ) {
-			if( Integer.parseInt( m.group( 1 ) ) == Errors.SUCCESS ) {
-				parseWSCResponse( message );
-				Report.trace( "bezzotechcosign", "Resulting binder: " + m_binder.toString(), null );
-				byte[] buffer =
-						CommonDataConversion.uudecode( m_binder.getLocal( "CoSign.Document.content" ), null );
-				int bytesRead = buffer.length;
-				String file =
-						m_fsutil.getTemporaryFileName( "." + m_binder.getLocal( "CoSign.Document.contentType" ), 0x0 );
-				try {
-					BufferedOutputStream _bos = new BufferedOutputStream( new FileOutputStream( file ) );
-					_bos.write( buffer, 0, bytesRead );
-					_bos.close();
-				} catch ( FileNotFoundException e ) {
-					throwFullError( e );
-				} catch ( IOException e ) {
-					throwFullError( e );
-				}
-				m_binder.putLocal( "dDocName", m_binder.getLocal( "CoSign.Session.docId" ) );
-				m_binder.mergeResultSetRowIntoLocalData(
-						m_cmutil.getDocInfoByName( m_binder.getLocal( "CoSign.Session.docId" ) ) );
-				m_binder.putLocal( "dRevLabel",
-						( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
-				m_binder.putLocalDate( "dInDate", new java.util.Date() );
-				m_binder.putLocal( "primaryFile:path", file );
-				m_binder.putLocal( "dExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );
-				m_binder.putLocal( "dWebExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );
-				int statusCode = Integer.parseInt( m_binder.getLocal( "CoSign.Field.status" ) );
-				String status;
-				if( statusCode == 0 ) status = "Valid";
-				else if(statusCode == 1 ) status = "Invalid";
-				else status = "Not Signed";
-				m_binder.putLocal( "xSignatureStatus", status );
-				m_binder.putLocal( "xSigner", m_binder.getLocal( "CoSign.Field.signerName" ) );
-				try {
-					SimpleDateFormat sdf = new SimpleDateFormat( "dd/MM/yyyy HH:mm:ss" );
-					Date date = sdf.parse( m_binder.getLocal( "CoSign.Field.signingTime" ) );
-					m_binder.putLocalDate( "xSignTime", date );
-					m_binder.putLocalDate( "CoSign.Field.signingTime", date );
-				} catch ( ParseException e ) {
-					throwFullError( e );
-				}
-				int count = m_cmutil.getSignedCounter( m_binder.getLocal( "CoSign.Session.docId" ) );
-				m_binder.putLocal( "xSignatureCount", ++count + "" );
-				prepareLog();
-			} else {
-				Pattern emPattern = Pattern.compile( "<errorMessage >([^<>]*)</errorMessage >" );
-				m = emPattern.matcher( message );
-				throw new ServiceException( m.group( 1 ) );
+		parseWSCResponse( message, true );
+		Report.trace( "bezzotechcosign", "Resulting binder: " + m_binder.toString(), null );
+		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS ) {
+			byte[] buffer =
+					CommonDataConversion.uudecode( m_binder.getLocal( "CoSign.Document.content" ), null );
+			int bytesRead = buffer.length;
+			String file =
+					m_fsutil.getTemporaryFileName( "." + m_binder.getLocal( "CoSign.Document.contentType" ), 0x0 );
+			try {
+				BufferedOutputStream _bos = new BufferedOutputStream( new FileOutputStream( file ) );
+				_bos.write( buffer, 0, bytesRead );
+				_bos.close();
+			} catch ( FileNotFoundException e ) {
+				throwFullError( e );
+			} catch ( IOException e ) {
+				throwFullError( e );
 			}
+			m_binder.putLocal( "dDocName", m_binder.getLocal( "CoSign.Session.docId" ) );
+			m_binder.mergeResultSetRowIntoLocalData(
+					m_cmutil.getDocInfoByName( m_binder.getLocal( "CoSign.Session.docId" ) ) );
+			m_binder.putLocal( "dRevLabel",
+					( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+			m_binder.putLocalDate( "dInDate", new java.util.Date() );
+			m_binder.putLocal( "primaryFile:path", file );
+			m_binder.putLocal( "dExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );
+			m_binder.putLocal( "dWebExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );
+			int statusCode = Integer.parseInt( m_binder.getLocal( "CoSign.Field.status" ) );
+			String status;
+			if( statusCode == 0 ) status = "Valid";
+			else if(statusCode == 1 ) status = "Invalid";
+			else status = "Not Signed";
+			m_binder.putLocal( "xSignatureStatus", status );
+			m_binder.putLocal( "xSigner", m_binder.getLocal( "CoSign.Field.signerName" ) );
+			try {
+				SimpleDateFormat sdf = new SimpleDateFormat( "dd/MM/yyyy HH:mm:ss" );
+				Date date = sdf.parse( m_binder.getLocal( "CoSign.Field.signingTime" ) );
+				m_binder.putLocalDate( "xSignTime", date );
+				m_binder.putLocalDate( "CoSign.Field.signingTime", date );
+			} catch ( ParseException e ) {
+				throwFullError( e );
+			}
+			int count = m_cmutil.getSignedCounter( m_binder.getLocal( "CoSign.Session.docId" ) );
+			m_binder.putLocal( "xSignatureCount", ++count + "" );
+			prepareLog();
 		} else {
-			throw new ServiceException( "csWSCResponseInvalid" );
+			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
 	}
 
@@ -257,15 +239,10 @@ public class WSC {
 		String message = postStreamToWSC( "/VerifyService.aspx", m_binder,
 				m_binder.getResultSetValue( m_binder.getResultSet( "DOC_INFO" ), "dFormat" ) );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
-		Pattern rcPattern = Pattern.compile( "<returnCode>([^<>]*)</returnCode>" );
-		Matcher m = rcPattern.matcher( message );
-		if( m.find() ) {
-			m_binder.removeLocal( "dID" );
-			Pattern emPattern = Pattern.compile( "<errorMessage >([^<>]*)</errorMessage >" );
-			m = emPattern.matcher( message );
-			throw new ServiceException( m.group( 1 ) );
-		}
 		parseVerifyResponse( message );
+		if( m_binder.getLocal( "CoSign.Error.returnCode" ) != null ) {
+			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
+		}
 		if( m_binder.getLocal( "CoSign.Field.fieldName" ) == null )	return;
 		m_binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
 		int statusCode = Integer.parseInt( m_binder.getLocal( "CoSign.Field.status" ) );

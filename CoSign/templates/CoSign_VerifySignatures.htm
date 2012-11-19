@@ -39,17 +39,21 @@
 <$ endloop $>
 			</div>
 			<div class="row">
-<$ loop SignatureReview $>
-	<$ loop COLUMNS $>
-		<$ value = getValue( '#active', #active.row ) $>
-		<$ if NOT value $><$ value = getValue( '#active', strUpper( #active.row ) ) $><$ endif $>
-		<$ if #active.row like 'status|certErrorStatus' $>
-			<$ value = lc( 'ww' & #active.row & value ) $>
-		<$ endif $>
-		<$ if COLUMNS.#row gt 0 $>|<$ endif $>
+<$ if rsExists( 'SignatureReview' ) $>
+	<$ loop SignatureReview $>
+		<$ loop COLUMNS $>
+			<$ value = getValue( '#active', #active.row ) $>
+			<$ if NOT value $><$ value = getValue( '#active', strUpper( #active.row ) ) $><$ endif $>
+			<$ if #active.row like 'status|certErrorStatus' $>
+				<$ value = lc( 'ww' & #active.row & value ) $>
+			<$ endif $>
+			<$ if COLUMNS.#row gt 0 $>|<$ endif $>
 				<span class="column large"><$ value $></span>
+		<$ endloop $>
 	<$ endloop $>
-<$ endloop $>
+<$ else $>
+	<$ lc( 'wwNoResults' ) $>
+<$ endif $>
 			</div>
 		</div>
 <$ include std_page_end $>

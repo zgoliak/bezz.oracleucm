@@ -71,7 +71,7 @@
 		<script type="text/javascript">
 			function addReason() {
 				var submitted = document.getElementById( 'Reason' );
-				if ( submitted != undefined && submitted.value != '' ) {
+				if( submitted != undefined && submitted.value != '' ) {
 					var reason = document.createElement( 'OPTION' );
 					reason.text = submitted.value;
 					reason.selected = true;
@@ -97,12 +97,12 @@
 			function toggleReadOnly( targetID, triggerName ) {
 				var trigger = document.getElementsByName( triggerName );
 				var target = document.getElementById( targetID );
-				switch ( trigger[ 0 ].type ) {
+				switch( trigger[ 0 ].type ) {
 					case 'checkbox':
 					case 'radio':
-						for ( var i = 0; i < trigger.length; i++ ) {
-							if ( trigger[ i ].className == 'Enable' ) {
-								if ( trigger[ i ].checked ) {
+						for( var i = 0; i < trigger.length; i++ ) {
+							if( trigger[ i ].className == 'Enable' ) {
+								if( trigger[ i ].checked ) {
 									target.readOnly = '';
 								} else {
 									target.readOnly = 'readonly';
@@ -115,26 +115,27 @@
 			}
 			function toggleAdHoc() {
 				toggleHidden( 'AdHoc', 'CoSign.Logic.allowAdHoc' );
-				if ( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked )
+				if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked ) {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'isWorkflowMode;allowAdHoc;allowUserReason;enforceReason';
-				else
+				} else {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'allowAdHoc;allowUserReason;enforceReason';
+				}
 			}
 			function toggleHidden( targetName, triggerName ) {
 				var trigger = document.getElementsByName( triggerName );
 				var target = document.getElementsByName( targetName );
-				switch ( trigger[ 0 ].type ) {
+				switch( trigger[ 0 ].type ) {
 					case 'checkbox':
 					case 'radio':
-						for ( var i = 0; i < trigger.length; i++ ) {
-							if ( trigger[ i ].className == 'Enable' ) {
-								for ( var j = 0; j < target.length; j++ ) {
-									if ( trigger[ i ].checked && trigger[i].value == 'true' ) {
-										target[ j ].style.display = 'block';
-									} else {
+						for( var i = 0; i < trigger.length; i++ ) {
+							if( trigger[ i ].className == 'Enable' ) {
+								for( var j = 0; j < target.length; j++ ) {
+									if( target[ j ].style.display == 'block' || target[ j ].style.display == '' ) {
 										target[ j ].style.display = 'none';
+									} else if( target[ j ].style.display == 'none' ) {
+										target[ j ].style.display = 'block';
 									}
 								}
 								break;
@@ -144,7 +145,7 @@
 				}
 			}
 			function submitProfile() {
-				if (document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
+				if(document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
 					getPageNumber();
 					checked( 'SignatureFieldDetails', 5, 'CoSign.SigProfile.showTitle' );
 					checked( 'DisplayGMTOffset', 0, 'CoSign.SigProfile.extTimeformat' );
@@ -160,33 +161,33 @@
 			function getReasons ( lorName, CM ) {
 				var lor = document.getElementById( lorName );
 				var val = document.getElementsByName( CM )[ 0 ].value;
-				for ( var i = 0; i < lor.options.length; i++ ) {
+				for( var i = 0; i < lor.options.length; i++ ) {
 					val += (val != '' ? ',' : '') + lor.options[ i ].text;
 				}
 				document.getElementsByName( CM )[ 0 ].value = val;
 			}
 			function checked( elementId, index, CM ) {
 				var result = false;
-				if ( index == null || index == undefined ) {
+				if( index == null || index == undefined ) {
 					var cbGroup = document.getElementsByName( elementId );
-					for ( var i = 0; i <= cbGroup.length; i++ ) {
+					for( var i = 0; i <= cbGroup.length; i++ ) {
 						var cb = cbGroup[ i ];
-						if ( cb.checked ) result = true;
+						if( cb.checked ) result = true;
 					}
 				} else {
 					var cb = document.getElementById( elementId );
-					if ( cb == null )
+					if( cb == null )
 						cb = document.getElementsByName( elementId )[ index ];
-					if ( cb != null && cb.checked )  result = true;
+					if( cb != null && cb.checked )  result = true;
 				}
-				if ( CM != null || CM != undefined ) document.getElementsByName( CM )[0].value = result;
+				if( CM != null || CM != undefined ) document.getElementsByName( CM )[0].value = result;
 			}
 			function getPageNumber() {
 				var elements = document.getElementsByName( 'sPage' );
 				var pageNumber = document.getElementsByName( 'CoSign.SigProfile.pageNumber' )[ 0 ];
-				for ( var i = 0; i < elements.length; i++ ) {
-					if ( elements[ i ].checked ) {
-						if ( elements[ i ].value == '' ) {
+				for( var i = 0; i < elements.length; i++ ) {
+					if( elements[ i ].checked ) {
+						if( elements[ i ].value == '' ) {
 							break;
 						} else {
 							pageNumber.value = elements[ i ].value;
@@ -238,7 +239,7 @@
 							</p>
 							<h2>Description:</h2>
 							<p>
-<$ fieldName = 'xComment' $>
+<$ fieldName = 'xComments' $>
 <$ inc( 'cosign_memo_entry' ) $>
 							</p>
 							<h2>Applicable Roles:</h2>
@@ -253,8 +254,8 @@
 							</p>
 						</div>
 					</div>
-					<div class="separator"></div>
-					<div class="row">
+					<div class="separator" name="AdHoc" style="display: none;"></div>
+					<div class="row" name="AdHoc" style="display: none;">
 						<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign" />
 						<div class="left">
 							<h1>Field Name To Sign</h1>
@@ -361,8 +362,8 @@
 							</p>
 						</div>
 					</div>
-					<div class="separator" name="AdHoc" style="display: none;"></div>
-					<div class="row" name="AdHoc" style="display: none;">
+					<div class="separator" name="AdHoc"></div>
+					<div class="row" name="AdHoc">
 						<input type="hidden" name="CoSign.SigProfile.fields" value="fieldName;x;y;width;height;pageNumber;visible;title;showTitle;dateFormat;timeFormat;extTimeformat;signer;date;logo;graphicalImage;initials" />
 						<input type="hidden" name="CoSign.SigProfile.fieldName" value="newFieldDefault" />
  					<div class="left">
@@ -493,5 +494,6 @@
 			</form>
 <$ endif $>
 <$ include std_page_end $>
+<$ if isTrue( getValue( '#local', 'CoSign.Logic.allowAdHoc' ) ) $><script>toggleAdHoc();</script><$ endif $>
 	</body>
 </html>

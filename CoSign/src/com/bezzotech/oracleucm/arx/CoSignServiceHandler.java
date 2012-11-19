@@ -21,7 +21,7 @@ import com.bezzotech.oracleucm.arx.service.FileStoreUtils;
 import com.bezzotech.oracleucm.arx.shared.SharedObjects;
 
 public class CoSignServiceHandler extends ServiceHandler {
-	private static boolean m_undo = false;
+	private static boolean m_undo;
 	/**
 	 *  TODO: Need to implement better Cookie handling
 	 */
@@ -46,6 +46,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 */
 	public void init( Service s ) throws ServiceException, DataException {
 		super.init( s );
+		m_undo = false;
 		m_fsutil = FileStoreUtils.getFileStoreUtils( s );
 		//m_cmutils = CMUtils.getCMUtils( s );
 		m_xmlutils = XMLUtils.getXMLUtils( s );
@@ -118,7 +119,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		} finally {
 		Report.debug( "bezzotechcosign", "Rollback trigger > m_undo: " + m_undo, null );
 			if( super.m_binder.getLocal( "WSC_Session" ) == null ) {
-				msg += "\n\tNo Session found";
+				msg += "\n\tCosign returned without a valid session found";
 				m_undo = true;
 			}
 		}
@@ -184,13 +185,15 @@ public class CoSignServiceHandler extends ServiceHandler {
 			super.m_binder.m_inStream = m_cmutils.getFileAsStream();
 
 			String msg = "";
+			boolean term = false;
 			try {
 				m_WSC.processVerifyRequest();
 			} catch( Exception e) {
 			 msg = e.getMessage();
+				term = true;
 			}
 			log( msg );
-			if( super.m_binder.getLocal( "dID" ) == null )
+			if( term )
 				return;
 			rset = m_cmutils.getSignatureReview( super.m_binder.getLocal( "dID" ) );
 		}

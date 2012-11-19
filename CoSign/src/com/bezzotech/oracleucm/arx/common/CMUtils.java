@@ -293,7 +293,7 @@ public class CMUtils {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
 				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: " , null );
 		DataBinder undoBinder = new DataBinder();
-		undoBinder.putLocal( "IdcService", "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
+		undoBinder.putLocal( "IdcService", "UNDO_CHECKOUT_BY_NAME" );
 		undoBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
 		executeServiceSimple( undoBinder );
 		throw new ServiceException( error );
