@@ -1,30 +1,19 @@
 package com.bezzotech.oracleucm.arx;
 
-import intradoc.common.Errors;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
 import intradoc.data.DataResultSet;
-import intradoc.data.IdcCounterUtils;
 import intradoc.data.ResultSet;
 import intradoc.data.ResultSetUtils;
-import intradoc.data.Workspace;
 import intradoc.server.Service;
 import intradoc.server.ServiceHandler;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 import com.bezzotech.oracleucm.arx.common.CMUtils;
 import com.bezzotech.oracleucm.arx.common.XMLUtils;
@@ -188,12 +177,20 @@ public class CoSignServiceHandler extends ServiceHandler {
 		ResultSet rset = m_cmutils.getSignatureReview( super.m_binder.getLocal( "dID" ) );
 		if( rset.isEmpty() ) {
 			ResultSet diRSet = m_cmutils.getDocInfo( super.m_binder.getLocal( "dID" ) );
+			super.m_binder.putLocal( "dDocName", ResultSetUtils.getValue( diRSet, "dDocName" ) );
 			DataResultSet drset = new DataResultSet();
 			drset.copy( diRSet );
 			super.m_binder.addResultSet( "DOC_INFO", drset );
 			super.m_binder.m_inStream = m_cmutils.getFileAsStream();
-			m_WSC.processVerifyRequest();
-			if( super.m_binder.getLocal( "dID" ).equals( "" ) )
+
+			String msg = "";
+			try {
+				m_WSC.processVerifyRequest();
+			} catch( Exception e) {
+			 msg = e.getMessage();
+			}
+			log( msg );
+			if( super.m_binder.getLocal( "dID" ) == null )
 				return;
 			rset = m_cmutils.getSignatureReview( super.m_binder.getLocal( "dID" ) );
 		}

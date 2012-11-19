@@ -2,14 +2,43 @@
 <$ include std_doctype_html_decl $>
 	<head>
 <$ include std_html_head_declarations $>
+		<style>
+			.container {
+				width: 1000px;
+				display: table;
+			}
+			.header {
+				font-weight: bold;
+			}
+			.small {
+				width: 55px;
+			}
+			.medium {
+				width: 80px;
+			}
+			.large {
+				width: 120px;
+			}
+			.row {
+				border-bottom: 1px solid #000;
+				display: table-row;
+			}
+			.column {
+			 display: table-cell;
+			}
+		</style>
 	</head>
 <$ include body_def $>
 <$ include std_page_begin $>
 <$ exec rsMakeFromString( 'COLUMNS', columns ) $>
+		<div class="container">
+			<div class="row header">
 <$ loop COLUMNS $>
-	<$ lc( 'ww' & #active.row ) $>
+	<$ if COLUMNS.#row gt 0 $>|<$ endif $>
+				<span class="column medium"><$ lc( 'ww' & #active.row ) $></span>
 <$ endloop $>
-<br />
+			</div>
+			<div class="row">
 <$ loop SignatureReview $>
 	<$ loop COLUMNS $>
 		<$ value = getValue( '#active', #active.row ) $>
@@ -17,10 +46,12 @@
 		<$ if #active.row like 'status|certErrorStatus' $>
 			<$ value = lc( 'ww' & #active.row & value ) $>
 		<$ endif $>
-		<$ value $>
+		<$ if COLUMNS.#row gt 0 $>|<$ endif $>
+				<span class="column large"><$ value $></span>
 	<$ endloop $>
 <$ endloop $>
+			</div>
+		</div>
 <$ include std_page_end $>
 	</body>
 </html>
-<!--<$ trace("#all", "mylogs") $><$ mylogs $>-->

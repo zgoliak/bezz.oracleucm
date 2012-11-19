@@ -43,10 +43,6 @@
 	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" $>
 	<$ PageMenusData.loadOrder = 10 $>
 <@ end @>
-[%%
- %% TODO:
-	%% Need to implement ifClause around links
-	%%]
 <@ dynamichtml custom_search_results_action_popup @>
 	<$ include super.custom_search_results_action_popup $>
 	<$ if NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) $>
@@ -73,21 +69,95 @@
 
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignature" ) ) $>
-	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=XXX&dID=<$ url( dID ) $>&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ HttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
 	<$ exec setValue( "PopupProps", "ifClause", "" ) $>
 	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
 	<$ exec setValue( "PopupProps", "class", "document" ) $>
 	<$ exec setValue( "PopupProps", "id", "reviewSignature" ) $>
 <@ end @>
 <@ dynamichtml wf_reviewer_doc_action_links @>
+<$ if CoSignApproved $>
+	<$ if AllowReview $>
+	<span style="white-space:nowrap">
+		<$ if WorkflowStep.dWfStepIsSignature and isTrue( WorkflowStep.dWfStepIsSignature ) $>
+		[<$ lc( "wwSignAndApprove" ) $>]
+		<$ else $>
+		[<$ lc( "wwApprove" ) $>]
+		<$ endif $>
+	&nbsp;</span>
+		<$ if not IsStaging $>
+	<span style="white-space:nowrap;padding-bottom:3px"> [<$ lc( "wwReject" ) $>]&nbsp;</span>
+		<$ endif $>
+		<$ if isTrue( IsPreviewRegistered ) $>
+	<span style="white-space:nowrap;padding-bottom:3px">[<$ lc( "wwPreview" ) $>]&nbsp;</span>
+		<$ endif $>
+	<$ endif $>
+	<$ if AllowCheckin and ( UserIsAdmin or UserName like dCheckoutUser ) $>
+	<span style="white-space:nowrap;padding-bottom:3px">[<$ lc( "wwCheckin" ) $>]</span>
+	<span style="white-space:nowrap;padding-bottom:3px">[<$ lc( "wwUndoCheckOut" ) $>]</span>
+	<$ endif $>
+	<$if AllowCheckout$>
+	<span style="white-space:nowrap;padding-bottom:3px">[<$ lc( "wwCheckOut" ) $>]</span>
+	<$endif$>
+	<span style="white-space:nowrap;padding-bottom:3px">[<$ lc( "wwReviewSignature" ) $>]&nbsp;</span>
+<$ else $>
 	<$ include super.wf_reviewer_doc_action_links $>
 	<$ include wf_reviewer_doc_action_cosign_link $>
+<$ endif $>
 <@ end @>
 <@ dynamichtml wf_reviewer_doc_action_cosign_link @>
 	<span style="white-space:nowrap;padding-bottom:3px">
-		[<a href="javascript:wfReviewSignature( '<$ dID $>', '<$ js( urlEscape7Bit( dWfName ) ) $>', '<$ js( urlEscape7Bit( dWfStepName ) ) $>' );" class="xuiLinkText1_Sm" style="font-weight:bold;padding-left:1px;padding-right:1px">
-			<$ lc( "wwReviewSignature" ) $></a>]&nbsp;</span>
+		[<a href="<$ HttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" class="xuiLinkText1_Sm" style="font-weight:bold;padding-left:1px;padding-right:1px">
+			<$ lc( "wwReviewSignature" ) $>
+		</a>]&nbsp;
+	</span>
 <@ end @>
+<@dynamichtml workflow_doc_action_forms@>
+<$ if rsExists( 'WfDocuments' ) $><$ value = getValue( 'WfDocuments', 'xCoSignSignatureTag' ) $>
+<$ elseif rsExists( 'DOC_INFO' ) $><$ value = getValue( 'DOC_INFO', 'xCoSignSignatureTag' ) $>
+<$ else $><$ value = '' $><$ endif $>
+<$ if userHasRole( 'CoSignSigner' ) AND ( value AND NOT strEquals( value, '' ) ) $>
+<form name="Approve_<$ dID $>" method="POST" action="<$ HttpCgiPath $>">
+	<$ include idc_token_form_field $>
+	<input type="hidden" name="IdcService" value="COSIGN_SIGNDOCUMENT" />
+	<input type="hidden" name="RedirectUrl" value="<$ HttpCgiPath $>?IdcService=REVIEW_WORKFLOW_DOC&WSC_Session=&lt;$ url( WSC_Session ) $&gt;&dProjectID=<$ url( dProjectID ) $>&dWfName=<$ url( dWfName ) $>&dDocName=<$ url( dDocName ) $>&dWfStepName=<$ url( dWfStepName ) $>&CoSignApproved=1<$ if inQueueRedirect $>&inQueueRedirect=1<$ endif $>" />
+	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
+	<input type="hidden" name="dID" value="<$ dID $>" />
+</form>
+	<$ if IsStaging $>
+<form name="ProblemReport_<$ dID $>" method="GET" action="<$ HttpCgiPath $>">
+		<$ include idc_token_form_field $>
+		<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
+	<input type="hidden" name="IdcService" value="GET_DOCUMENT_PROBLEMREPORTS" />
+	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
+	<input type="hidden" name="dDocTitle" value="<$ url( dDocTitle ) $>" />
+	<input type="hidden" name="dID" value="<$ dID $>" />
+</form>
+	<$ else $>
+<form name="Reject_<$ dID $>" method="GET" action="<$ HttpCgiPath $>">
+		<$ include idc_token_form_field $>
+		<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
+	<input type="hidden" name="IdcService" value="WORKFLOW_REJECT_FORM" />
+	<input type="hidden" name="dWfName" value="<$ dWfName $>" />
+	<input type="hidden" name="dWfStepName" value="<$ dWfStepName $>" />
+	<input type="hidden" name="dID" value="<$ dID $>" />
+	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
+</form>
+	<$ endif $>
+	<$ if isTrue( IsPreviewRegistered ) $>
+<form name="Preview_<$ dID $>" method="GET" action="<$ HttpCgiPath $>" />
+	<input type="hidden" name="IdcService" value="GET_PREVIEW_LIST_EX" />
+		<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
+	<input type="hidden" name="dWfName" value="<$ dWfName $>" />
+	<input type="hidden" name="dID" value="<$ dID $>" />
+	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
+	<input type="hidden" name="IsSimplePreview" value="1" />
+</form>
+	<$ endif $>
+<$ else $>
+	<$ include super.workflow_doc_action_forms $>
+<$ endif $>
+<@end@>
 <@ dynamichtml cosign_search_result_item_data_setup @>
 	<$ exec rsCreateResultSet( "RowData", "row" ) $>
 	<$ exec rsAppendNewRow( "RowData" ) $>
@@ -426,8 +496,8 @@
 	<$ if isQuery and isTrue( isQuery ) $></td><td><$ endif $>
 	<$ myQuery = 'dDocType <matches> `CoSignSignatureProfile`' $>
 	<input type="hidden" name="p_name" value="" />
-	<input type="button" value="<$ lc( "wwBrowse" ) $>..." onClick="window.open
-( '<$ HttpCgiPath $>?IdcService=COSIGN_RESULTS_POPUP&FormName=<$ formName $>&ElementName=<$ fieldName $>&ReturnField=xCoSignSignatureTag&QueryText=<$ url( myQuery ) $>','pick','width=500,height=500' )">
+	<input type="button" value="<$ lc( "wwSelectTag" ) $>..." onClick="window.open
+( '<$ HttpCgiPath $>?IdcService=COSIGN_RESULTS_POPUP&FormName=<$ formName $>&ElementName=<$ fieldName $>&ReturnField=xCoSignSignatureTag&QueryText=<$ url( myQuery ) $>','pick','width=900,height=600' )">
 <@ end @>
 [%% ================================================================
  %% Set isEditMode on page
@@ -518,6 +588,18 @@
 <@ dynamichtml std_field_cleanup @>
  <$ include super.std_field_cleanup $>
 	<$ exec ddSetLocalEmpty( 'cosign_field_cleanup_vars' ) $>
+<@ end @>
+<@ dynamichtml cosign_signing_frame @>
+<iframe height="700" src="<$ include cosign_signdocument_url $>" width="900" ></iframe>
+<@ end @>
+<@ dynamichtml determine_wf_review_rendition_url @>
+<$ include super.determine_wf_review_rendition_url $>
+<$ if CoSignApproved $>
+	<$ wfReviewRenditionUrl = inc( 'cosign_signdocument_url' ) $>
+<$ endif $>
+<@ end @>
+<@ dynamichtml cosign_signdocument_url @>
+<$ #env.wscServerAddress $><$ if #env.wscServerPort $>:<$ #env.wscServerPort $><$ endif $>/<$ #env.CoSignServerPath $>/UploadDoc.aspx?sessionID=<$ WSC_Session $>
 <@ end @>
 
 <@ dynamicdata cosign_field_cleanup_vars @>

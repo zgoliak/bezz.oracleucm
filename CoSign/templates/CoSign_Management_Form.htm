@@ -347,10 +347,13 @@
 <$ reasons = getValue( '#local', 'CoSign.SignReasons.reason' ) $>
 <$ if reasons $>
 	<$ exec rsMakeFromString( 'SignReason', reasons, 'reason' ) $>
-<$ endif $>
-<$ optionListKey = 'reason' $>
+	<$ optionListKey = 'reason' $>
 								<select size="6" id="ListOfReasons" multiple="multiple">
-<$ loop rs( 'SignReason' ) $><$ inc( 'std_resultset_option_list_item' ) $><$ endloop $>
+	<$ loop rs( 'SignReason' ) $><$ inc( 'std_resultset_option_list_item' ) $><$ endloop $>
+<$ else $>
+								<select size="6" id="ListOfReasons" multiple="multiple">
+	<$ optList xCoSignSignatureReasons.options $>
+<$ endif $>
 								</select>
 								<input type="hidden" name="CoSign.SignReasons.reason" value="" />
 								<input type="button" value="Add" onclick="addReason()" />

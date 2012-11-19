@@ -13,7 +13,7 @@ import intradoc.data.ResultSet;
 import intradoc.data.ResultSetUtils;
 import intradoc.data.Workspace;
 import intradoc.filestore.FileStoreProvider;
-import intradoc.jdbc.*;
+import intradoc.server.DocServiceHandler;
 import intradoc.server.Service;
 import intradoc.server.ServiceData;
 import intradoc.server.ServiceManager;
@@ -275,7 +275,7 @@ public class CMUtils {
 
 			ServiceData sd = sm.getService( serviceName );
 			Service s = sm.getInitializedService( serviceName, binder, m_workspace );
-			UserData user = getUserData();//( UserData )m_service.getCachedObject( "UserData" );
+			UserData user = getUserData();
 			if( user == null ) {
 				user = SecurityUtils.createDefaultAdminUserData();
 			}
@@ -293,7 +293,7 @@ public class CMUtils {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
 				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: " , null );
 		DataBinder undoBinder = new DataBinder();
-		undoBinder.putLocal( "IdcService", "UNDO_CHECKOUT_BY_NAME" );
+		undoBinder.putLocal( "IdcService", "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
 		undoBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
 		executeServiceSimple( undoBinder );
 		throw new ServiceException( error );
@@ -315,7 +315,7 @@ public class CMUtils {
 	public void checkin() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: " + m_binder.toString() , null );
 		DataBinder checkinBinder = m_binder.createShallowCopyWithClones( 1 );
-		checkinBinder.putLocal( "IdcService", "CHECKIN_SEL_SUB" );
+		checkinBinder.putLocal( "IdcService", "CHECKIN_SEL" );
 		executeServiceSimple( checkinBinder );
 	}
 
@@ -324,15 +324,15 @@ public class CMUtils {
 		*/
 	public void approve() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering approve, passed in binder: " + m_binder.toString() , null );
-		DataBinder qApproveBinder = new DataBinder();
-		qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
-		ResultSet rset = createResultSet( "QwfDocInformation", qApproveBinder );
 		DataResultSet drset = new DataResultSet();
-		drset.copy( rset );
-		Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
-		DataBinder approveBinder = m_binder.createShallowCopyWithClones( 1 );
-		approveBinder.putLocal( "dWfName", ResultSetUtils.getValue( rset, "dWfName" ) );
-		approveBinder.putLocal( "curStepName", ResultSetUtils.getValue( rset, "dWfStepName" ) );
+		drset.copy( getDocInfoByName( m_binder.getLocal( "dDocName" ) ) );
+		Report.debug( "bezzotechcosign", "Found DOC_INFO: " + drset.toString(), null );
+		DataBinder approveBinder = new DataBinder();
+		approveBinder.mergeResultSetRowIntoLocalData( drset );
+		approveBinder.putLocal( "dWfName",
+				ResultSetUtils.getValue( m_binder.getResultSet( "WF_INFO" ), "dWfName" ) );
+		approveBinder.putLocal( "curStepName",
+				ResultSetUtils.getValue( m_binder.getResultSet( "WorkflowSteps" ), "dWfStepName" ) );
 		approveBinder.putLocal( "IdcService", "WORKFLOW_APPROVE" );
 		executeServiceSimple( approveBinder );
 	}

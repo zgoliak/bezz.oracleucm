@@ -3,13 +3,11 @@ package com.bezzotech.oracleucm.arx;
 import intradoc.common.CommonDataConversion;
 import intradoc.common.Errors;
 import intradoc.common.ExecutionContext;
-import intradoc.common.LocaleUtils;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.common.StringUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
-import intradoc.data.IdcCounterUtils;
 import intradoc.data.Workspace;
 import intradoc.server.Service;
 
@@ -137,8 +135,7 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering parseSigProfileEx", null );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SignReasons" );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Logic" );
-		if( Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
-			parseSigProfiles();
+		parseSigProfiles();
 	}
 
 	/**
@@ -264,7 +261,9 @@ public class WSC {
 		Matcher m = rcPattern.matcher( message );
 		if( m.find() ) {
 			m_binder.removeLocal( "dID" );
-			return;
+			Pattern emPattern = Pattern.compile( "<errorMessage >([^<>]*)</errorMessage >" );
+			m = emPattern.matcher( message );
+			throw new ServiceException( m.group( 1 ) );
 		}
 		parseVerifyResponse( message );
 		if( m_binder.getLocal( "CoSign.Field.fieldName" ) == null )	return;
