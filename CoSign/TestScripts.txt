@@ -1,0 +1,113 @@
+Security Group(s)
+CoSign
+
+Role(s)
+CoSignAdmin
+CoSignSigner
+
+View(s)
+CoSignContentProfileList
+CoSignRequiredSignaturesList
+CoSignSignatureReasonsList
+
+Rule(s)
+CoSign_RO
+
+Profile(s)
+N/A
+
+Test Scripts
+=============
+Create Profile (w/o Ad-Hoc):
+---------------------------
+CoSign > Define Signature Profiles
+Click "Add"
+Check Reasons pre-loaded
+Check SigFields other than FieldName are missing
+
+Create Profile (w/ Ad-Hoc):
+---------------------------
+CoSign > Define Signature Profiles
+Click "Add"
+Check Reasons pre-loaded
+Check SigFields other than FieldName are displayed; Workflow mode hidden
+
+Edit Profile (w/o Ad-Hoc):
+---------------------------
+CoSign > Define Signature Profiles
+Click "Add"
+Check metadata pre-loaded
+Check SigFields other than FieldName are missing
+
+Edit Profile (w/ Ad-Hoc):
+---------------------------
+CoSign > Define Signature Profiles
+Click "Add"
+Check metadata pre-loaded
+Check SigFields other than FieldName are displayed; Workflow mode hidden
+
+Check-in Content Profile Selector:
+---------------------------
+Check-in content
+Click "Select Tag" on CoSign Signature Tag
+Popup displaying available Signature Profiles is displayed
+Clicking select beside selected profile closes popup and enters value into metadata field
+
+Review Pre-Signed Content:
+---------------------------
+Any context menu
+Select Review Signatures
+Display Pre-Signed Signature(s)
+
+Review UnSigned Valid Content:
+---------------------------
+Any context menu
+Select Review Signatures
+Display no results
+
+Review UnSigned Invalid Content:
+---------------------------
+Any context menu
+Select Review Signatures
+Display no results
+
+Sign Valid Content:
+---------------------------
+Any context menu
+Select Sign with CoSign
+Login to CoSign
+Provide information
+Click Sign
+Returned to Doc Info new revision created
+
+Sign InValid Content:
+---------------------------
+Any context menu
+Select Sign with CoSign
+Returned to error message
+
+Review Signed Content:
+---------------------------
+Any context menu
+Select Review Signatures
+Display Signed Signature(s)
+
+Revision Workflow Sign Valid Content:
+---------------------------
+Any workflow context menu
+Select Approve
+Load Workflow Review with CoSign frame (Approve and Reject are greyed out)
+Login to CoSign
+Provide information
+Click Sign
+Returned to Doc Info new revision created
+
+Edit Workflow Sign Valid Content:
+---------------------------
+Any workflow context menu
+Select Approve
+Load Workflow Review with CoSign frame (Approve and Reject are greyed out)
+Login to CoSign
+Provide information
+Click Sign
+Returned to Doc Info revision editted

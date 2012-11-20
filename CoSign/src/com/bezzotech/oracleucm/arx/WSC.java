@@ -96,6 +96,8 @@ public class WSC {
 		m_doc.appendChild( m_doc_root );
 		if( Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
 			m_doc_root.appendChild( buildSigProfilesElement() );
+		else
+			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SigField" ) );
 		if( isSignRequest )
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
@@ -135,7 +137,10 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering parseSigProfileEx", null );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SignReasons" );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Logic" );
-		parseSigProfiles();
+		if( Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
+			parseSigProfiles();
+		else
+			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SigField" );
 	}
 
 	/**
@@ -202,8 +207,7 @@ public class WSC {
 			m_binder.putLocal( "dDocName", m_binder.getLocal( "CoSign.Session.docId" ) );
 			m_binder.mergeResultSetRowIntoLocalData(
 					m_cmutil.getDocInfoByName( m_binder.getLocal( "CoSign.Session.docId" ) ) );
-			m_binder.putLocal( "dRevLabel",
-					( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+//			m_binder.putLocal( "dRevLabel", ( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
 			m_binder.putLocalDate( "dInDate", new java.util.Date() );
 			m_binder.putLocal( "primaryFile:path", file );
 			m_binder.putLocal( "dExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );

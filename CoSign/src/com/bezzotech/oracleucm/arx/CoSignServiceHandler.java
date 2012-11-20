@@ -142,11 +142,11 @@ public class CoSignServiceHandler extends ServiceHandler {
 			msg = super.m_binder.getLocal( "errorMessage" );
 			m_undo = true;
 		}
-		if( super.m_binder.getLocal( "sessionId" ) == null ) {
+		if( !m_undo && super.m_binder.getLocal( "sessionId" ) == null ) {
 			msg = "csInvalidSessionId";
 			m_undo = true;
 		}
-		if( super.m_binder.getLocal( "docId" ) == null ) {
+		if( !m_undo && super.m_binder.getLocal( "docId" ) == null ) {
 			msg = "csInvalidDocId";
 			m_undo = true;
 		}
@@ -161,7 +161,19 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 		log ( msg );
 
-		if( m_undo )
+		ResultSet rset = m_binder.getResultSet( "WorkflowSteps" );
+		String stepType = null;
+		if( !m_undo && rset != null ) {
+			stepType = m_binder.getResultSetValue( rset, "dWfStepType" );
+			if( stepType.indexOf( ":CN:" ) >= 0 ) // allow New Revision
+				m_binder.putLocal( "dRevLabel",
+						( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+			else if( stepType.indexOf( ":CE:" ) >= 0 ) {} // allow Edit Revision ZKG: Maybe build in Major/Minor revisioning
+		} else if( !m_undo )
+			m_binder.putLocal( "dRevLabel",
+					( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+
+				if( m_undo )
 			m_cmutils.rollback( msg );
 		else
 		 m_cmutils.checkin();
