@@ -1,21 +1,3 @@
-Security Group(s)
-CoSign
-
-Role(s)
-CoSignAdmin
-CoSignSigner
-
-View(s)
-CoSignContentProfileList
-CoSignRequiredSignaturesList
-CoSignSignatureReasonsList
-
-Rule(s)
-CoSign_RO
-
-Profile(s)
-N/A
-
 Test Scripts
 =============
 Create Profile (w/o Ad-Hoc):
@@ -86,6 +68,15 @@ Any context menu
 Select Sign with CoSign
 Returned to error message
 
+Sign Valid Content w/ AdHoc
+---------------------------
+Any context menu
+Select Sign with CoSign
+Login to CoSign
+Provide information
+Click Sign
+Returned to Doc Info new revision created
+
 Review Signed Content:
 ---------------------------
 Any context menu
@@ -102,7 +93,27 @@ Provide information
 Click Sign
 Returned to Doc Info new revision created
 
+Revision Workflow Sign Valid Content w/ AdHoc:
+---------------------------
+Any workflow context menu
+Select Approve
+Load Workflow Review with CoSign frame (Approve and Reject are greyed out)
+Login to CoSign
+Provide information
+Click Sign
+Returned to Doc Info new revision created
+
 Edit Workflow Sign Valid Content:
+---------------------------
+Any workflow context menu
+Select Approve
+Load Workflow Review with CoSign frame (Approve and Reject are greyed out)
+Login to CoSign
+Provide information
+Click Sign
+Returned to Doc Info revision editted
+
+Edit Workflow Sign Valid Content w/ AdHoc:
 ---------------------------
 Any workflow context menu
 Select Approve

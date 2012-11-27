@@ -448,32 +448,34 @@
 	<$ endloop $>
 	<$ tableSummary = "wwSearchResultsTable" $>
 <@ end @>
-<@ dynamichtml custom_navigation_menu_items @>
-	<$ if IsSysManager $>
-		<$ if not subMenu $><$ subMenu = "" $><$ endif $>
-		<$ include super.custom_navigation_menu_items $>
 
-		<$ exec rsAppendNewRow( "NavigationMenuItems" ) $>
-		[[% Appears that even after restart, the id is "cached" somewhere and the alteration of the code is not pleasing, will leave ID and simply alter label. %]]
-		<$ exec setValue( "NavigationMenuItems", "id", "ARX" ) $>
-		<$ exec setValue( "NavigationMenuItems", "parentId", "MENU_B" ) $>
-		<$ exec setValue( "NavigationMenuItems", "loadOrder", "60" ) $>
-		<$ exec setValue( "NavigationMenuItems", "label", lc( "wwCoSign" ) ) $>
-		<$ exec setValue( "NavigationMenuItems", "ifClause", "userHasRole( 'CoSignAdmin' )" ) $>
-		<$ exec setValue( "NavigationMenuItems", "linkType", "" ) $>
-		<$ exec setValue( "NavigationMenuItems", "linkData", "" ) $>
-		<$ exec setValue( "NavigationMenuItems", "flags", "isAdmin" ) $>
-
-		<$ exec rsAppendNewRow( "NavigationMenuItems" ) $>
-		<$ exec setValue( "NavigationMenuItems", "id", "COSIGN" ) $>
-		<$ exec setValue( "NavigationMenuItems", "parentId", "ARX" ) $>
-		<$ exec setValue( "NavigationMenuItems", "loadOrder", "10" ) $>
-		<$ exec setValue( "NavigationMenuItems", "label", lc( "wwCoSignManagement" ) ) $>
-		<$ exec setValue( "NavigationMenuItems", "linkType", "cgi" ) $>
-		<$ exec setValue( "NavigationMenuItems", "linkData", "IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>" ) $>
-		<$ exec setValue( "NavigationMenuItems", "flags", "" ) $>
+<@ dynamichtml navigation_filter_rset_menu_item @>
+<$ include super.navigation_filter_rset_menu_item $>
+<$ trace( "Currently filtering id: " & id & "\n\tFlags: " & flags, "#console" ) $>
+<$ if not tmpDeleteRow $>
+	<$ if flags like "*isCoSignAdmin*" $>
+		<$ if ( not userHasRole( 'CoSignAdmin' ) ) $>
+			<$ tmpDeleteRow = 1 $>
+		<$ endif $>
 	<$ endif $>
+<$ endif $>
 <@ end @>
+
+<@ dynamicdata CoreMenuItems @>
+id, label, linkType, linkData
+ARX, lc( 'wwCoSign' ), ,
+COSIGN, lc( 'wwCoSignManagement' ), cgi, IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>
+<@ end @>
+<@ dynamicdata CoreMenuItemRelationships @>
+parentId, id, loadOrder
+MENU_B, ARX, 60
+ARX, COSIGN, 10
+<@ end @>
+<@ dynamicdata CoreMenuItemsFlags @>
+id, flags
+ARX, isCoSignAdmin
+<@ end @>
+
 [%% ================================================================
  %% This include will be called to show our overrides on a query, update, or checkin
  %% page.  This one handles all three custom fields.

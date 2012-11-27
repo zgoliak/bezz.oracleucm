@@ -62,7 +62,7 @@ public class XMLUtils {
 		return new XMLUtils( context );
 	}
 
-	/**
+	/** Generate a blank Document object
 	 *
 	 */
 	public Document getNewDocument() throws ServiceException {
@@ -78,7 +78,7 @@ public class XMLUtils {
 		return dom;
 	}
 
-	/**
+	/** Generate Document object from file path
 	 *
 	 */
 	public Document getExistingDocument( String path ) throws ServiceException {
@@ -99,26 +99,33 @@ public class XMLUtils {
 		return dom;
 	}
 
-	/**
+	/** Generate Document object from string content
 	 *
 	 */
 	public Document getNewDocument( String contents ) throws ServiceException {
 		Document dom = null;
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		StringReader _sr = null;
 		try {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			dom = documentBuilder.parse( new InputSource( new StringReader( contents ) ) );
+			_sr = new StringReader( contents );
+			dom = documentBuilder.parse( new InputSource( _sr ) );
 		} catch ( ParserConfigurationException e ) {
 			throwFullError( e );
 		} catch ( SAXException e ) {
 			throwFullError( e );
 		} catch ( IOException e ) {
 			throwFullError( e );
+		} finally {
+			_sr.close();
 		}
 		return dom;
 	}
 
-	/**
+	/** Build XML document from binder local properties
+	 *
+		*  appName  - [String] application name for extracting from binder
+	 *  doc      - [Document] XML document to create text node
 	 *  rootName - String - Name of Environmental base to retrieve from binder (this should also be
 	 *    the name of the expect XML Node we will be passing back
 	 *  Note: Environmental variable "fields" will be expected to return the field names available to
@@ -149,16 +156,21 @@ public class XMLUtils {
 		return root;
 	}
 
-	/**
-	 *  rootName - String - Name of Local base to retrieve from binder (this should also be
-	 *    the name of the expect XML Node we will be passing back
-	 *  Note: Local variable "fields" will be expected to return the field names available to
-	 *    retrieve
+	/** Build XML document from binder local properties
+	 *
+		*  appName  - [String] application name for extracting from binder
+	 *  doc      - [Document] XML document to create text node
+	 *  rootName - [String] name of Local base to retrieve from binder (this should also be the name of
+	 *    the expect XML Node we will be passing back
+	 *  Note: Local variable "fields" will be expected to return the field names available to retrieve
 	 *  Note: Local variables will be expected to be presented in the following format:
-	 *  {Application Name}.{XML Node name}.{Field Name}
-	 *  Where: "Application Name" will be stored within the application code
-	 *    "XML Node Name" will be determined by the expected XML output
-	 *    "Field Name" will be determined by the expected XML output
+	 *    		{Application Name}.{XML Node name}.{Field Name}
+	 *  		Where: "Application Name" will be stored within the application code
+	 *    		"XML Node Name" will be determined by the expected XML output
+	 *    		"Field Name" will be determined by the expected XML output
+		*
+		*  Throws [ServiceException] error if not {appName}.{rootName}.fields defined in binder
+		*  Throws [ServiceException] error if {appName}.{rootName}.fields value is blank
 	 */
 	public Element appendChildrenFromLocal( String appName, Document doc, String rootName )
 			throws ServiceException {
@@ -195,8 +207,11 @@ public class XMLUtils {
 		return root;
 	}
 
-	/**
+	/** Parse XML document at root element down through the named base element
 	 *
+		*  appName  - [String] application name for extracting from binder
+		*  root     - [Element] XML node, housing named node to inject in
+		*  baseName - [String] name of Element under root
 	 */
 	public void parseChildrenToLocal( String appName, Element root, String baseName ) {
 		Report.trace( "bezzotechcosign", "Entering parseChildrenToLocal, passed in parameter(s):" +
@@ -219,25 +234,32 @@ public class XMLUtils {
 		m_binder.putLocal( appName + "." + baseName + ".fields", fields );
 	}
 
-	/**
+	/** Translate XML Document to string
 	 *
+	 *  doc   - [Document] XML document to create text node
 	 */
 	public String getStringFromDocument( Document doc ) {
 		Report.trace( "bezzotechcosign", "Entering getStringFromDocument", null );
 		DOMImplementation domImpl = doc.getImplementation();
-		DOMImplementationLS domImplLS = (DOMImplementationLS)domImpl.getFeature("LS", "3.0");
+		DOMImplementationLS domImplLS = ( DOMImplementationLS )domImpl.getFeature( "LS", "3.0" );
 		LSSerializer serializer = domImplLS.createLSSerializer();
-		serializer.getDomConfig().setParameter("xml-declaration", Boolean.valueOf(false));
+		serializer.getDomConfig().setParameter( "xml-declaration", Boolean.valueOf( false ) );
 		LSOutput lsOutput = domImplLS.createLSOutput();
-		lsOutput.setEncoding("UTF-8");
-		StringWriter output = new StringWriter();
-		lsOutput.setCharacterStream(output);
+		lsOutput.setEncoding( "UTF-8" );
+		StringWriter _out = new StringWriter();
+		lsOutput.setCharacterStream( _out );
 		serializer.write(doc, lsOutput);
-		return output.toString();
+		return _out.toString();
 	}
 
-	/**
+	/**	Injects values, as text node, into named node under root element
 	 *
+	 *  doc   - [Document] XML document to create text node
+		*  root  - [Element] XML node, housing named node to inject in
+		*  name  - [String] Name of element to inject value into
+		*  value - [String] Text to insert
+		*
+		*  Throws [ServiceException] error if named element not found
 		*/
 	public Element appendTextNodeToChild( Document doc, Element root, String name, String value )
 			throws ServiceException {
@@ -249,14 +271,14 @@ public class XMLUtils {
 		return root;
 	}
 
-	/**
-	 *
+	/** Prints out error message and stack trace from caught exceptions and throws them as message in
+	 *  ServiceException
 		*/
-	private void throwFullError( Exception e ) throws ServiceException {
+		protected void throwFullError( Exception e ) throws ServiceException {
 			StringBuilder sb = new StringBuilder();
-			for(StackTraceElement element : e.getStackTrace()) {
-				sb.append(element.toString());
-				sb.append("\n");
+			for( StackTraceElement element : e.getStackTrace() ) {
+				sb.append( element.toString() );
+				sb.append( "\n" );
 			}
 			Report.debug( "bezzotechcosign", e.getMessage() + "\n" + sb.toString(), null );
 			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );

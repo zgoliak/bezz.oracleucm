@@ -101,17 +101,24 @@ public class CMUtils {
 		binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
 		binder.putLocal( FileStoreProvider.SP_RENDITION_ID, FileStoreProvider.R_PRIMARY );
 		byte[] b = null;
+		RandomAccessFile _raf = null;
 		try {
 			String primaryFilePath = m_fsutil.getFilePath( binder );
-			RandomAccessFile f = new RandomAccessFile( primaryFilePath, "r" );
-			b = new byte[ ( int )f.length() ];
-			f.read( b );
+			_raf = new RandomAccessFile( primaryFilePath, "r" );
+			b = new byte[ ( int )_raf.length() ];
+			_raf.read( b );
 		} catch ( FileNotFoundException e ) {
 			throwFullError( e );
 		} catch ( IOException e ) {
 			throwFullError( e );
 		} catch ( DataException e ) {
 			throwFullError( e );
+		} finally {
+		 try {
+				_raf.close();
+			} catch ( IOException e ) {
+				throwFullError( e );
+			}
 		}
 		return b;
 	}
@@ -132,6 +139,13 @@ public class CMUtils {
 			throwFullError( e );
 		} catch ( DataException e ) {
 			throwFullError( e );
+/*		} finally {
+		 try {
+				_content.close();
+			} catch ( IOException e ) {
+				throwFullError( e );
+			}
+*/
 		}
 
 		return _content;
@@ -185,7 +199,7 @@ public class CMUtils {
 	/**
 	 *
 		*/
-	private ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
+	protected ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
 		ResultSet rset = null;
 		try {
 			rset = m_workspace.createResultSet( query, binder );
@@ -249,7 +263,7 @@ public class CMUtils {
 	/**
 	 *
 		*/
-	private UserData getUserData() throws ServiceException {
+	protected UserData getUserData() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering getUserData", null );
 		UserData ud = ( UserData )m_service.getCachedObject( "UserData" );
 		if( ud == null ) {
@@ -265,8 +279,9 @@ public class CMUtils {
 	/** Execute a service as the current user.
 	 * @param binder The service request binder
 	 * @throws ServiceException if the service fails.
+		*  @deprecated
 	 */
-	private void executeServiceSimple( DataBinder binder )	throws ServiceException {
+	@Deprecated protected void executeServiceSimple( DataBinder binder )	throws ServiceException {
 		try {
 			ServiceManager sm = new ServiceManager();
 			String serviceName = binder.getLocal( "IdcService" );
@@ -292,10 +307,15 @@ public class CMUtils {
 	public void rollback( String error ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
 				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: " , null );
-		DataBinder undoBinder = new DataBinder();
-		undoBinder.putLocal( "IdcService", "UNDO_CHECKOUT_BY_NAME" );
-		undoBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
-		executeServiceSimple( undoBinder );
+//		DataBinder undoBinder = new DataBinder();
+//		undoBinder.putLocal( "IdcService",  );
+//		undoBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
+//		executeServiceSimple( undoBinder );
+		try {
+			m_service.executeService( "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
+		} catch ( DataException e ) {
+		 throwFullError( e );
+		}
 		throw new ServiceException( error );
 	}
 
@@ -304,9 +324,14 @@ public class CMUtils {
 		*/
 	public void update() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering update, passed in binder: " + m_binder.toString() , null );
-		DataBinder updateBinder = m_binder.createShallowCopyWithClones( 1 );
-		updateBinder.putLocal( "IdcService", "UPDATE_DOCINFO" );
-		executeServiceSimple( updateBinder );
+//		DataBinder updateBinder = m_binder.createShallowCopyWithClones( 1 );
+//		updateBinder.putLocal( "IdcService", "UPDATE_DOCINFO" );
+//		executeServiceSimple( updateBinder );
+		try {
+			m_service.executeService( "UPDATE_DOCINFO_SUB" );
+		} catch ( DataException e ) {
+		 throwFullError( e );
+		}
 	}
 
 	/**
@@ -314,9 +339,14 @@ public class CMUtils {
 		*/
 	public void checkin() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: " + m_binder.toString() , null );
-		DataBinder checkinBinder = m_binder.createShallowCopyWithClones( 1 );
-		checkinBinder.putLocal( "IdcService", "CHECKIN_SEL" );
-		executeServiceSimple( checkinBinder );
+//		DataBinder checkinBinder = m_binder.createShallowCopyWithClones( 1 );
+//		checkinBinder.putLocal( "IdcService", "CHECKIN_SEL" );
+//		executeServiceSimple( checkinBinder );
+		try {
+			m_service.executeService( "CHECKIN_SEL_SUB" );
+		} catch ( DataException e ) {
+		 throwFullError( e );
+		}
 	}
 
 	/**
@@ -327,22 +357,30 @@ public class CMUtils {
 		DataResultSet drset = new DataResultSet();
 		drset.copy( getDocInfoByName( m_binder.getLocal( "dDocName" ) ) );
 		Report.debug( "bezzotechcosign", "Found DOC_INFO: " + drset.toString(), null );
-		DataBinder approveBinder = new DataBinder();
-		approveBinder.mergeResultSetRowIntoLocalData( drset );
-		approveBinder.putLocal( "dWfName",
+//		DataBinder approveBinder = new DataBinder();
+//		approveBinder.mergeResultSetRowIntoLocalData( drset );
+//		approveBinder.putLocal( "dWfName",
+//				ResultSetUtils.getValue( m_binder.getResultSet( "WF_INFO" ), "dWfName" ) );
+//		approveBinder.putLocal( "curStepName",
+//				ResultSetUtils.getValue( m_binder.getResultSet( "WorkflowSteps" ), "dWfStepName" ) );
+//		approveBinder.putLocal( "IdcService", "WORKFLOW_APPROVE" );
+//		executeServiceSimple( approveBinder );
+		m_binder.mergeResultSetRowIntoLocalData( drset );
+		m_binder.putLocal( "dWfName",
 				ResultSetUtils.getValue( m_binder.getResultSet( "WF_INFO" ), "dWfName" ) );
-		approveBinder.putLocal( "curStepName",
+		m_binder.putLocal( "curStepName",
 				ResultSetUtils.getValue( m_binder.getResultSet( "WorkflowSteps" ), "dWfStepName" ) );
-		approveBinder.putLocal( "IdcService", "WORKFLOW_APPROVE" );
-		executeServiceSimple( approveBinder );
+		try {
+			m_service.executeService( "WORKFLOW_APPROVE_SUB" );
+		} catch ( DataException e ) {
+		 throwFullError( e );
+		}
 	}
 
 	/**
 	 *
-	/**
-	 *
 		*/
-	private void throwFullError( Exception e ) throws ServiceException {
+	protected void throwFullError( Exception e ) throws ServiceException {
 			StringBuilder sb = new StringBuilder();
 			for(StackTraceElement element : e.getStackTrace()) {
 				sb.append(element.toString());
