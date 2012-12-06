@@ -199,7 +199,7 @@ public class CMUtils {
 	/**
 	 *
 		*/
-	protected ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
+	public ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
 		ResultSet rset = null;
 		try {
 			rset = m_workspace.createResultSet( query, binder );
@@ -221,31 +221,36 @@ public class CMUtils {
 		if( m_binder.getLocal( "CoSignProfile" ) != null ) {
 			binder.putLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ),
 					m_binder.getLocal( "CoSignProfile" ) );
-			UserData ud = getUserData();
-			Vector userRoles = SecurityUtils.getRoleList( ud );
-
-			String packageStr = "";
-			for( int i = 0; i < userRoles.size(); i++ ){
-				UserAttribInfo uai = ( UserAttribInfo )userRoles.elementAt( i );
-				if( packageStr.length() > 0 )
-					packageStr = ( new StringBuilder() ).append( packageStr ).append( "," ).toString();
-				packageStr = ( new StringBuilder() ).append( packageStr ).append( uai.m_attribName ).toString();
-			}
-
-			binder.putLocal( "xCoSignRequiredSignatures", packageStr );
-			Report.debug( "bezzotechcosign", "Query binder: " + binder.toString(), null );
-			ResultSet rset = null;
-			rset = createResultSet( "QsignatureProfileID", binder );
+			ResultSet rset = createResultSet( "QsignatureProfileID", binder );
 			DataResultSet drset = new DataResultSet();
 			drset.copy( rset );
 			if( drset.getNumRows() <= 0 ) {
 				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
 						m_binder.getLocal( "CoSignProfile" ) );
-			} else if( drset.getNumRows() > 1 ) {
-				throw new ServiceException( "The user: " + ud.m_name + ", is assigned to multiple signature profiles" +
-						" for this document.  Please contact your administrator." );
 			}
-			binder.mergeResultSetRowIntoLocalData( getDocInfo( ResultSetUtils.getValue( drset, "dID" ) ) );
+
+			UserData ud = getUserData();
+			Vector userRoles = SecurityUtils.getRoleList( ud );
+			String packageStr = "";
+			do {
+				String requiredRoles = drset.getStringValueByName( "xCoSignRequiredSignatures" );
+				for( int i = 0; i < userRoles.size(); i++ ) {
+					UserAttribInfo uai = ( UserAttribInfo )userRoles.elementAt( i );
+					Report.debug( "bezzotechcosign", "Required Roles: " + requiredRoles + "\n\tRole: " + uai.m_attribName + "\n\ttest: " + requiredRoles.indexOf( uai.m_attribName ), null );
+					if( requiredRoles.indexOf( uai.m_attribName ) >= 0 ) break;
+					if( i + 1 == userRoles.size() ) drset.deleteCurrentRow();
+				}
+			} while( drset.next() );
+			if( drset.getNumRows() <= 0 ) {
+				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
+						m_binder.getLocal( "CoSignProfile" ) );
+			} else if( drset.getNumRows() > 1 ) {
+				throw new ServiceException( "The user: " + ud.m_name + ", is assigned to multiple signature" +
+						" profiles for this document.  Please contact your administrator." );
+			}
+			drset.first();
+			Report.debug( "bezzotechcosign", "Retrieved ResultSet: " + drset.toString(), null );
+			binder.mergeResultSetRowIntoLocalData( getDocInfo( drset.getStringValueByName( "dID" ) ) );
 		} else {
 			binder.mergeResultSetRowIntoLocalData( getDocInfo( m_binder.getLocal( "dID" ) ) );
 		}
@@ -323,10 +328,7 @@ public class CMUtils {
 	 *
 		*/
 	public void update() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering update, passed in binder: " + m_binder.toString() , null );
-//		DataBinder updateBinder = m_binder.createShallowCopyWithClones( 1 );
-//		updateBinder.putLocal( "IdcService", "UPDATE_DOCINFO" );
-//		executeServiceSimple( updateBinder );
+		Report.debug( "bezzotechcosign", "Entering update, passed in binder: ", null );
 		try {
 			m_service.executeService( "UPDATE_DOCINFO_SUB" );
 		} catch ( DataException e ) {
@@ -338,10 +340,7 @@ public class CMUtils {
 	 *
 		*/
 	public void checkin() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: " + m_binder.toString() , null );
-//		DataBinder checkinBinder = m_binder.createShallowCopyWithClones( 1 );
-//		checkinBinder.putLocal( "IdcService", "CHECKIN_SEL" );
-//		executeServiceSimple( checkinBinder );
+		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_SEL_SUB" );
 		} catch ( DataException e ) {
@@ -353,18 +352,9 @@ public class CMUtils {
 	 *
 		*/
 	public void approve() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering approve, passed in binder: " + m_binder.toString() , null );
+		Report.debug( "bezzotechcosign", "Entering approve, passed in binder: ", null );
 		DataResultSet drset = new DataResultSet();
 		drset.copy( getDocInfoByName( m_binder.getLocal( "dDocName" ) ) );
-		Report.debug( "bezzotechcosign", "Found DOC_INFO: " + drset.toString(), null );
-//		DataBinder approveBinder = new DataBinder();
-//		approveBinder.mergeResultSetRowIntoLocalData( drset );
-//		approveBinder.putLocal( "dWfName",
-//				ResultSetUtils.getValue( m_binder.getResultSet( "WF_INFO" ), "dWfName" ) );
-//		approveBinder.putLocal( "curStepName",
-//				ResultSetUtils.getValue( m_binder.getResultSet( "WorkflowSteps" ), "dWfStepName" ) );
-//		approveBinder.putLocal( "IdcService", "WORKFLOW_APPROVE" );
-//		executeServiceSimple( approveBinder );
 		m_binder.mergeResultSetRowIntoLocalData( drset );
 		m_binder.putLocal( "dWfName",
 				ResultSetUtils.getValue( m_binder.getResultSet( "WF_INFO" ), "dWfName" ) );

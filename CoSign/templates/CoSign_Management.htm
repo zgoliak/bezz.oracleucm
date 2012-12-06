@@ -1,81 +1,39 @@
 <$ include std_doctype_html_decl $>
 	<head>
+<$ defaultPageTitle = lc( 'wwCoSignProfile' ) $>
 <$ include std_html_head_declarations $>
-		<style>
-			.container {
-				width: 1000px;
-			}
-			.separator {
-				background-color: black;
-				float: left;
-				height: 1px;
-				width: 1000px;
-			}
-			.profile {
-				float: left;
-				width: 775px;
-				padding: 8px 20px 8px 5px;
-			}
-			.edit {
-				float: left;
-				width: 180px;
-				padding: 10px;
-			}
-		</style>
-		<script type="text/javascript">
-			function toggleEdit() {
-				toggleVisible( 'editMapping' );
-			}
-			function toggleVisible( targetName ) {
-				var target = document.getElementById( targetName );
-				if (target.style.visibility == "visible") {
-					target.style.visibility = "none";
-				} else if (target.style.visibility = "none") {
-					target.style.visibility = "visible";
-				}
-			}
-		</script>
 	</head>
 <$ include body_def $>
 <$ include std_page_begin $>
-			<div class="container">
-				<div class="row">
-					<form action="<$ HttpCgiPath $>" method="GET">
-						<input type="hidden" name="IdcService" value="COSIGN_MANAGEMENT_FORM" />
-						<input type="hidden" name="idcToken" value="<$ idcToken $>" />
-						<input type="submit" value="<$ lc('wwAdd') $>" />
-					</form>
-				</div>
+<$ include std_header $>
+		<br>
+<$ UseRowHighlighting = 1 $>
+<$ include cosign_profile_define_widths $>
+
 <$ QueryText = 'dDocType <MATCHES> `CoSignSignatureProfile`' $>
 <$ executeService('GET_SEARCH_RESULTS') $>
 <$ if rsExists( 'SearchResults' ) $>
-				<div class="separator"></div>
+		<table class="xuiTitleTable" cellpadding="0" cellspacing="0" summary="">
+			<tr>
+				<td class="xuiPageHeadingCell"><h1 class="xuiPageHeadingText"><$ lc( 'wwCoSignProfiles' ) $></h1></td>
+			</tr>
+		</table>
+		<br style="line-height:2em">
+ <$ resultSetClass = 'cosign_profile', resultSetType = 'cosign_profile_list', 
+ 	  tableSummary = 'wwCoSignProfileListTable' $>
+	<$ exec inc( 'cosign_setup_profile_table_header' ) $>
+	<$ include slim_table_header $>
+
+	<$ exec inc('cosign_setup_profile_table_row' ) $>
+	<$ exec inc('create_slim_table_row_include' ) $>
+
 	<$ loop SearchResults $>
-				<div class="row">
-					<div class="profile">
-		<$ SearchResults.dDocTitle $>
-					</div>
-					<div class="edit">
-						<form action="<$ HttpCgiPath $>" method="GET">
-							<input type="hidden" name="IdcService" value="COSIGN_MANAGEMENT_FORM" />
-							<input type="hidden" name="dID" value="<$ SearchResults.dID $>" />
-							<input type="hidden" name="dDocName" value="<$ SearchResults.dDocName $>" />
-							<input type="hidden" name="idcToken" value="<$ idcToken $>" />
-							<input type="submit" value="<$ lc('wwEdit') $>" />
-						</form>
-					</div>
-				</div>
-				<div class="separator"></div>
+		<$ include slim_table_row_include $>
 	<$ endloop $>
-				<div class="row">
-					<form action="<$ HttpCgiPath $>" method="GET">
-						<input type="hidden" name="IdcService" value="COSIGN_MANAGEMENT_FORM" />
-						<input type="hidden" name="idcToken" value="<$ idcToken $>" />
-						<input type="submit" value="<$ lc('wwAdd') $>" />
-					</form>
-				</div>
+	<$ exec rsRemove( 'SearchResults' ) $>
+	<$ include slim_table_row_include $>
+
+	<$ include slim_table_footer $>
 <$ endif $>
-			</div>
+		<br style="line-height:2em">
 <$ include std_page_end $>
-	</body>
-</html>

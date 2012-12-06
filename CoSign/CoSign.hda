@@ -8,7 +8,7 @@ hasInstallStrings=1
 hasPreferenceData=1
 installID=CoSign
 preventAdditionalComponentDowngrade=0
-version=2012_10_15-dev(build 3.2)
+version=2012_12_05-dev(build 3.4)
 @end
 @ResultSet ClassAliases
 3
@@ -25,6 +25,10 @@ loadOrder
 extraAfterServicesLoadInit
 com.bezzotech.oracleucm.arx.CoSignFilters
 createCoSignTables
+1
+validateStandard
+com.bezzotech.oracleucm.arx.CoSignFilters
+validateCoSign
 1
 @end
 @ResultSet ResourceDefinition
@@ -91,9 +95,5 @@ null
 CoSign_IdcTracingSections
 IdcTracingSections
 itsSection
-10
-CoSign_PublishedStaticFiles
-PublishedStaticFiles
-null
 10
 @end

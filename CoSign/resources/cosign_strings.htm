@@ -4,6 +4,10 @@
   <title>CoSign htmlIncludeOrString
  </head>
  <body>
+<@wwArx=Arx@>
+<@wwCoSign=CoSign@>
+<@wwCoSignManagement=Define Signature Profiles@>
+
 <@wwSignWithCoSign=Sign with CoSign@>
 <@wwVerifySignatures=Verify Signatures@>
 <@wwReviewSignatures=Review Signatures@>
@@ -16,39 +20,40 @@
 <@wwSignTime=Signing time@>
 <@wwSignatureCount=# of<br />signatures@>
 
-<@wwArx=Arx@>
-<@wwCoSign=CoSign@>
-<@wwCoSignManagement=Define Signature Profiles@>
+<@wwCoSignProfile=CoSign Signature Profile@>
+<@wwCoSignProfiles=CoSign Signature Profiles@>
+<@wwCoSignProfileListTable= @>
+<@wwDescription=Description@>
+<@wwAction=Action@>
+<@wwEdit=Edit@>
+<@wwAdd=Add@>
 
-<@wwSelectTag=Select Tag@>
+<@wwCoSignVerifiedSignatures=Signature(s) Status for Content Item {1}@>
+<@wwSID=Signature ID@>
+<@wwFieldName=Field Name@>
+<@wwStatus=Status@>
+<@wwSigningTime=Signing Time@>
+<@wwSignerEmail=Signer Email@>
+<@wwSignerName=Signer Name@>
+<@wwSignReason=Sign Reason@>
+<@wwCertErrorStatus=Certificate Error status@>
+<@wwStatus0=Valid signatures@>
+<@wwStatus1=Invalid signatures@>
+<@wwStatus2=Signature Validation error@>
+<@wwStatus3=Incomplete@>
+<@wwCertErrorStatus0=The certificate status was not checked.@>
+<@wwCertErrorStatus1=The certificate is OK.@>
+<@wwCertErrorStatus2=The certificate is revoked.@>
+<@wwCertErrorStatus3=The certificate is invalid. The signature might not be trusted.@>
+<@wwCertErrorStatus4=The certificate of the time-stamping server is revoked.@>
+<@wwCertErrorStatus5=There is a warning to validate the time-stamping server certificate.@>
 
 <@csNoProtocolsFound=Please create a Sign Request Protocol before proceeding@>
 <@csInvalidDocId=Did not receieve valid docId from CoSign Web Signing Ceremony@>
 <@csInvalidSessionId=Did not receieve valid sessionId from CoSign Web Signing Ceremony@>
 <@csWSCFailed=CoSign Web Signing Ceremony did not complete successfully@>
 <@csWSCResponseInvalid=Did not recieve valid response from CoSign Web Signing Ceremony@>
-
 <@csUnableToCreateTempFile=Unable to create temp file name@>
-
 <@csRevisionHasNoSignatures=Unable to load Signature Reviews, none found.@>
-
-<@wwsID=Signature ID@>
-<@wwfieldName=Field Name@>
-<@wwstatus=Status@>
-<@wwsigningTime=Signing Time@>
-<@wwsignerEmail=Signer Email@>
-<@wwsignerName=Signer Name@>
-<@wwsignReason=Sign Reason@>
-<@wwcertErrorStatus=Certificate Error status@>
-<@wwstatus0=Valid signatures@>
-<@wwstatus1=Invalid signatures@>
-<@wwstatus2=Signature Validation error@>
-<@wwstatus3=Incomplete@>
-<@wwcertErrorStatus0=The certificate status was not checked.@>
-<@wwcertErrorStatus1=The certificate is OK.@>
-<@wwcertErrorStatus2=The certificate is revoked.@>
-<@wwcertErrorStatus3=The certificate is invalid. The signature might not be trusted.@>
-<@wwcertErrorStatus4=The certificate of the time-stamping server is revoked.@>
-<@wwcertErrorStatus5=There is a warning to validate the time-stamping server certificate.@>
  </body>
 </html>

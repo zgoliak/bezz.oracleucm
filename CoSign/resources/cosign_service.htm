@@ -26,12 +26,12 @@
 					3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToCheckOut(dDocName)
 					3:doSubService:CHECKOUT_SUB:8:null
 					3:processSignRequest:::null
-					3:prepareRedirect:IdcService=COSIGN_SIGNDOCUMENT_FRAME&WSC_Session=<$ url( WSC_Session ) $>:0:null</td>
+					3:prepareRedirect:IdcService=COSIGN_SIGNDOCUMENT_FRAME&WSC_Session=<$ url( WSC_Session ) $><$ include idc_token_url_appending_parameter $>:0:null</td>
 			</tr>
 			<tr>
 				<td>COSIGN_SIGNDOCUMENT_FRAME</td>
 				<td>Service
-					50
+					18
 					COSIGN_SIGN_DOCUMENT_FRAME
 					null
 					null<br>
@@ -41,13 +41,12 @@
 			<tr>
 				<td>COSIGN_CHECKIN_SIGNEDDOCUMENT</td>
 				<td>DocService
-					50
+					18
 					REDIRECT_TEMPLATE
 					null
 					null<br>
 					!csUnableToCheckIn(dDocName)</td>
 				<td>3:processSignedDocument:::null
-					2:IcosignSignatureDetails::34:!csFailedToInsertSignatureVerification(dDocName)
 					3:prepareRedirect:IdcService=DOC_INFO&dID=<$ dID $>&dDocName=<$ url( dDocName ) $><$ if IsWorkflowInfo $>&IsWorkflowInfo=<$ IsWorkflowInfo $><$ endif $>:0:null</td>
 			</tr>
 			<tr>
@@ -63,37 +62,33 @@
 			<tr>
 				<td>COSIGN_MANAGEMENT</td>
 				<td>Service
-					50
+					18
 					COSIGN_MANAGEMENT
 					null
 					null<br>
-					!csUnableToBuildCheckInForm</td>
-				<td>3:loadMetaOptionsLists::0:!csErrorRetrievingOptionLists</td>
+					Unable to load sig profile list</td>
+				<td></td>
 			</tr>
 			<tr>
 				<td>COSIGN_MANAGEMENT_FORM</td>
 				<td>Service
-					50
+					18
 					COSIGN_MANAGEMENT_FORM
 					null
 					null<br>
-					!csUnableToBuildCheckInForm</td>
+					Unable to load sig profile form</td>
 				<td>3:loadMetaOptionsLists::0:!csErrorRetrievingOptionLists</td>
 			</tr>
 			<tr>
 				<td>COSIGN_LOAD_SIGNREQUEST</td>
 				<td>DocService
-					50
+					34
 					null
 					null
 					null<br>
-					Unable to load sign request</td>
-				<td>3:lockContent::4:!csUnableToLockContent(dDocName)
-					3:mapResultSet:QlatestNonDeletedIDByName,dID,dID:2:!csUnableToCheckOut(dDocName)!csItemNoLongerInSystem
-					3:mapResultSet:QdocID,dRevClassID,dRevClassID:2:null
-					3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToCheckOut(dDocName)
-					3:doSubService:CHECKOUT_SUB:8:null
-					3:readXMLToBinder::0:</td>
+					Unable to load sig profile</td>
+				<td>3:readXMLToBinder::0:Error Retrieving Profile Contents
+					3:loadMetaOptionsLists::0:!csErrorRetrievingOptionLists</td>
 			</tr>
 			<tr>
 				<td>COSIGN_CHECKIN_NEW_PROFILE</td>
@@ -107,7 +102,7 @@
 					3:checkSecurity::0:null
 					3:generateCoSignProfile:::null
 					3:doScriptableAction:checkin_new_subservice_selector:0:null
-					3:prepareRedirect:IdcService=CHECKIN_CONFIRM_FORM&dID=<$ dID $>&dDocTitle=<$ urlEscape7Bit( dDocTitle ) $>&dDocName=<$ urlEscape7Bit( dDocName ) $>&dDocAuthor=<$ url( dDocAuthor ) $>:0:null</td>
+					3:prepareRedirect:IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>:0:null</td>
 			</tr>
 			<tr>
 				<td>COSIGN_CHECKIN_SEL_PROFILE</td>
@@ -117,16 +112,21 @@
 					null
 					documents<br>
 					!csUnableToCheckIn(dDocName)</td>
-				<td>3:prepareCheckinSecurity::0:null
+				<td>3:lockContent::4:!csUnableToLockContent(dDocName)
+					3:mapResultSet:QlatestNonDeletedIDByName,dID,dID:2:!csUnableToCheckOut(dDocName)!csItemNoLongerInSystem
+					3:mapResultSet:QdocID,dRevClassID,dRevClassID:2:null
+					3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToCheckOut(dDocName)
+					3:doSubService:CHECKOUT_SUB:8:null
+					3:prepareCheckinSecurity::0:null
 					3:checkSecurity::0:null
 					3:generateCoSignProfile:::null
 					3:doSubService:CHECKIN_SEL_SUB:12:null
-					3:prepareRedirect:IdcService=CHECKIN_CONFIRM_FORM&dID=<$ dID $>&dDocTitle=<$ urlEscape7Bit( dDocTitle ) $>&dDocName=<$ urlEscape7Bit( dDocName ) $>&dDocAuthor=<$ url( dDocAuthor ) $>:0:null</td>
+					3:prepareRedirect:IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>:0:null</td>
 			</tr>
 			<tr>
 				<td>COSIGN_RESULTS_POPUP</td>
 				<td>Service
-					50
+					18
 					COSIGN_RESULTS_POPUP
 					null
 					null<br>

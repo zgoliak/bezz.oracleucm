@@ -1,61 +1,37 @@
-<$ columns = 'sID,fieldName,status,signingTime,signerEmail,signerName,signReason,certErrorStatus' $>
 <$ include std_doctype_html_decl $>
 	<head>
+<$ defaultPageTitle = lc( 'wwVerifySignature' ) $>
 <$ include std_html_head_declarations $>
-		<style>
-			.container {
-				width: 1000px;
-				display: table;
-			}
-			.header {
-				font-weight: bold;
-			}
-			.small {
-				width: 55px;
-			}
-			.medium {
-				width: 80px;
-			}
-			.large {
-				width: 120px;
-			}
-			.row {
-				border-bottom: 1px solid #000;
-				display: table-row;
-			}
-			.column {
-			 display: table-cell;
-			}
-		</style>
 	</head>
 <$ include body_def $>
 <$ include std_page_begin $>
-<$ exec rsMakeFromString( 'COLUMNS', columns ) $>
-		<div class="container">
-			<div class="row header">
-<$ loop COLUMNS $>
-	<$ if COLUMNS.#row gt 0 $>|<$ endif $>
-				<span class="column medium"><$ lc( 'ww' & #active.row ) $></span>
-<$ endloop $>
-			</div>
-			<div class="row">
+<$ include std_header $>
+		<br>
+<$ UseRowHighlighting = 1 $>
+<$ include cosign_verify_define_widths $>
+
 <$ if rsExists( 'SignatureReview' ) $>
+		<table class="xuiTitleTable" cellpadding="0" cellspacing="0" summary="">
+			<tr>
+				<td class="xuiPageHeadingCell">
+					<h1 class="xuiPageHeadingText"><$ lc( 'wwCoSignVerifiedSignatures', dDocName ) $></h1>
+				</td>
+			</tr>
+		</table>
+		<br style="line-height:2em">
+ <$ resultSetClass = 'cosign_verify', resultSetType = 'cosign_verify_list', 
+ 	  tableSummary = 'wwCoSignVerifyListTable' $>
+	<$ exec inc( 'cosign_setup_verify_table_header' ) $>
+	<$ include slim_table_header $>
+
+	<$ exec inc('cosign_setup_verify_table_row' ) $>
+	<$ exec inc('create_slim_table_row_include' ) $>
+
 	<$ loop SignatureReview $>
-		<$ loop COLUMNS $>
-			<$ value = getValue( '#active', #active.row ) $>
-			<$ if NOT value $><$ value = getValue( '#active', strUpper( #active.row ) ) $><$ endif $>
-			<$ if #active.row like 'status|certErrorStatus' $>
-				<$ value = lc( 'ww' & #active.row & value ) $>
-			<$ endif $>
-			<$ if COLUMNS.#row gt 0 $>|<$ endif $>
-				<span class="column large"><$ value $></span>
-		<$ endloop $>
+		<$ include slim_table_row_include $>
 	<$ endloop $>
-<$ else $>
-	<$ lc( 'wwNoResults' ) $>
+
+	<$ include slim_table_footer $>
 <$ endif $>
-			</div>
-		</div>
+		<br style="line-height:2em">
 <$ include std_page_end $>
-	</body>
-</html>

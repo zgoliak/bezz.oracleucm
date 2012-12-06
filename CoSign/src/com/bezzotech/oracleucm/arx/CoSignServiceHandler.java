@@ -28,7 +28,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 */
 	// private static Map < String, String > cookie = new HashMap < String, String > ();
 	protected static String m_cookie = "";
-	protected final String PLACEHOLDER_CONTENT = "uploadedFileContent";
+	protected final String PLACEHOLDER_CONTENT = "__uploaded__File__Content__";
 
 	/** <span class="code">FileStoreUtils</span> object for this request. */
 	protected FileStoreUtils m_fsutil;
@@ -124,7 +124,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 			}
 		}
 
-		log ( msg );
+		logHistory( msg );
 
 		if( m_undo ) {
 			m_cmutils.rollback( msg );
@@ -158,12 +158,19 @@ public class CoSignServiceHandler extends ServiceHandler {
 			m_undo = true;
 		}
 
-		log ( msg );
+		logHistory( msg );
 
-		ResultSet rset = m_binder.getResultSet( "WorkflowSteps" );
+		DataBinder qApproveBinder = new DataBinder();
+		qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
+		ResultSet rset = m_cmutils.createResultSet( "QwfDocInformation", qApproveBinder );
+		DataResultSet drset = new DataResultSet();
+		drset.copy( rset );
+		Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
+
+//		ResultSet rset = m_binder.getResultSet( "WorkflowSteps" );
 		String stepType = null;
-		if( !m_undo && rset != null ) {
-			stepType = m_binder.getResultSetValue( rset, "dWfStepType" );
+		if( !m_undo && !drset.isEmpty() ) {
+			stepType = drset.getStringValueByName( "dWfStepType" );
 			if( stepType.indexOf( ":CN:" ) >= 0 ) // allow New Revision
 				m_binder.putLocal( "dRevLabel",
 						( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
@@ -203,7 +210,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 			 msg = e.getMessage();
 				term = true;
 			}
-			log( msg );
+			logHistory( msg );
 			if( term )
 				throw new ServiceException( msg );
 
@@ -211,7 +218,6 @@ public class CoSignServiceHandler extends ServiceHandler {
 		}
 		DataResultSet drset = new DataResultSet();
 		drset.copy( rset );
-		Report.debug( "bezzotechcosign", "Rows found: " + drset.getNumRows(), null );
 		m_binder.addResultSet( "SignatureReview", drset );
 	}
 
@@ -230,11 +236,12 @@ public class CoSignServiceHandler extends ServiceHandler {
 	/**
 	 *
 		*/
-	protected void log( String msg ) throws ServiceException {
+	protected void logHistory( String msg ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
 		DataBinder binder = new DataBinder();
 		binder.putLocal( "User", m_binder.getLocal( "dUser" ) );
 		binder.putLocal( "Operation", m_binder.getLocal( "IdcService" ) );
+		if( msg == null ) msg = "";
 		binder.putLocal( "Error", msg );
 		binder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
 		binder.putLocal( "dID", m_binder.getLocal( "dID" ) );

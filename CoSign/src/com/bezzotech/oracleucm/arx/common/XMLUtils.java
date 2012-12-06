@@ -5,6 +5,7 @@ import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.common.StringUtils;
 import intradoc.data.DataBinder;
+import intradoc.data.DataResultSet;
 import intradoc.server.Service;
 
 import java.io.IOException;
@@ -37,6 +38,7 @@ import com.bezzotech.oracleucm.arx.shared.SharedObjects;
 public class XMLUtils {
 	/** The context for this request. */
 	public ExecutionContext m_context;
+	public Service m_service;
 
 	/** DataBinder The DataBinder for this request. */
 	public DataBinder m_binder;
@@ -48,8 +50,8 @@ public class XMLUtils {
 		m_context = context;
 		m_shared = SharedObjects.getSharedObjects( m_context );
 		if ( m_context instanceof Service ) {
-			Service s = ( Service )m_context;
-			m_binder = s.getBinder();
+			m_service = ( Service )m_context;
+			m_binder = m_service.getBinder();
 		}
 	}
 
@@ -148,9 +150,12 @@ public class XMLUtils {
 		for ( Iterator < String > fieldIter = fields.keySet().iterator(); fieldIter.hasNext(); ) {
 			String fieldName = ( String )fieldIter.next();
 			Element child = doc.createElement( fieldName );
-			Text text = doc.createTextNode(
-					m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
-			child.appendChild( text );
+			try {
+				String fieldValue = m_service.getPageMerger()
+						.evaluateScript ( m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
+				Text text = doc.createTextNode( fieldValue );
+				child.appendChild( text );
+			} catch ( IOException e ) { throwFullError( e ); }
 			root.appendChild( child );
 		}
 		return root;
@@ -181,9 +186,10 @@ public class XMLUtils {
 			throw new ServiceException( appName + " has not been installed properly" );
 
 		Vector fields = ( Vector )StringUtils.parseArray( locStr, ';', '\\' );
+/*
 		if ( fields.isEmpty() )
 			throw new ServiceException( appName + " has not been installed properly" );
-
+*/
 		Element root = doc.createElement( rootName );
 		for ( Enumeration fieldsEnum = fields.elements(); fieldsEnum.hasMoreElements(); ) {
 			String fieldName = ( String )fieldsEnum.nextElement();
@@ -213,10 +219,10 @@ public class XMLUtils {
 		*  root     - [Element] XML node, housing named node to inject in
 		*  baseName - [String] name of Element under root
 	 */
-	public void parseChildrenToLocal( String appName, Element root, String baseName ) {
+	public void parseChildrenToLocal( String appName, Element root, String baseName, int index ) {
 		Report.trace( "bezzotechcosign", "Entering parseChildrenToLocal, passed in parameter(s):" +
 				"\n\tappName: " + appName + "\n\troot:\n\tbaseName: " + baseName, null );
-		Element base = ( Element )root.getElementsByTagName( baseName ).item( 0 );
+		Element base = ( Element )root.getElementsByTagName( baseName ).item( index );
 		NodeList children = base.getChildNodes();
 		String fields = "";
 		for ( int i = 0; i < children.getLength(); i++ ) {
@@ -232,6 +238,50 @@ public class XMLUtils {
 			}
 		}
 		m_binder.putLocal( appName + "." + baseName + ".fields", fields );
+	}
+
+	public void parseChildrenToResultSet( String appName, Element root, String parentName ) {
+		Report.trace( "bezzotechcosign", "Entering parseChildrenToResultSet, passed in parameter(s):" +
+				"\n\tappName: " + appName + "\n\troot:\n\tparentName: " + parentName, null );
+		Element parent = ( Element )root.getElementsByTagName( parentName ).item( 0 );
+		NodeList children = parent.getChildNodes();
+		if( children.getLength() > 0 ) {
+			DataResultSet rset = null;
+			for( int i = 0; i < children.getLength(); i++ ) {
+				Node node = children.item( i );
+				if( node.getNodeType() == Node.ELEMENT_NODE ) {
+					Element child = ( Element )node;
+					NodeList gchildren = child.getChildNodes();
+					if( rset == null ) {
+
+						// Build result set from XML fields
+						Vector < String > fieldList = new Vector < String > ();
+						for( int j = 0; j < gchildren.getLength(); j++ ) {
+							Node gnode = gchildren.item( j );
+							if( gnode.getNodeType() == Node.ELEMENT_NODE ) {
+								Element gchild = ( Element )gnode;
+								fieldList.add( j, gchild.getTagName() );
+							}
+						}
+						rset = new DataResultSet( fieldList );
+					}
+					Vector row = rset.createEmptyRow();
+					for( int k = 0; k < gchildren.getLength(); k++ ) {
+						Node gnode = gchildren.item( k );
+						if( gnode.getNodeType() == Node.ELEMENT_NODE ) {
+							Element gchild = ( Element )gnode;
+							String rowName = gchild.getTagName();
+							int colIndex = rset.getFieldInfoIndex( rowName );
+							String rowValue = gchild.getTextContent();
+							row.setElementAt( rowValue, colIndex );
+						}
+					}
+					rset.insertRowAt( row, i );
+				}
+			}
+			if( rset != null )
+				m_binder.addResultSet( parentName, rset );
+		}
 	}
 
 	/** Translate XML Document to string

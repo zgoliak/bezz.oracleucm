@@ -18,13 +18,13 @@
 				  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)</td>
 				<td>dID int
 				  dDocName varchar
-				  CoSign.Field.fieldName varchar
-				  CoSign.Field.status varchar
-				  CoSign.Field.signingTime date
-				  CoSign.Field.signerEmail varchar
-				  CoSign.Field.signerName varchar
-				  CoSign.Field.signReason varchar
-				  CoSign.Field.certErrorStatus varchar
+				  fieldName varchar
+				  status varchar
+				  signingTime date
+				  signerEmail varchar
+				  signerName varchar
+				  signReason varchar
+				  certErrorStatus varchar
 				  CoSign.SigDetails.x int
 				  CoSign.SigDetails.y int
 				  CoSign.SigDetails.width int
@@ -55,13 +55,12 @@
 			</tr>
 			<tr>
 				<td>QsignatureProfileID</td>
-				<td>SELECT MAX( Revisions.dID ) dID
+				<td>SELECT MAX( Revisions.dID ) dID, xCoSignRequiredSignatures
 						FROM Revisions, DocMeta
 						WHERE Revisions.dID=DocMeta.dID AND Revisions.dRevRank=0 AND Revisions.dStatus<>'DELETED'
-						AND xCoSignSignatureTag=? AND xCoSignRequiredSignatures in (?)
-						AND dDocType='CoSignSignatureProfile'</td>
-				<td>xCoSignSignatureTag varchar
-						xCoSignRequiredSignatures varchar.in</td>
+						AND xCoSignSignatureTag=? AND dDocType='CoSignSignatureProfile'
+						GROUP BY xCoSignRequiredSignatures</td>
+				<td>xCoSignSignatureTag varchar</td>
 			</tr>
 			<tr>
 				<td>QsignatureCountByName</td>

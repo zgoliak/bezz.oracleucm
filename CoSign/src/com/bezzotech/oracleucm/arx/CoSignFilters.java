@@ -1,27 +1,28 @@
 package com.bezzotech.oracleucm.arx;
 
 import com.bezzotech.oracleucm.arx.shared.SharedObjects;
-
 import intradoc.common.ExecutionContext;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
-import intradoc.common.StringUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
+import intradoc.data.Workspace;
+import intradoc.server.IdcExtendedLoader;
+import intradoc.shared.FilterImplementor;
+/*
+import intradoc.common.StringUtils;
 import intradoc.data.DataResultSet;
 //import intradoc.data.FieldInfo;
 //import intradoc.data.IdcCounterUtils;
 import intradoc.data.ResultSet;
-import intradoc.data.Workspace;
-import intradoc.shared.FilterImplementor;
-import intradoc.server.IdcExtendedLoader;
 import intradoc.server.datastoredesign.DataDesignGenerator;
 import intradoc.server.utils.CompInstallUtils;
 
 import java.util.Properties;
 //import java.util.StringBuilder;
-
+*/
 public class CoSignFilters implements FilterImplementor {
+/*
 	class CoSignIndexGenerator extends DataDesignGenerator {
 		void generateIndexes( String tableName ) throws DataException, ServiceException {
 			DataBinder indexResults = interrogateIndices( null, tableName );
@@ -53,23 +54,24 @@ public class CoSignFilters implements FilterImplementor {
 			init( ws );
 		}
 	}
-
+*/
 	private static String m_currentVersion = "3.2";
 	private static String m_currentUpdateValue = "1";
 	private Workspace m_workspace;
-	private CoSignIndexGenerator m_indexGenerator;
+//	private CoSignIndexGenerator m_indexGenerator;
 	private SharedObjects m_shared;
 
 	public CoSignFilters() {
 		m_workspace = null;
-		m_indexGenerator = null;
+//		m_indexGenerator = null;
 		m_shared = null;
 	}
 
 	public int doFilter( Workspace ws, DataBinder db, ExecutionContext ec )
 			throws DataException, ServiceException {
+		Report.trace( "bezzotechcosign", "Entering CoSignFilters.doFilter", null );
 		m_workspace = ws;
-		m_indexGenerator = new CoSignIndexGenerator( ws );
+//		m_indexGenerator = new CoSignIndexGenerator( ws );
 		if( ec == null ) {
 			System.out.println( "Plugin filter called without a context." );
 			return FilterImplementor.CONTINUE;
@@ -86,6 +88,21 @@ public class CoSignFilters implements FilterImplementor {
 			loader = ( IdcExtendedLoader )ec;
 			if( ws == null )
 				ws = loader.getLoaderWorkspace();
+		}
+		if( s.equals( "validateCoSign" ) ) {
+			Report.trace( "bezzotechcosign", "Filter parameter 'validateCoSign found!'", null );
+		 if( db.getLocal( "IdcService" ) == null || 
+					( db.getLocal( "IdcService" ).contains( "CHECKIN" ) && 
+							!db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) ||
+					( db.getLocal( "xCoSignSignatureTag" ) == null ||
+							db.getLocal( "xCoSignSignatureTag" ) == "" ||
+							db.getLocal( "xCoSignSignatureTag" ) == "Externally Signed" ) ) {
+				Report.trace( "bezzotechcosign", "Clearing CoSign values!", null );
+				db.putLocal( "xSignTime", "" );
+				db.putLocal( "xSigner", "" );
+				db.putLocal( "xSignatureCount", "" );
+				db.putLocal( "xSignatureStatus", "" );
+			}
 		}
 /*		if( s.equals( "createCoSignTables" ) ) {
 			createLogTable( ws, loader );
@@ -126,7 +143,7 @@ public class CoSignFilters implements FilterImplementor {
 				"BigText", true, "?", "?", "0", "90050" );
 		configureMetaField( ws, cData, "CoSignSignatureReasons", "csxCoSignSignatureReasons", "Memo",
 				true, "?", "?", "0", "90060" );
-	}*/
+	}
 
 	protected void createLogTable( Workspace ws, IdcExtendedLoader iel ) throws ServiceException, DataException {
 		String as[] = ws.getTableList();
@@ -192,7 +209,7 @@ public class CoSignFilters implements FilterImplementor {
 		}
 	}
 
-/*	private void configureMetaField( Workspace ws, Properties configData, String configuredMetaName,
+	private void configureMetaField( Workspace ws, Properties configData, String configuredMetaName,
 			String caption, String type, boolean isOptionList, String optionListKey, String optListType,
 			String indexed, String order ) throws ServiceException, DataException {
 		String metaName = m_shared.getConfig( configuredMetaName );
@@ -223,5 +240,6 @@ public class CoSignFilters implements FilterImplementor {
 		propsMetafieldInfo.put( "dComponentName", "CoSign" );
 		MetaFieldUtils.updateMetaDataFromProps( ws, null, propsMetafieldInfo, metaName,
 				!MetaFieldUtils.hasDocMetaDef( metaName ) );
-	}*/
+	}
+*/
 }
