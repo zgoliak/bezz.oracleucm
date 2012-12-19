@@ -23,10 +23,6 @@ import com.bezzotech.oracleucm.arx.shared.SharedObjects;
 
 public class CoSignServiceHandler extends ServiceHandler {
 	protected static boolean m_undo;
-	/**
-	 *  TODO: Need to implement better Cookie handling
-	 */
-	// private static Map < String, String > cookie = new HashMap < String, String > ();
 	protected static String m_cookie = "";
 	protected final String PLACEHOLDER_CONTENT = "__uploaded__File__Content__";
 
@@ -78,6 +74,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_binder.addTempFile( s2 );
 		m_binder.putLocal( "primaryFile", s1 );
 		m_binder.putLocal( "primaryFile:path", s2 );
+		m_binder.putLocal( "dRevLabel", ( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
 	}
 
 	/**
@@ -85,6 +82,10 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 */
 	public void processSignRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignRequest, passed in binder:" + m_binder.toString(), null );
+		m_binder.putLocal( "xSignatureStatus", "sent-to-cosign" );
+		m_cmutils.update();
+		m_cmutils.checkout();
+
 		m_binder.putLocal( "CoSign.Document.fields", "fileID;contentType;content" );
 		m_binder.putLocal( "CoSign.Document.fileID", m_binder.getLocal( "dDocName" ) );
 		m_binder.putLocal( "docId", m_binder.getLocal( "dID" ) );
@@ -167,7 +168,6 @@ public class CoSignServiceHandler extends ServiceHandler {
 		drset.copy( rset );
 		Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
 
-//		ResultSet rset = m_binder.getResultSet( "WorkflowSteps" );
 		String stepType = null;
 		if( !m_undo && !drset.isEmpty() ) {
 			stepType = drset.getStringValueByName( "dWfStepType" );
@@ -184,7 +184,9 @@ public class CoSignServiceHandler extends ServiceHandler {
 		else
 		 m_cmutils.checkin();
 
-		if( m_binder.getLocal( "dWorkflowState").length() > 0 )
+		m_WSC.log();
+
+		if( !drset.isEmpty() )
 			m_cmutils.approve();
 	}
 

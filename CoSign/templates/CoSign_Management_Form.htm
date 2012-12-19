@@ -3,6 +3,9 @@
 	<head>
 <$ include std_html_head_declarations $>
 		<style>
+		 h1, h2, p, input, textarea, select {
+				text-align: left;
+			}
 			h1 {
 				padding: 5px;
 				margin-bottom: 10px;
@@ -67,6 +70,9 @@
 				height: 1px;
 				width: 1000px;
 			}
+			.footer {
+				padding-bottom: 40px;
+			}
 		</style>
 		<script type="text/javascript">
 			function toggleTitle() {
@@ -78,12 +84,13 @@
 			function toggleReadOnly( targetID, triggerName ) {
 				var trigger = document.getElementsByName( triggerName );
 				var target = document.getElementById( targetID );
+				var displayFlag = trigger[0].parentNode.parentNode.style.display
 				switch( trigger[ 0 ].type ) {
 					case 'checkbox':
 					case 'radio':
 						for( var i = 0; i < trigger.length; i++ ) {
 							if( trigger[ i ].className == 'Enable' ) {
-								if( trigger[ i ].checked ) {
+								if( trigger[ i ].checked || displayFlag == 'none' ) {
 									target.readOnly = '';
 								} else {
 									target.readOnly = 'readonly';
@@ -95,23 +102,35 @@
 				}
 			}
 			function toggleAdHoc() {
-				toggleHidden( 'AdHoc', 'CoSign.Logic.allowAdHoc' );
+				toggleHidden( 'AdHoc', 'CoSign.Logic.allowAdHoc', 'true' );
+				toggleHidden( 'NonAdHoc', 'CoSign.Logic.allowAdHoc', 'false' );
 				if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked ) {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'isWorkflowMode;allowAdHoc;allowUserReason;enforceReason';
-					document.getElementsByName( 'CoSign.SigField.fieldNameToSign_sep' )[ 0 ].style.display = 'none';
-					document.getElementsByName( 'CoSign.SigField.fieldNameToSign_row' )[ 0 ].style.display = 'none';
 				} else {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'allowAdHoc;allowUserReason;enforceReason';
-					document.getElementsByName( 'CoSign.SigField.fieldNameToSign_sep' )[ 0 ].style.display = 'block';
-					document.getElementsByName( 'CoSign.SigField.fieldNameToSign_row' )[ 0 ].style.display = 'block';
+				}
+				toggleTitle();
+			}
+			function alterSigProfileValues() {
+				var fields = document.getElementsByName( 'CoSign.SigProfile.fields' )[ 0 ].value.split( ';' );
+				for( var i = 0; i < fields.length; i++ ) {
+					var field = document.getElementsByName( 'CoSign.SigProfile.' + fields[ i ] )[ 0 ];
+					switch( field.type ) {
+						case 'hidden':
+						case 'text':
+						case 'checkbox':
+						case 'radio':
+							field.value = '';
+							break;
+					}
 				}
 			}
 			function toggleVisible() {
-				toggleHidden( 'Visible', 'CoSign.SigProfile.visible' );
+				toggleHidden( 'Visible', 'CoSign.SigProfile.visible', 'true' );
 			}
-			function toggleHidden( targetName, triggerName ) {
+			function toggleHidden( targetName, triggerName, test ) {
 				var trigger = document.getElementsByName( triggerName );
 				var target = document.getElementsByName( targetName );
 				switch( trigger[ 0 ].type ) {
@@ -120,7 +139,7 @@
 						for( var i = 0; i < trigger.length; i++ ) {
 							if( trigger[ i ].className == 'Enable' && trigger[ i ].checked ) {
 								for( var j = 0; j < target.length; j++ ) {
-									if( trigger[ i ].value == 'true' )
+									if( trigger[ i ].value == test )
 										target[ j ].style.display = 'block';
 									else
 										target[ j ].style.display = 'none';
@@ -129,6 +148,21 @@
 							}
 						}
 						break;
+				}
+			}
+			function toggleMutual( me ) {
+//			 alert( me.checked );
+				var eles = document.getElementsByName( me.name );
+				var ele = document.getElementById( me.id );
+				for( var i = 0; i < eles.length; i++ ){
+/*
+					alert( eles[ i ].id + ':' + eles[ i ].checked );
+*/
+					if( me != eles[ i ] && eles[ i ].checked ) {
+						eles[ i ].checked = false;
+					} else if( me != eles[ i ] && !eles[ i ].checked ) {
+						eles[ i ].checked = true;
+					}
 				}
 			}
 			function submitProfile() {
@@ -142,6 +176,8 @@
 					checked( 'SignatureFieldDetails', 3, 'CoSign.SigProfile.graphicalImage' );
 					checked( 'SignatureFieldDetails', 4, 'CoSign.SigProfile.initials' );
 					getReasons( 'ListOfReasons', 'CoSign.SignReasons.signReason' );
+					if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked )
+						alterSigProfileValues();
 				}
 			}
 			function getReasons( listId, reasonName ) {
@@ -184,7 +220,6 @@
 				}
 			}
 			function cosign_init() {
-				toggleTitle();
 				togglePageNumber();
 				toggleAdHoc();
 				toggleVisible();
@@ -204,7 +239,6 @@
 				<input type="hidden" name="IdcService" value="COSIGN_CHECKIN_SEL_PROFILE" />
 				<input type="hidden" name="dID" value="<$ #active.dID $>" />
 				<input type="hidden" name="dDocName" value="<$ #active.dDocName $>" />
-				<input type="hidden" name="dRevLabel" value="<$ #active.dRevLabel + 1 $>" />
 <$ else $>
 				<input type="hidden" name="IdcService" value="COSIGN_CHECKIN_NEW_PROFILE" />
 <$ endif $>
@@ -251,8 +285,8 @@
 							</p>
 						</div>
 					</div>
-					<div class="separator" name="CoSign.SigField.fieldNameToSign_sep" style="display: none;"></div>
-					<div class="row" name="CoSign.SigField.fieldNameToSign_row" style="display: none;">
+					<div class="separator" name="NonAdHoc"></div>
+					<div class="row" name="NonAdHoc">
 						<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign" />
 						<div class="left">
 							<h1>Field Name To Sign</h1>
@@ -307,21 +341,19 @@
 		radioStyle = 'Enable', checked = 1, radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p><br /><hr>
-							<h2>Enforce predefined reasons?</h2>
 							<p>
-<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
-		checked = 1 $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
-<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'ReasonEnforcement', fieldId = 'CoSign.Logic.enforceReason', fieldCheckValue = 'true',
+		fieldCaption = 'Enforce predefined reasons?', checked = 1,
+		checkboxFieldFunction = 'javascript:toggleMutual( this )' $>
+<$ inc( 'cosign_checkbox_entry' ) $>
+								<input type="hidden" name="CoSign.Logic.enforceReason" value="" />
 							</p>
-							<h2>Enable user-defined reason?</h2>
 							<p>
-<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
-		checked = 1 $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
-<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'ReasonEnforcement', fieldId = 'CoSign.Logic.allowUserReason',
+		fieldCheckValue = 'true', fieldCaption = 'Enable user-defined reason?',
+		checkboxFieldFunction = 'javascript:toggleMutual( this )' $>
+<$ inc( 'cosign_checkbox_entry' ) $>
+								<input type="hidden" name="CoSign.Logic.allowUserReason" value="" />
 							</p>
 						</div>
 					</div>
@@ -350,98 +382,109 @@
 							</p>
 						</div>
 					</div>
-					<div class="separator" name="AdHoc"></div>
-					<div class="row" name="AdHoc">
+					<div class="separator"></div>
+					<div class="row">
 						<input type="hidden" name="CoSign.SigProfile.fields" value="fieldName;x;y;width;height;pageNumber;visible;title;showTitle;dateFormat;timeFormat;extTimeformat;signer;date;logo;graphicalImage;initials" />
 						<input type="hidden" name="CoSign.SigProfile.fieldName" value="newFieldDefault" />
  					<div class="left">
-							<h1>Signature Visibility</h1>
-							<p>
-								Specify whether the CoSign digital signature should be visible in the document file.
-							</p><br /><hr>
+							<div name="AdHoc">
+								<h1>Signature Visibility</h1>
+								<p>
+									Specify whether the CoSign digital signature should be visible in the document file.
+								</p><br /><hr>
+							</div>
 							<h1>Signature Field Details</h1>
 							<p>
 								Select the details that will appear in the digital signature field.  You may select any
 								&nbsp;number of elements.
-							</p><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><hr>
-							<div name="Visible" style="display: none;">
-								<h1>Signature Size and Location</h1>
-								<p>
-									Specify th size and location for the CoSign digital signature. Enter coordinates for X and
-									&nbsp;Y, the width and height for the signature field, as well as the page number that the
-									&nbsp;signature should appear on.
-								</p><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><hr>
-							</div>
-							<h1>Time/Date Appearance Format</h1>
-							<p>
-								Specify how the CoSign digital signature time and date information will appear.  Notations
-								&nbsp;are described in the list below.
-								<div class="innerLeft">
-									d - Day(1-31)<br />dd - Day(01-31)<br />ddd- Day(Sun-Sat)<br />dddd - Day(Sunday-Saturday)
-									&nbsp;<br />M - Month(1-12)<br />MM - Month(01-12)<br />MMM - Month(Jan-Dec)<br />MMMM -
-									&nbsp; Month(January-December)<br />yy - Year(00-99)<br />yyyy - Year(1990-9999)
-								</div>
-								<div class="innerRight">
-									&nbsp;h - Hour(0-12)<br />hh - Hour(00-12)<br />H - Hour(0-23)<br />HH - Hour(00-24)<br />
-									&nbsp;m - Minute(0-59)<br />mm - Minute(00-59)<br />s - Second(0-59)<br />ss - Second(00-59)
-									&nbsp;<br />t - AM/PM(A/P)<br />tt - AM/PM
-								</div>
 							</p>
+							<div name="AdHoc">
+								<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><hr>
+								<div name="Visible" style="display: none;">
+									<h1>Signature Size and Location</h1>
+									<p>
+										Specify th size and location for the CoSign digital signature. Enter coordinates for X and
+										&nbsp;Y, the width and height for the signature field, as well as the page number that the
+										&nbsp;signature should appear on.
+									</p><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><hr>
+								</div>
+								<h1>Time/Date Appearance Format</h1>
+								<p>
+									Specify how the CoSign digital signature time and date information will appear.  Notations
+									&nbsp;are described in the list below.
+									<div class="innerLeft">
+										d - Day(1-31)<br />dd - Day(01-31)<br />ddd- Day(Sun-Sat)<br />dddd - Day(Sunday-Saturday)
+										&nbsp;<br />M - Month(1-12)<br />MM - Month(01-12)<br />MMM - Month(Jan-Dec)<br />MMMM -
+										&nbsp; Month(January-December)<br />yy - Year(00-99)<br />yyyy - Year(1990-9999)
+									</div>
+									<div class="innerRight">
+										&nbsp;h - Hour(0-12)<br />hh - Hour(00-12)<br />H - Hour(0-23)<br />HH - Hour(00-24)<br />
+										&nbsp;m - Minute(0-59)<br />mm - Minute(00-59)<br />s - Second(0-59)<br />ss - Second(00-59)
+										&nbsp;<br />t - AM/PM(A/P)<br />tt - AM/PM
+									</div>
+								</p>
+							</div>
 						</div>
 						<div class="right">
-							<h2>Should CoSign digital signature be visible?</h2>
-							<p>
+							<div name="AdHoc">
+								<h2>Should CoSign digital signature be visible?</h2>
+								<p>
 <$ fieldName = 'CoSign.SigProfile.visible', fieldValue = 'true', , radioFieldCaption = 'Yes',
 		radioStyle = 'Enable', checked = 1, radioFieldFunction = 'javascript:toggleVisible();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 <$ fieldName = 'CoSign.SigProfile.visible', fieldValue = 'false', , radioFieldCaption = 'No',
 		radioStyle = 'Enable', radioFieldFunction = 'javascript:toggleVisible();' $>
 <$ inc( 'cosign_radio_entry' ) $>
-							</p><br /><hr>
-							<h2>Include&nbsp;&nbsp;Element Name</h2>
-							<p>
+								</p><br /><hr>
+								<h2>Include&nbsp;&nbsp;Element Name</h2>
+								<p>
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.signer', checked = 1,
 		fieldCaption = 'Signed By', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.signer" value="" /><br /><br />
+									<input type="hidden" name="CoSign.SigProfile.signer" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.logo', fieldCaption = 'Logo',
 		fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.logo" value="" /><br /><br />
+									<input type="hidden" name="CoSign.SigProfile.logo" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.date', checked = 1,
 		fieldCaption = 'Date\Time', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.date" value="" /><br /><br />
+									<input type="hidden" name="CoSign.SigProfile.date" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.graphicalImage', checked = 1,
 		fieldCaption = 'Graphical Signature', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.graphicalImage" value="" /><br /><br />
+									<input type="hidden" name="CoSign.SigProfile.graphicalImage" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.initials',
 		fieldCaption = 'Initials', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.initials" value="" /><br /><br />
+									<input type="hidden" name="CoSign.SigProfile.initials" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.showTitle',
-		fieldCaption = 'Title', fieldCheckValue = 'true', checkboxStyle = 'Enable',
+		fieldCaption = 'Show Title', fieldCheckValue = 'true', checkboxStyle = 'Enable',
 		checkboxFieldFunction = 'javascript:toggleTitle()' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.showTitle" value="" />
-<$ fieldName = 'CoSign.SigProfile.title', setReadOnly = 1 $>
-<$ inc( 'cosign_edit_entry' ) $><br /><br />
-							</p><br /><hr>
-							<div name="Visible" style="display: none;">
-								<h2>Signature Size and Location:</h2>
-								<p>
-<$ fieldName = 'CoSign.SigProfile.x', fieldValue = 0 $>
-									X:<$ inc( 'cosign_edit_entry' ) $><br /><br />
-<$ fieldName = 'CoSign.SigProfile.y', fieldValue = 0 $>
-									Y:<$ inc( 'cosign_edit_entry' ) $><br /><br />
+									<input type="hidden" name="CoSign.SigProfile.showTitle" value="" />
+								</p><br />
+							</div>
+							<p>
+<$ fieldName = 'CoSign.SigProfile.title' $>
+								Title: <$ inc( 'cosign_edit_entry' ) $><br /><br />
+							</p>
+							<div name="AdHoc">
+								<hr />
+								<div name="Visible" style="display: none;">
+									<h2>Signature Size and Location:</h2>
+									<p>
+<$ fieldName = 'CoSign.SigProfile.x', fieldValue = 50 $>
+										X:<$ inc( 'cosign_edit_entry' ) $><br /><br />
+<$ fieldName = 'CoSign.SigProfile.y', fieldValue = 50 $>
+										Y:<$ inc( 'cosign_edit_entry' ) $><br /><br />
 <$ fieldName = 'CoSign.SigProfile.width', fieldValue = 0 $>
-									Width:<$ inc( 'cosign_edit_entry' ) $><br /><br />
+										Width:<$ inc( 'cosign_edit_entry' ) $><br /><br />
 <$ fieldName = 'CoSign.SigProfile.height', fieldValue = 0 $>
-									Height:<$ inc( 'cosign_edit_entry' ) $><br /><br />
-								</p>
-								<h2>Signature Page:</h2>
-								<p>
+										Height:<$ inc( 'cosign_edit_entry' ) $><br /><br />
+									</p>
+									<h2>Signature Page:</h2>
+									<p>
 <$ fieldName = 'sPage', radioStyle = 'Enable', fieldValue = '', radioFieldCaption = 'Page Number',
 		radioFieldFunction = 'javascript:togglePageNumber();' $>
 <$ inc( 'cosign_radio_entry' ) $>
@@ -453,39 +496,32 @@
 <$ fieldName = 'sPage', fieldValue = '-1', radioFieldCaption = 'Last Page',
 		radioFieldFunction = 'javascript:togglePageNumber();'	$>
 <$ inc( 'cosign_radio_entry' ) $>
-								</p><br /><hr>
-							</div>
-							<p>
+									</p><br /><hr>
+								</div>
+								<p>
 <$ fieldName = 'CoSign.SigProfile.dateFormat', fieldDefault = 'MM/dd/yyyy' $>
-								Date Format:<$ inc( 'cosign_edit_entry' ) $><br /><br />
+									Date Format:<$ inc( 'cosign_edit_entry' ) $><br /><br />
 <$ fieldName = 'CoSign.SigProfile.timeFormat', fieldDefault = 'hh:mm tt' $>
-								Time Format:<$ inc( 'cosign_edit_entry' ) $><br /><br />
+									Time Format:<$ inc( 'cosign_edit_entry' ) $><br /><br />
 <$ fieldName = 'CoSign.SigProfile.extTimeformat', fieldCaption = 'Display GMT Offset',
 		fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-							</p>
+								</p>
+							</div>
 						</div>
 					</div>
 					<div class="separator"></div>
-					<div class="row">
+					<div class="row footer">
 						<div class="center">
 							<input type="submit" value="<$ lc( 'wwSave' ) $>" />
 							<input type="reset" />
 <$ if isFalse( isNew ) $>
-							<input type="button" onclick="document.UNDO.submit()" value="<$ lc( 'wwCancel' ) $>" />
+							<input type="button" onclick="window.history.go(-1)" value="<$ lc( 'wwCancel' ) $>" />
 <$ endif $>
 						</div>
 					</div>
 				</div>
 			</form>
-<$ if isFalse( isNew ) $>
-			<form method="POST" action="<$ HttpCgiPath $>" name="UNDO">
-	<$ include idc_token_form_field $>
-				<input type="hidden" name="IdcService" value="UNDO_CHECKOUT" />
-				<input type="hidden" name="dID" value="<$ #active.dID $>" />
-				<input type="hidden" name="RedirectUrl" value="<$ HttpCgiPath $>?IdcService=COSIGN_MANAGEMENT&<$ include idc_token_url_parameter $>" />
-			</form>
-<$ endif $>
 <$ include std_page_end $>
 <$ if isTrue( getValue( '#local', 'CoSign.Logic.allowAdHoc' ) ) $><script>toggleAdHoc();</script><$ endif $>
 <$ if isTrue( getValue( '#local', 'CoSign.SigProfile.visible' ) ) $><script>toggleVisible();</script><$ endif $>

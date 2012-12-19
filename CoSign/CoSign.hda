@@ -8,7 +8,7 @@ hasInstallStrings=1
 hasPreferenceData=1
 installID=CoSign
 preventAdditionalComponentDowngrade=0
-version=2012_12_05-dev(build 3.4)
+version=2012_12_18-dev(build 3.5)
 @end
 @ResultSet ClassAliases
 3
@@ -29,6 +29,14 @@ createCoSignTables
 validateStandard
 com.bezzotech.oracleucm.arx.CoSignFilters
 validateCoSign
+1
+alterUserCredentials
+com.bezzotech.oracleucm.arx.CoSignFilters
+alterCoSignRole
+1
+checkScheduledEvents
+com.bezzotech.oracleucm.arx.CoSignFilters
+CoSignFrequentEvent
 1
 @end
 @ResultSet ResourceDefinition
@@ -95,5 +103,9 @@ null
 CoSign_IdcTracingSections
 IdcTracingSections
 itsSection
+10
+CoSign_IdcScheduledSystemEvents
+IdcScheduledSystemEvents
+action
 10
 @end

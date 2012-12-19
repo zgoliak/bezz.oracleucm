@@ -339,6 +339,18 @@ public class CMUtils {
 	/**
 	 *
 		*/
+	public void checkout() throws ServiceException {
+		Report.debug( "bezzotechcosign", "Entering checkout, passed in binder: ", null );
+		try {
+			m_service.executeService( "INTERNAL_CHECKOUT_SUB" );
+		} catch ( DataException e ) {
+		 throwFullError( e );
+		}
+	}
+
+	/**
+	 *
+		*/
 	public void checkin() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
 		try {

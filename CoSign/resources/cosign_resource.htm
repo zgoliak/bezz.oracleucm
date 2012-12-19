@@ -102,5 +102,25 @@
    </tr>
   </table>
 <@end@>
+<@table CoSign_IdcScheduledSystemEvents@>
+		<table border=1><caption><strong>
+			<tr>
+				<td>action</td>
+				<td>configIntervalKey</td>
+				<td>allowEventScript</td>
+				<td>intervalType</td>
+				<td>defaultInterval</td>
+				<td>eventCategory</td>
+			</tr>
+			<tr>
+				<td>CoSignHourlyEvent</td>
+				<td>CoSignHourlyEventInterval</td>
+				<td><$ include cosign_set_doevent_for_hourly_event $></td>
+				<td>inHours</td>
+				<td>1</td>
+				<td>ScheduledWork</td>
+			</tr>
+		</table>
+<@end@>
  </body>
 </html>

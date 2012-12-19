@@ -20,12 +20,7 @@
 					null
 					documents<br>
 					!csUnableToCheckOut(dDocName)</td>
-				<td>3:lockContent::4:!csUnableToLockContent(dDocName)
-					3:mapResultSet:QlatestNonDeletedIDByName,dID,dID:2:!csUnableToCheckOut(dDocName)!csItemNoLongerInSystem
-					3:mapResultSet:QdocID,dRevClassID,dRevClassID:2:null
-					3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToCheckOut(dDocName)
-					3:doSubService:CHECKOUT_SUB:8:null
-					3:processSignRequest:::null
+				<td>3:processSignRequest:::null
 					3:prepareRedirect:IdcService=COSIGN_SIGNDOCUMENT_FRAME&WSC_Session=<$ url( WSC_Session ) $><$ include idc_token_url_appending_parameter $>:0:null</td>
 			</tr>
 			<tr>
@@ -112,13 +107,7 @@
 					null
 					documents<br>
 					!csUnableToCheckIn(dDocName)</td>
-				<td>3:lockContent::4:!csUnableToLockContent(dDocName)
-					3:mapResultSet:QlatestNonDeletedIDByName,dID,dID:2:!csUnableToCheckOut(dDocName)!csItemNoLongerInSystem
-					3:mapResultSet:QdocID,dRevClassID,dRevClassID:2:null
-					3:getLatestIDRevInfo:Qrevisions,QdocInfo,DOC_INFO,isEditAction:0:!csUnableToCheckOut(dDocName)
-					3:doSubService:CHECKOUT_SUB:8:null
-					3:prepareCheckinSecurity::0:null
-					3:checkSecurity::0:null
+				<td>3:doSubService:CHECKOUT_IMPLEMENT:8:null
 					3:generateCoSignProfile:::null
 					3:doSubService:CHECKIN_SEL_SUB:12:null
 					3:prepareRedirect:IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>:0:null</td>

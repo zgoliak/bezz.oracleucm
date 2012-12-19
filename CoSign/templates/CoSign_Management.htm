@@ -27,11 +27,10 @@
 	<$ exec inc('cosign_setup_profile_table_row' ) $>
 	<$ exec inc('create_slim_table_row_include' ) $>
 
+	<$ rsAppendNewRow( 'SearchResults' ) $>
 	<$ loop SearchResults $>
 		<$ include slim_table_row_include $>
 	<$ endloop $>
-	<$ exec rsRemove( 'SearchResults' ) $>
-	<$ include slim_table_row_include $>
 
 	<$ include slim_table_footer $>
 <$ endif $>

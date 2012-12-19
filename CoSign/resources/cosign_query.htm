@@ -75,6 +75,13 @@
 				<td>SELECT * FROM CoSignSignatureDetails WHERE dID = ?</td>
 				<td>dID int</td>
 			</tr>
+			<tr>
+				<td>QcheckedoutCoSignContent</td>
+				<td>SELECT dDocName
+						FROM Revisions, DocMeta
+						WHERE Revisions.dID=DocMeta.dID AND xSignatureStatus = 'sent-to-cosign' AND dIsCheckedOut = 1</td>
+				<td></td>
+			</tr>
 		</table>
 <@end@>
 	</body>

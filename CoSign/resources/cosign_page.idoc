@@ -6,9 +6,10 @@
  <body>
 <@ dynamichtml extra_setup_search_results_action_popups @>
 	<$ include super.extra_setup_search_results_action_popups $>
+
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
-	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" ) $>
+	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
 	<$ exec setValue( "PopupProps", "ifClause", "userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
 	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
 	<$ exec setValue( "PopupProps", "class", "document" ) $>
@@ -25,13 +26,14 @@
 <@ dynamichtml custom_docinfo_menus_setup @>
 	<$ include super.custom_docinfo_menus_setup $>
 
+	<$ include cosign_compute_userhasrequiredrole $>
 	<$ exec rsAppendNewRow( "PageMenusData" ) $>
 	<$ PageMenusData.nodeId = "SIGN_WITH_COSIGN" $>
 	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
 	<$ PageMenusData.label = "wwSignWithCoSign" $>
-	<$ PageMenusData.ifClause = "userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND  NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" $>
+	<$ PageMenusData.ifClause = "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND  NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" $>
 	<$ PageMenusData.type = "item" $>
-	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $><$ include idc_token_url_appending_parameter $>" $>
+	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" $>
 	<$ PageMenusData.loadOrder = 10 $>
 
 	<$ exec rsAppendNewRow( "PageMenusData" ) $>
@@ -50,7 +52,7 @@
 	<tr>
 		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
 				onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
-			<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&<$ include idc_token_url_parameter $>&dDocName=<$ url( dDocName ) $>"
+			<a class="menuA_ChildLinkText" href="<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&<$ include idc_token_url_parameter $>&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $>"
 					target="<$ popupLinkTarget $>"><$ lc( "wwSignWithCoSign" ) $></a>
 		</td>
 	</tr>
@@ -63,6 +65,38 @@
 		</td>
 	</tr>
 	<$ endif $>
+<@ end @>
+<@ dynamichtml cosign_compute_userhasrequiredrole @>
+	<$ userHasRequiredRole = 0 $>
+	<$ rsMakeFromString( 'Roles', #active.xCoSignRequiredSignatures ) $>
+	<$ if rsExists( 'Roles' ) $>
+		<$ loop Roles $>
+			<$ if userHasRole( Roles.row ) $>
+				<$ userHasRequiredRole = 1 $>
+				<$ break $>
+			<$ endif $>
+		<$ endloop $>
+	<$ else $>
+		<$ userHasRequiredRole = 1 $>
+	<$ endif $>
+<@ end @>
+<@ dynamichtml custom_modify_action_popup_data @>
+	<$ disabledActionPopupIds = 'signWithCoSign' $>
+<$ trace( 'Disabled Action Popup Ids: ' & disabledActionPopupIds, '#log' ) $>
+<$ trace( 'Required Roles: ' & #active.xCoSignRequiredSignatures, '#log' ) $>
+	<$ rsMakeFromString( 'Roles', #active.xCoSignRequiredSignatures ) $>
+	<$ if rsExists( 'Roles' ) $>
+		<$ loop Roles $>
+<$ trace( 'User Matches Role: ' & userHasRole( Roles.row ), '#log' ) $>
+			<$ if userHasRole( Roles.row ) $>
+				<$ disabledActionPopupIds = '' $>
+				<$ break $>
+			<$ endif $>
+		<$ endloop $>
+	<$ else $>
+		<$ disabledActionPopupIds = '' $>
+	<$ endif $>	
+<$ trace( 'Disabled Action Popup Ids: ' & disabledActionPopupIds, '#log' ) $>
 <@ end @>
 
 <@ dynamichtml setup_workflow_action_popups @>
@@ -619,7 +653,7 @@
 	<$ exec setValue( 'RowData', 'actions', '<$ include cosign_profile_actions $>' ) $>
 <@ end @>
 <@ dynamichtml cosign_profile_actions @>
- <$ if rsExists( 'SearchResults' ) $>
+ <$ if SearchResults.dID $>
 <a href="<$ HttpCgiPath $>?IdcService=COSIGN_MANAGEMENT_FORM&dID=<$ url( SearchResults.dID ) $>&dDocName=<$ url( SearchResults.dDocName ) $>&idcToken=<$ idcToken $>">
 	<b><span class=xxsmall><$lc("wwEdit")$></span></b>
 </a>
@@ -631,45 +665,45 @@
 <@ end @>
 
 <@ dynamichtml cosign_verify_define_widths @>
-	<$ colWidth_sm = '60px', colWidth_med = '105px', colWidth_med2 = '120px', colWidth_lg = '185px' $>
+	<$ colWidth_sm = '60px', colWidth_med = '105px', colWidth_med2 = '120px', colWidth_lg = '185px', colWidth_fill = '17%' $>
 <@ end @>
 <@ dynamichtml cosign_setup_verify_table_header @>
 	<$ exec rsCreateResultSet( 'ColumnProperties', 'id,width,headerLabel,rowAlign,cssRowClass') $>
 
 	<$ exec rsAppendNewRow( 'ColumnProperties' ) $>
 	<$ exec setValue( 'ColumnProperties', 'id', 'id' ) $>
-	<$ exec setValue( 'ColumnProperties', 'width', colWidth_med ) $>
+	<$ exec setValue( 'ColumnProperties', 'width', colWidth_sm ) $>
 	<$ exec setValue( 'ColumnProperties', 'headerLabel', lc( 'wwSID' ) ) $>
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 	<$ exec setValue( 'ColumnProperties', 'cssRowClass', 'xuiDisplayText_Sm_Bold' ) $>
 
 	<$ exec rsAppendNewRow( 'ColumnProperties' ) $>
 	<$ exec setValue( 'ColumnProperties', 'id', 'fname' ) $>
-	<$ exec setValue( 'ColumnProperties', 'width', colWidth_med ) $>
+	<$ exec setValue( 'ColumnProperties', 'width', colWidth_sm ) $>
 	<$ exec setValue( 'ColumnProperties', 'headerLabel', lc( 'wwFieldName' ) ) $>
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 
 	<$ exec rsAppendNewRow( 'ColumnProperties' ) $>
 	<$ exec setValue( 'ColumnProperties', 'id', 'status' ) $>
-	<$ exec setValue( 'ColumnProperties', 'width', colWidth_med ) $>
+	<$ exec setValue( 'ColumnProperties', 'width', colWidth_fill ) $>
 	<$ exec setValue( 'ColumnProperties', 'headerLabel', lc( 'wwStatus' ) ) $>
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 
 	<$ exec rsAppendNewRow( 'ColumnProperties' ) $>
 	<$ exec setValue( 'ColumnProperties', 'id', 'time' ) $>
-	<$ exec setValue( 'ColumnProperties', 'width', colWidth_lg ) $>
+	<$ exec setValue( 'ColumnProperties', 'width', colWidth_sm ) $>
 	<$ exec setValue( 'ColumnProperties', 'headerLabel', lc( 'wwSigningTime' ) ) $>
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 
 	<$ exec rsAppendNewRow( 'ColumnProperties' ) $>
 	<$ exec setValue( 'ColumnProperties', 'id', 'email' ) $>
-	<$ exec setValue( 'ColumnProperties', 'width', colWidth_fill ) $>
+	<$ exec setValue( 'ColumnProperties', 'width', colWidth_med ) $>
 	<$ exec setValue( 'ColumnProperties', 'headerLabel', lc( 'wwSignerEmail' ) ) $>
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 
 	<$ exec rsAppendNewRow( 'ColumnProperties' ) $>
 	<$ exec setValue( 'ColumnProperties', 'id', 'sname' ) $>
-	<$ exec setValue( 'ColumnProperties', 'width', colWidth_lg ) $>
+	<$ exec setValue( 'ColumnProperties', 'width', colWidth_sm ) $>
 	<$ exec setValue( 'ColumnProperties', 'headerLabel', lc( 'wwSignerName' ) ) $>
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 
@@ -694,6 +728,11 @@
 	<$ exec setValue( 'RowData', 'sname', '<$ SignatureReview.SIGNERNAME $>' ) $>
 	<$ exec setValue( 'RowData', 'reason', '<$ SignatureReview.SIGNREASON $>' ) $>
 	<$ exec setValue( 'RowData', 'estatus', '<$ if SignatureReview.CERTERRORSTATUS $><$ lc( "wwCertErrorStatus" & SignatureReview.CERTERRORSTATUS ) $><$ endif $>' ) $>
+<@ end @>
+
+<@ dynamicdata cosign_set_doevent_for_hourly_event @>
+	<$ doEvent = 1 $>
+	<$ trace( "Running CoSign doEvent hourly", "#console") $>
 <@ end @>
 
 <@ dynamicdata cosign_field_cleanup_vars @>

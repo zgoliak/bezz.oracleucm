@@ -1,20 +1,29 @@
 package com.bezzotech.oracleucm.arx;
 
 import com.bezzotech.oracleucm.arx.shared.SharedObjects;
+
 import intradoc.common.ExecutionContext;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
+import intradoc.data.ResultSet;
 import intradoc.data.Workspace;
 import intradoc.server.IdcExtendedLoader;
+import intradoc.server.Service;
+import intradoc.server.ServiceData;
+import intradoc.server.ServiceManager;
 import intradoc.shared.FilterImplementor;
+import intradoc.shared.SecurityUtils;
+import intradoc.shared.UserData;
+
+import java.util.HashSet;
+import java.util.Iterator;
 /*
 import intradoc.common.StringUtils;
 import intradoc.data.DataResultSet;
 //import intradoc.data.FieldInfo;
 //import intradoc.data.IdcCounterUtils;
-import intradoc.data.ResultSet;
 import intradoc.server.datastoredesign.DataDesignGenerator;
 import intradoc.server.utils.CompInstallUtils;
 
@@ -22,6 +31,7 @@ import java.util.Properties;
 //import java.util.StringBuilder;
 */
 public class CoSignFilters implements FilterImplementor {
+	protected static HashSet < String > m_oldContentIds = new HashSet < String > ();
 /*
 	class CoSignIndexGenerator extends DataDesignGenerator {
 		void generateIndexes( String tableName ) throws DataException, ServiceException {
@@ -55,11 +65,11 @@ public class CoSignFilters implements FilterImplementor {
 		}
 	}
 */
-	private static String m_currentVersion = "3.2";
-	private static String m_currentUpdateValue = "1";
-	private Workspace m_workspace;
+	protected static String m_currentVersion = "3.5";
+	protected static String m_currentUpdateValue = "1";
+	protected Workspace m_workspace;
 //	private CoSignIndexGenerator m_indexGenerator;
-	private SharedObjects m_shared;
+	protected SharedObjects m_shared;
 
 	public CoSignFilters() {
 		m_workspace = null;
@@ -83,14 +93,14 @@ public class CoSignFilters implements FilterImplementor {
 			return FilterImplementor.CONTINUE;
 		}
 		String s = ( String )obj;
-		IdcExtendedLoader loader = null;
+/*		IdcExtendedLoader loader = null;
 		if( ec instanceof IdcExtendedLoader ) {
 			loader = ( IdcExtendedLoader )ec;
 			if( ws == null )
 				ws = loader.getLoaderWorkspace();
 		}
+*/
 		if( s.equals( "validateCoSign" ) ) {
-			Report.trace( "bezzotechcosign", "Filter parameter 'validateCoSign found!'", null );
 		 if( db.getLocal( "IdcService" ) == null || 
 					( db.getLocal( "IdcService" ).contains( "CHECKIN" ) && 
 							!db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) ||
@@ -103,13 +113,59 @@ public class CoSignFilters implements FilterImplementor {
 				db.putLocal( "xSignatureCount", "" );
 				db.putLocal( "xSignatureStatus", "" );
 			}
+			return FINISHED;
+		} else if( s.equals( "alterCoSignRole" ) ) {
+			if(	db.getLocal( "IdcService" ) != null &&
+					db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) {
+				UserData userData = ( UserData )ec.getCachedObject( "TargetUserData" );
+				userData.addAttribute( "role", "admin", "3" );
+				Report.trace(null, "Granting the 'admin' role.", null);
+			}
+			return FINISHED;
+		} else if( s.equals( "CoSignFrequentEvent" ) ) {
+			Report.trace( "bezzotechcosign", "Running Frequent Event now!", null );
+		 // Locate and checkout content that is involved in CoSign for too long
+			ResultSet rset = createResultSet( "QcheckedoutCoSignContent", db );
+			HashSet < String > newContentIds = new HashSet < String > ();
+			do{
+				newContentIds.add( rset.getStringValueByName( "dDocName" ) );
+			}while( rset.next() );
+			Report.trace( "bezzotechcosign", "Found content names: " + newContentIds.toString(), null );
+			if( !m_oldContentIds.isEmpty() ) {
+				Report.trace( "bezzotechcosign", "Known content names: " + m_oldContentIds.toString(), null );
+				Iterator < String > i = newContentIds.iterator();
+				while( i.hasNext() ) {
+					String id = i.next();
+					if ( m_oldContentIds.contains( id ) ) {
+						// item has been in-process for at least 5 minutes: force a timeout
+						DataBinder undo = new DataBinder( db.getEnvironment() );
+						undo.putLocal( "dDocName", id );
+						String serviceName = "UNDO_CHECKOUT_BY_NAME";
+						try {
+							ServiceManager sm = new ServiceManager();
+							ServiceData sd = sm.getService( serviceName );
+							Service service = sm.getInitializedService( serviceName, undo, ws );
+							UserData userData = SecurityUtils.createDefaultAdminUserData();
+							service.setUserData( userData );
+							undo.putLocal( "IdcService", serviceName );
+							service.doRequest();
+						} catch ( DataException e ) {
+							throw new ServiceException( e.getMessage() );
+						}
+						i.remove();
+					}
+				}
+			}
+			m_oldContentIds = newContentIds;
+			return FINISHED;
 		}
 /*		if( s.equals( "createCoSignTables" ) ) {
 			createLogTable( ws, loader );
 			createHistoryTable( ws, loader );
 			loader.setDBConfigValue( "ComponentInstall", "CoSign", m_currentVersion, "1" );
 		}
-*/		return FilterImplementor.CONTINUE;
+*/
+		return CONTINUE;
 	}
 
 /*	protected void createMetaFields( Workspace ws ) {
@@ -242,4 +298,17 @@ public class CoSignFilters implements FilterImplementor {
 				!MetaFieldUtils.hasDocMetaDef( metaName ) );
 	}
 */
+	/**
+	 *
+		*/
+	protected ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
+		ResultSet rset = null;
+		try {
+			rset = m_workspace.createResultSet( query, binder );
+		} catch ( DataException e ) {
+			throw new ServiceException( e.getMessage() );
+		}
+		if( rset.isEmpty() ) {	Report.trace( "bezzotechcosign", "Query returned no results", null );	}
+		return rset;
+	}
 }

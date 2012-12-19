@@ -29,6 +29,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
@@ -97,13 +98,20 @@ public class WSC {
 		m_doc = m_xmlutil.getNewDocument();
 		m_doc_root = m_doc.createElement( "request" );
 		m_doc.appendChild( m_doc_root );
-		if( Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
-			m_doc_root.appendChild( buildSigProfilesElement() );
-		else
+		if( !Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) ) {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SigField" ) );
+			prepareAdHocSigProfileValues();
+		}
+		m_doc_root.appendChild( buildSigProfilesElement() );
 		if( isSignRequest )
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
+		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
+//			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+//			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
+//			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
+//			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
+		}
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Logic" ) );
 		if( !isSignRequest )
 			m_doc_root.appendChild(
@@ -140,9 +148,8 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering parseSigProfileEx", null );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SignReasons", 0 );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Logic", 0 );
-		if( Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
-			parseSigProfiles();
-		else
+		parseSigProfiles();
+		if( !Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
 			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SigField", 0 );
 	}
 
@@ -239,7 +246,7 @@ public class WSC {
 				throwFullError( e );
 			}
 			m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
-			log();
+//			log();
 		} else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
@@ -439,6 +446,25 @@ public class WSC {
 			}
 		}
 		return response.toString();
+	}
+
+	protected void prepareAdHocSigProfileValues () {
+		String [] alter = { "fieldName", ".SigField.fieldNameToSign" };
+		String [] exclude = { "fieldName", "x", "y", "width", "height", "pageNumber", "title",
+				"dateFormat", "timeFormat" };
+		String fields = m_binder.getLocal( m_appName + ".SigProfile.fields" );
+		String [] fieldArray = fields.split( ";" );
+		for( int i = 0; i < fieldArray.length; i++ ) {
+			if( !Arrays.asList( exclude ).contains( fieldArray[ i ] ) )
+				m_binder.putLocal( m_appName + ".SigProfile." + fieldArray[ i ], "" );
+			else
+				if( Arrays.asList( alter ).contains( fieldArray[ i ] ) ) {
+					Report.debug( "bezzotechcosign", "Altering: " + fieldArray[ i ] + " at index: " + Arrays.asList( alter ).indexOf( fieldArray[ i ] ), null );
+					int altInd = Arrays.asList( alter ).indexOf( fieldArray[ i ] ) + 1;
+					m_binder.putLocal( m_appName + ".SigProfile." + fieldArray[ i ],
+							m_binder.getLocal( m_appName + Arrays.asList( alter ).get( altInd ) ) );
+				}
+		}
 	}
 
 	/**

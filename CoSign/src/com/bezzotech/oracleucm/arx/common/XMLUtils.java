@@ -186,10 +186,6 @@ public class XMLUtils {
 			throw new ServiceException( appName + " has not been installed properly" );
 
 		Vector fields = ( Vector )StringUtils.parseArray( locStr, ';', '\\' );
-/*
-		if ( fields.isEmpty() )
-			throw new ServiceException( appName + " has not been installed properly" );
-*/
 		Element root = doc.createElement( rootName );
 		for ( Enumeration fieldsEnum = fields.elements(); fieldsEnum.hasMoreElements(); ) {
 			String fieldName = ( String )fieldsEnum.nextElement();
