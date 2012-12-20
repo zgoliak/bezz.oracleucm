@@ -101,7 +101,7 @@ public class CoSignFilters implements FilterImplementor {
 		}
 */
 		if( s.equals( "validateCoSign" ) ) {
-		 if( db.getLocal( "IdcService" ) == null || 
+			if( db.getLocal( "IdcService" ) == null || 
 					( db.getLocal( "IdcService" ).contains( "CHECKIN" ) && 
 							!db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) ||
 					( db.getLocal( "xCoSignSignatureTag" ) == null ||
@@ -126,37 +126,39 @@ public class CoSignFilters implements FilterImplementor {
 			Report.trace( "bezzotechcosign", "Running Frequent Event now!", null );
 		 // Locate and checkout content that is involved in CoSign for too long
 			ResultSet rset = createResultSet( "QcheckedoutCoSignContent", db );
-			HashSet < String > newContentIds = new HashSet < String > ();
-			do{
-				newContentIds.add( rset.getStringValueByName( "dDocName" ) );
-			}while( rset.next() );
-			Report.trace( "bezzotechcosign", "Found content names: " + newContentIds.toString(), null );
-			if( !m_oldContentIds.isEmpty() ) {
-				Report.trace( "bezzotechcosign", "Known content names: " + m_oldContentIds.toString(), null );
-				Iterator < String > i = newContentIds.iterator();
-				while( i.hasNext() ) {
-					String id = i.next();
-					if ( m_oldContentIds.contains( id ) ) {
-						// item has been in-process for at least 5 minutes: force a timeout
-						DataBinder undo = new DataBinder( db.getEnvironment() );
-						undo.putLocal( "dDocName", id );
-						String serviceName = "UNDO_CHECKOUT_BY_NAME";
-						try {
-							ServiceManager sm = new ServiceManager();
-							ServiceData sd = sm.getService( serviceName );
-							Service service = sm.getInitializedService( serviceName, undo, ws );
-							UserData userData = SecurityUtils.createDefaultAdminUserData();
-							service.setUserData( userData );
-							undo.putLocal( "IdcService", serviceName );
-							service.doRequest();
-						} catch ( DataException e ) {
-							throw new ServiceException( e.getMessage() );
+			if( rset != null && !rset.isEmpty() ) {
+				HashSet < String > newContentIds = new HashSet < String > ();
+				do{
+					newContentIds.add( rset.getStringValueByName( "dDocName" ) );
+				}while( rset.next() );
+				Report.trace( "bezzotechcosign", "Found content names: " + newContentIds.toString(), null );
+				if( !m_oldContentIds.isEmpty() ) {
+					Report.trace( "bezzotechcosign", "Known content names: " + m_oldContentIds.toString(), null );
+					Iterator < String > i = newContentIds.iterator();
+					while( i.hasNext() ) {
+						String id = i.next();
+						if ( m_oldContentIds.contains( id ) ) {
+							// item has been in-process for at least 5 minutes: force a timeout
+							DataBinder undo = new DataBinder( db.getEnvironment() );
+							undo.putLocal( "dDocName", id );
+							String serviceName = "UNDO_CHECKOUT_BY_NAME";
+							try {
+								ServiceManager sm = new ServiceManager();
+								ServiceData sd = sm.getService( serviceName );
+								Service service = sm.getInitializedService( serviceName, undo, ws );
+								UserData userData = SecurityUtils.createDefaultAdminUserData();
+								service.setUserData( userData );
+								undo.putLocal( "IdcService", serviceName );
+								service.doRequest();
+							} catch ( DataException e ) {
+								throw new ServiceException( e.getMessage() );
+							}
+							i.remove();
 						}
-						i.remove();
 					}
 				}
+				m_oldContentIds = newContentIds;
 			}
-			m_oldContentIds = newContentIds;
 			return FINISHED;
 		}
 /*		if( s.equals( "createCoSignTables" ) ) {
@@ -300,7 +302,7 @@ public class CoSignFilters implements FilterImplementor {
 */
 	/**
 	 *
-		*/
+	 */
 	protected ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
 		ResultSet rset = null;
 		try {

@@ -114,7 +114,7 @@ public class CMUtils {
 		} catch ( DataException e ) {
 			throwFullError( e );
 		} finally {
-		 try {
+			try {
 				_raf.close();
 			} catch ( IOException e ) {
 				throwFullError( e );
@@ -125,29 +125,21 @@ public class CMUtils {
 
 	/**
 	 *
-		*/
+	 */
 	public BufferedInputStream getFileAsStream() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getFileAsStream, passed in parameters:", null );
 		DataBinder binder = new DataBinder();
 		binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
 		binder.putLocal( FileStoreProvider.SP_RENDITION_ID, FileStoreProvider.R_PRIMARY );
-  BufferedInputStream _content = null;
-  try {
+		BufferedInputStream _content = null;
+		try {
 			String primaryFilePath = m_fsutil.getFilePath( binder );
-   _content = new BufferedInputStream( new FileInputStream( new File( primaryFilePath ) ) );
+			_content = new BufferedInputStream( new FileInputStream( new File( primaryFilePath ) ) );
 		} catch ( FileNotFoundException e ) {
 			throwFullError( e );
 		} catch ( DataException e ) {
 			throwFullError( e );
-/*		} finally {
-		 try {
-				_content.close();
-			} catch ( IOException e ) {
-				throwFullError( e );
-			}
-*/
 		}
-
 		return _content;
 	}
 
@@ -175,7 +167,7 @@ public class CMUtils {
 
 	/**
 	 *
-		*/
+	 */
 	public ResultSet getSignatureReview( String dID ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getSignatureReview, passed in parameter(s):\n\tdID: " +
 				dID, null );
@@ -198,7 +190,7 @@ public class CMUtils {
 
 	/**
 	 *
-		*/
+	 */
 	public ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
 		ResultSet rset = null;
 		try {
@@ -267,7 +259,7 @@ public class CMUtils {
 
 	/**
 	 *
-		*/
+	 */
 	protected UserData getUserData() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering getUserData", null );
 		UserData ud = ( UserData )m_service.getCachedObject( "UserData" );
@@ -284,9 +276,9 @@ public class CMUtils {
 	/** Execute a service as the current user.
 	 * @param binder The service request binder
 	 * @throws ServiceException if the service fails.
-		*  @deprecated
+	 *  @deprecated
 	 */
-	@Deprecated protected void executeServiceSimple( DataBinder binder )	throws ServiceException {
+	@Deprecated protected void executeServiceSimple( DataBinder binder ) throws ServiceException {
 		try {
 			ServiceManager sm = new ServiceManager();
 			String serviceName = binder.getLocal( "IdcService" );
@@ -312,57 +304,53 @@ public class CMUtils {
 	public void rollback( String error ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
 				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: " , null );
-//		DataBinder undoBinder = new DataBinder();
-//		undoBinder.putLocal( "IdcService",  );
-//		undoBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
-//		executeServiceSimple( undoBinder );
 		try {
 			m_service.executeService( "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
 		} catch ( DataException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		}
 		throw new ServiceException( error );
 	}
 
 	/**
 	 *
-		*/
+	 */
 	public void update() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering update, passed in binder: ", null );
 		try {
 			m_service.executeService( "UPDATE_DOCINFO_SUB" );
 		} catch ( DataException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		}
 	}
 
 	/**
 	 *
-		*/
+	 */
 	public void checkout() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkout, passed in binder: ", null );
 		try {
 			m_service.executeService( "INTERNAL_CHECKOUT_SUB" );
 		} catch ( DataException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		}
 	}
 
 	/**
 	 *
-		*/
+	 */
 	public void checkin() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_SEL_SUB" );
 		} catch ( DataException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		}
 	}
 
 	/**
 	 *
-		*/
+	 */
 	public void approve() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering approve, passed in binder: ", null );
 		DataResultSet drset = new DataResultSet();
@@ -375,20 +363,20 @@ public class CMUtils {
 		try {
 			m_service.executeService( "WORKFLOW_APPROVE_SUB" );
 		} catch ( DataException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		}
 	}
 
 	/**
 	 *
-		*/
+	 */
 	protected void throwFullError( Exception e ) throws ServiceException {
-			StringBuilder sb = new StringBuilder();
-			for(StackTraceElement element : e.getStackTrace()) {
-				sb.append(element.toString());
-				sb.append("\n");
-			}
-			Report.debug( "bezzotechcosign", e.getMessage() + "\n" + sb.toString(), null );
-			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
+		StringBuilder sb = new StringBuilder();
+		for(StackTraceElement element : e.getStackTrace()) {
+			sb.append(element.toString());
+			sb.append("\n");
+		}
+		Report.debug( "bezzotechcosign", e.getMessage() + "\n" + sb.toString(), null );
+		throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
 	}
 }

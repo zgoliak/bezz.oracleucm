@@ -74,7 +74,10 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_binder.addTempFile( s2 );
 		m_binder.putLocal( "primaryFile", s1 );
 		m_binder.putLocal( "primaryFile:path", s2 );
-		m_binder.putLocal( "dRevLabel", ( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+		String dRevLabel = m_binder.getLocal( "dRevLabel" );
+		if( dRevLabel == null || dRevLabel == "" )
+			dRevLabel = "0";
+		m_binder.putLocal( "dRevLabel", ( Integer.parseInt( dRevLabel ) + 1 ) + "" );
 	}
 
 	/**
@@ -153,8 +156,9 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
 		m_binder.putLocal( "dID", "" );
 
-		try { if( !m_undo ) m_WSC.processDownloadRequest(); }
-		catch ( Exception e ) {
+		try {
+			if( !m_undo ) m_WSC.processDownloadRequest();
+		} catch ( Exception e ) {
 			msg += e.getMessage();
 			m_undo = true;
 		}
@@ -179,10 +183,10 @@ public class CoSignServiceHandler extends ServiceHandler {
 			m_binder.putLocal( "dRevLabel",
 					( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
 
- 	if( m_undo )
+		if( m_undo )
 			m_cmutils.rollback( msg );
 		else
-		 m_cmutils.checkin();
+			m_cmutils.checkin();
 
 		m_WSC.log();
 
@@ -192,7 +196,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 	/**
 	 *
-		*/
+	 */
 	public void processReviewRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processReviewRequest, passed in binder:", null );
 		ResultSet rset = m_cmutils.getSignatureReview( m_binder.getLocal( "dID" ) );
@@ -209,7 +213,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 			try {
 				m_WSC.processVerifyRequest();
 			} catch( Exception e) {
-			 msg = e.getMessage();
+				msg = e.getMessage();
 				term = true;
 			}
 			logHistory( msg );
@@ -237,7 +241,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 	/**
 	 *
-		*/
+	 */
 	protected void logHistory( String msg ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
 		DataBinder binder = new DataBinder();
@@ -257,13 +261,13 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 	/**
 	 *
-		*/
+	 */
 	protected void throwFullError( Exception e ) throws ServiceException {
-			StringBuilder sb = new StringBuilder();
-			for(StackTraceElement element : e.getStackTrace()) {
-				sb.append(element.toString());
-				sb.append("\n");
-			}
-			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
+		StringBuilder sb = new StringBuilder();
+		for(StackTraceElement element : e.getStackTrace()) {
+			sb.append(element.toString());
+			sb.append("\n");
+		}
+		throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
 	}
 }

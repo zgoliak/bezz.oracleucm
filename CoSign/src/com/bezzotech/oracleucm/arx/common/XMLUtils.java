@@ -126,7 +126,7 @@ public class XMLUtils {
 
 	/** Build XML document from binder local properties
 	 *
-		*  appName  - [String] application name for extracting from binder
+	 *  appName  - [String] application name for extracting from binder
 	 *  doc      - [Document] XML document to create text node
 	 *  rootName - String - Name of Environmental base to retrieve from binder (this should also be
 	 *    the name of the expect XML Node we will be passing back
@@ -155,7 +155,9 @@ public class XMLUtils {
 						.evaluateScript ( m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
 				Text text = doc.createTextNode( fieldValue );
 				child.appendChild( text );
-			} catch ( IOException e ) { throwFullError( e ); }
+			} catch ( IOException e ) {
+				throwFullError( e );
+			}
 			root.appendChild( child );
 		}
 		return root;
@@ -163,7 +165,7 @@ public class XMLUtils {
 
 	/** Build XML document from binder local properties
 	 *
-		*  appName  - [String] application name for extracting from binder
+	 *  appName  - [String] application name for extracting from binder
 	 *  doc      - [Document] XML document to create text node
 	 *  rootName - [String] name of Local base to retrieve from binder (this should also be the name of
 	 *    the expect XML Node we will be passing back
@@ -173,9 +175,9 @@ public class XMLUtils {
 	 *  		Where: "Application Name" will be stored within the application code
 	 *    		"XML Node Name" will be determined by the expected XML output
 	 *    		"Field Name" will be determined by the expected XML output
-		*
-		*  Throws [ServiceException] error if not {appName}.{rootName}.fields defined in binder
-		*  Throws [ServiceException] error if {appName}.{rootName}.fields value is blank
+	 *
+	 *  Throws [ServiceException] error if not {appName}.{rootName}.fields defined in binder
+	 *  Throws [ServiceException] error if {appName}.{rootName}.fields value is blank
 	 */
 	public Element appendChildrenFromLocal( String appName, Document doc, String rootName )
 			throws ServiceException {
@@ -211,9 +213,9 @@ public class XMLUtils {
 
 	/** Parse XML document at root element down through the named base element
 	 *
-		*  appName  - [String] application name for extracting from binder
-		*  root     - [Element] XML node, housing named node to inject in
-		*  baseName - [String] name of Element under root
+	 *  appName  - [String] application name for extracting from binder
+	 *  root     - [Element] XML node, housing named node to inject in
+	 *  baseName - [String] name of Element under root
 	 */
 	public void parseChildrenToLocal( String appName, Element root, String baseName, int index ) {
 		Report.trace( "bezzotechcosign", "Entering parseChildrenToLocal, passed in parameter(s):" +
@@ -301,12 +303,12 @@ public class XMLUtils {
 	/**	Injects values, as text node, into named node under root element
 	 *
 	 *  doc   - [Document] XML document to create text node
-		*  root  - [Element] XML node, housing named node to inject in
-		*  name  - [String] Name of element to inject value into
-		*  value - [String] Text to insert
-		*
-		*  Throws [ServiceException] error if named element not found
-		*/
+	 *  root  - [Element] XML node, housing named node to inject in
+	 *  name  - [String] Name of element to inject value into
+	 *  value - [String] Text to insert
+	 *
+	 *  Throws [ServiceException] error if named element not found
+	 */
 	public Element appendTextNodeToChild( Document doc, Element root, String name, String value )
 			throws ServiceException {
 		NodeList nl = root.getElementsByTagName( name );
@@ -319,14 +321,14 @@ public class XMLUtils {
 
 	/** Prints out error message and stack trace from caught exceptions and throws them as message in
 	 *  ServiceException
-		*/
-		protected void throwFullError( Exception e ) throws ServiceException {
-			StringBuilder sb = new StringBuilder();
-			for( StackTraceElement element : e.getStackTrace() ) {
-				sb.append( element.toString() );
-				sb.append( "\n" );
-			}
-			Report.debug( "bezzotechcosign", e.getMessage() + "\n" + sb.toString(), null );
-			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
+	 */
+	protected void throwFullError( Exception e ) throws ServiceException {
+		StringBuilder sb = new StringBuilder();
+		for( StackTraceElement element : e.getStackTrace() ) {
+			sb.append( element.toString() );
+			sb.append( "\n" );
+		}
+		Report.debug( "bezzotechcosign", e.getMessage() + "\n" + sb.toString(), null );
+		throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
 	}
 }

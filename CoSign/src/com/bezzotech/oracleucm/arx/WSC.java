@@ -107,10 +107,10 @@ public class WSC {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
 		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
-//			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
-//			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
-//			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
-//			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
+			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
+			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
+			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
 		}
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Logic" ) );
 		if( !isSignRequest )
@@ -124,7 +124,7 @@ public class WSC {
 
 	/**
 	 *
-		*/
+	 */
 	public void parseVerifyResponse( String response ) throws ServiceException {
 		m_doc = m_xmlutil.getNewDocument( response );
 		m_doc_root = m_doc.getDocumentElement();
@@ -246,15 +246,14 @@ public class WSC {
 				throwFullError( e );
 			}
 			m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
-//			log();
 		} else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
 	}
 
 	/**
-		*
-		*/
+	 *
+	 */
 	public void processVerifyRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processVerifyRequest", null );
 		String message = postStreamToWSC( "VerifyService.aspx", m_binder,
@@ -291,7 +290,7 @@ public class WSC {
 
 	/**
 	 *
-		*/
+	 */
 	protected String postStreamToWSC( String urlQueryString, DataBinder content, String contentType )
 			throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering postStreamToWSC, passed in parameters:" +
@@ -307,7 +306,7 @@ public class WSC {
 
 	/**
 	 *
-		*/
+	 */
 	protected String postRequestToWSC( String urlQueryString, String content, String contentType )
 			throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering postRequestToWSC, passed in parameters:" +
@@ -324,7 +323,7 @@ public class WSC {
 
 	/**
 	 *  Note: CoSign running over SSL
-		*  Note: Handling read in case of Socket lag
+	 *  Note: Handling read in case of Socket lag
 	 */
 	protected String postRequestBinder( String iUrl, DataBinder content, String iContentType )
 			throws ServiceException {
@@ -360,13 +359,13 @@ public class WSC {
 				response.append( strBuffer );
 			}
 		} catch ( MalformedURLException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} catch ( ProtocolException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} catch ( IOException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} finally {
-		 try {
+			try {
 				content.m_inStream.close();
 				_out.close();
 				_is.close();
@@ -427,15 +426,15 @@ public class WSC {
 				response.append( strBuffer );
 			}
 		} catch ( MalformedURLException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} catch ( ProtocolException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} catch ( UnsupportedEncodingException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} catch ( IOException e ) {
-		 throwFullError( e );
+			throwFullError( e );
 		} finally {
-		 try {
+			try {
 				if( _in != null )	_in.close();
 				if( _out != null )	_out.close();
 				_is.close();
@@ -479,13 +478,13 @@ public class WSC {
 
 	/** Generates XML Element Auth from binder local properties
 	 *  <Auth>...</Auth>
-		*
-		*  If environmental variable useWCCUserName is set to TRUE, we inject dUser value into username
+	 *
+	 *  If environmental variable useWCCUserName is set to TRUE, we inject dUser value into username
 	 *  text node
-		*
-		*  Throws ServiceException - dUser value is missing from session
-		*  Throws ServiceException - Auth Element was not built properly for injection
-		*/
+	 *
+	 *  Throws ServiceException - dUser value is missing from session
+	 *  Throws ServiceException - Auth Element was not built properly for injection
+	 */
 	protected Element buildAuthElement() throws ServiceException {
 		Element ele = m_xmlutil.appendChildrenFromEnvironmental( m_appName, m_doc, "Auth", false );
 		if( StringUtils.convertToBool( m_shared.getConfig( "useWCCUserName" ), false ) ) {
@@ -520,13 +519,13 @@ public class WSC {
 		try {
 			m_xmlutil.parseChildrenToResultSet( m_appName, root, "Fields" );
 		} catch ( Exception e ) {
-		 throwFullError( e );
+			// Swallow error, if no Fields is returned likely there is an error with WSC
 		}
 	}
 
 	/** Prepares binder for inserting Verify response.  We get much more data on pull than we do on
 	 *  Verify request
-		*/
+	 */
 	protected void prepareLog() {
 		Report.trace( "bezzotechcosign", "Entering prepareLog, passed in binder:", null );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.x" ) == null )
@@ -565,8 +564,8 @@ public class WSC {
 
 	/** Inserts Verify response into DB
 	 *
-		*  Throws ServiceException - error occurred during query action
-		*/
+	 *  Throws ServiceException - error occurred during query action
+	 */
 	protected void log() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
 		prepareLog();
@@ -597,13 +596,13 @@ public class WSC {
 
 	/** Prints out error message and stack trace from caught exceptions and throws them as message in
 	 *  ServiceException
-		*/
+	 */
 	protected void throwFullError( Exception e ) throws ServiceException {
-			StringBuilder sb = new StringBuilder();
-			for(StackTraceElement element : e.getStackTrace()) {
-				sb.append(element.toString());
-				sb.append("\n");
-			}
-			throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
+		StringBuilder sb = new StringBuilder();
+		for(StackTraceElement element : e.getStackTrace()) {
+			sb.append(element.toString());
+			sb.append("\n");
+		}
+		throw new ServiceException( e.getMessage() + "\n" + sb.toString() );
 	}
 }

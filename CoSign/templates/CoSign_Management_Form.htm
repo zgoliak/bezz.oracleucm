@@ -150,21 +150,6 @@
 						break;
 				}
 			}
-			function toggleMutual( me ) {
-//			 alert( me.checked );
-				var eles = document.getElementsByName( me.name );
-				var ele = document.getElementById( me.id );
-				for( var i = 0; i < eles.length; i++ ){
-/*
-					alert( eles[ i ].id + ':' + eles[ i ].checked );
-*/
-					if( me != eles[ i ] && eles[ i ].checked ) {
-						eles[ i ].checked = false;
-					} else if( me != eles[ i ] && !eles[ i ].checked ) {
-						eles[ i ].checked = true;
-					}
-				}
-			}
 			function submitProfile() {
 				if(document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
 					getPageNumber();
@@ -341,19 +326,21 @@
 		radioStyle = 'Enable', checked = 1, radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p><br /><hr>
+							<h2>Enforce predefined reasons?</h2>
 							<p>
-<$ fieldName = 'ReasonEnforcement', fieldId = 'CoSign.Logic.enforceReason', fieldCheckValue = 'true',
-		fieldCaption = 'Enforce predefined reasons?', checked = 1,
-		checkboxFieldFunction = 'javascript:toggleMutual( this )' $>
-<$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.Logic.enforceReason" value="" />
+<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
+<$ inc( 'cosign_radio_entry' ) $>
 							</p>
+							<h2>Enable user-defined reason?</h2>
 							<p>
-<$ fieldName = 'ReasonEnforcement', fieldId = 'CoSign.Logic.allowUserReason',
-		fieldCheckValue = 'true', fieldCaption = 'Enable user-defined reason?',
-		checkboxFieldFunction = 'javascript:toggleMutual( this )' $>
-<$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.Logic.allowUserReason" value="" />
+<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
+<$ inc( 'cosign_radio_entry' ) $>
 							</p>
 						</div>
 					</div>

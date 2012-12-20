@@ -27,8 +27,9 @@ Requirements:
 	Navigating to Workflow Review page will load as standard
 
 Installation requirements:
-	DB Tables:
-		CoSignHistory
+	DB
+		Tables:
+			CoSignHistory
 			//////////////////////////////////////////////////
 			/ Name            | Type      | Size | Null | PK /
 			/================================================/
@@ -41,7 +42,7 @@ Installation requirements:
 			/ DID             | VARCHAR2  | 80   |  T   | F  /
 			//////////////////////////////////////////////////
 
-		CoSignSignatureDetails
+			CoSignSignatureDetails
 			//////////////////////////////////////////////////
 			/ Name            | Type      | Size | Null | PK /
 			/================================================/
@@ -73,24 +74,29 @@ Installation requirements:
 			/ REASON          | VARCHAR2  | 200  |  T   | F  /
 			//////////////////////////////////////////////////
 
+		Sequences
+			CoSignHistory ID SQL: CREATE SEQUENCE  "DEV_OCS"."COSIGNHISTORYID"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 3601 CACHE 200 ORDER  NOCYCLE ;
+			CoSignSignatureDetails SID SQL: CREATE SEQUENCE  "DEV_OCS"."COSIGNSIGNATUREDETAILSID"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 2601 CACHE 200 ORDER  NOCYCLE ;
+
 	Content Type(s):
 		CoSignSignatureProfile
 
 	Meta Data Field(s):
-			///////////////////////////////////////////////////////////
-			/ Name                     | Type    | Index | Option     /
-			/=========================================================/
-			/ SignatureStatus          | Text    |   T   | Valid      /
-			/                          |         |       | Invalid    /
-			/                          |         |       | Not Signed /
-			/ Signer                   | Text    |   T   |            /
-			/ SignTime                 | Date    |   T   |            /
-			/ SignatureCount           | Integer |   T   |            /
-			/ CoSignRequiredSignatures | Text    |   T   | UD         /
-			/ CoSignSignatureTag       | Text    |   T   |            /
-			/ CoSignSignatureReasons   | Text    |   F   | UD         /
-			///////////////////////////////////////////////////////////
-			UD = User Defined
+			///////////////////////////////////////////////////////////////
+			/ Name                     | Type    | Index | Option         /
+			/=============================================================/
+			/ SignatureStatus          | Text    |   T   | Valid          /
+			/                          |         |       | Invalid        /
+			/                          |         |       | Not Signed     /
+			/                          |         |       | sent-to-cosign /
+			/ Signer                   | Text    |   T   |                /
+			/ SignTime                 | Date    |   T   |                /
+			/ SignatureCount           | Integer |   T   |                /
+			/ CoSignRequiredSignatures | Text    |   T   | AD             /
+			/ CoSignSignatureTag       | Text    |   T   | AD             /
+			/ CoSignSignatureReasons   | Text    |   F   | AD             /
+			///////////////////////////////////////////////////////////////
+			AD = Admin Defined
 
 	Profile(s): None
 
@@ -167,3 +173,8 @@ Installation requirements:
 			coSignSecurityGroup - Security Group to hide profile content in (i.e. CoSign)
 			coSignSignatureProfileMetaField - Meta field that will supply the Profile Tag names for
 					profile/rule user (i.e. xCoSignSignatureTag)
+
+Arx CoSign installation
+	Install IIS with ASP from .Net Framework 2.0.50727 or above
+	Configure IIS with server hostname
+	Configure WSC and Verify Service apps on IIS

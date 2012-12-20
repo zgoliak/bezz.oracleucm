@@ -13,26 +13,27 @@
 <$ QueryText = 'dDocType <MATCHES> `CoSignSignatureProfile`' $>
 <$ executeService('GET_SEARCH_RESULTS') $>
 <$ if rsExists( 'SearchResults' ) $>
+	<$ rsCreateResultSet( 'SearchResults', 'dDocTitle,dID,xComments' ) $>
+<$ endif $>
 		<table class="xuiTitleTable" cellpadding="0" cellspacing="0" summary="">
 			<tr>
 				<td class="xuiPageHeadingCell"><h1 class="xuiPageHeadingText"><$ lc( 'wwCoSignProfiles' ) $></h1></td>
 			</tr>
 		</table>
 		<br style="line-height:2em">
- <$ resultSetClass = 'cosign_profile', resultSetType = 'cosign_profile_list', 
- 	  tableSummary = 'wwCoSignProfileListTable' $>
-	<$ exec inc( 'cosign_setup_profile_table_header' ) $>
-	<$ include slim_table_header $>
+<$ resultSetClass = 'cosign_profile', resultSetType = 'cosign_profile_list', 
+			tableSummary = 'wwCoSignProfileListTable' $>
+<$ exec inc( 'cosign_setup_profile_table_header' ) $>
+<$ include slim_table_header $>
 
-	<$ exec inc('cosign_setup_profile_table_row' ) $>
-	<$ exec inc('create_slim_table_row_include' ) $>
+<$ exec inc('cosign_setup_profile_table_row' ) $>
+<$ exec inc('create_slim_table_row_include' ) $>
 
-	<$ rsAppendNewRow( 'SearchResults' ) $>
-	<$ loop SearchResults $>
-		<$ include slim_table_row_include $>
-	<$ endloop $>
+<$ rsAppendNewRow( 'SearchResults' ) $>
+<$ loop SearchResults $>
+	<$ include slim_table_row_include $>
+<$ endloop $>
 
-	<$ include slim_table_footer $>
-<$ endif $>
+<$ include slim_table_footer $>
 		<br style="line-height:2em">
 <$ include std_page_end $>
