@@ -132,17 +132,19 @@
 			}
 			function toggleHidden( targetName, triggerName, test ) {
 				var trigger = document.getElementsByName( triggerName );
-				var target = document.getElementsByName( targetName );
+//				var target = document.getElementsByName( targetName );  IE does not allow for expando values to be returned here
 				switch( trigger[ 0 ].type ) {
 					case 'checkbox':
 					case 'radio':
 						for( var i = 0; i < trigger.length; i++ ) {
 							if( trigger[ i ].className == 'Enable' && trigger[ i ].checked ) {
-								for( var j = 0; j < target.length; j++ ) {
+								var j = 0;
+								while( document.getElementById( targetName + j ) ) {
 									if( trigger[ i ].value == test )
-										target[ j ].style.display = 'block';
+										document.getElementById( targetName + j ).style.display = 'block';
 									else
-										target[ j ].style.display = 'none';
+										document.getElementById( targetName + j ).style.display = 'none';
+									j++;
 								}
 								break;
 							}
@@ -241,7 +243,7 @@
 						<div class="right">
 							<h2>Title:</h2>
 							<p>
-<$ fieldName = 'dDocTitle', setReadOnly = 1 $>
+<$ fieldName = 'dDocTitle' $>
 <$ inc( 'cosign_edit_entry' ) $>
 							</p>
 							<h2>Description:</h2>
@@ -252,7 +254,7 @@
 							<h2>CoSign Role:</h2>
 							<p>
 <$ exec rsMakeFromList( 'Roles', 'xCoSignRequiredSignatures.options' ) $>
-								<select name="xCoSignRequiredSignatures">
+								<select name="xCoSignRequiredSignatures"<$ if #active.xCoSignRequiredSignatures $> disabled<$ endif $>>
 									<$ loop Roles $>
 									<option<$ if #active.xCoSignRequiredSignatures AND #active.xCoSignRequiredSignatures like #active.row $> selected<$ endif $>><$ #active.row $>
 									<$ endloop $>
@@ -261,7 +263,7 @@
 							<h2>Signature Tag:</h2>
 							<p>
 <$ exec rsMakeFromList( 'Tags', 'xCoSignSignatureTag.options' ) $>
-								<select name="xCoSignSignatureTag">
+								<select name="xCoSignSignatureTag"<$ if #active.xCoSignSignatureTag $> disabled<$ endif $>>
 									<$ loop Tags $>
 										<$ if #active.row like 'Externally Signed' $><$ rsNext( 'Tags' ) $><$ endif $>
 									<option<$ if #active.xCoSignSignatureTag AND #active.xCoSignSignatureTag like #active.row $> selected<$ endif $>><$ #active.row $>
@@ -270,8 +272,8 @@
 							</p>
 						</div>
 					</div>
-					<div class="separator" name="NonAdHoc"></div>
-					<div class="row" name="NonAdHoc">
+					<div class="separator" id="NonAdHoc0"></div>
+					<div class="row" id="NonAdHoc1">
 						<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign" />
 						<div class="left">
 							<h1>Field Name To Sign</h1>
@@ -302,7 +304,7 @@
 								PDF only.  Specify whether to allow the creation of signature fields dynamically.
 							</p><br /><hr>
 							<h1>Reasons</h1>
-							<p>By selecting "Yes" or "No" under "Enforce predefined reasons?" you specify whether a user
+							<p>By selecting "Yes" or "No" under "Enforce reasons?" you specify whether a user
 								&nbsp;will need to select a Reason for Signing or be able to enter his/her own unique reason.
 							</p>
 						</div>
@@ -326,7 +328,7 @@
 		radioStyle = 'Enable', checked = 1, radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p><br /><hr>
-							<h2>Enforce predefined reasons?</h2>
+							<h2>Enforce reasons?</h2>
 							<p>
 <$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
 		checked = 1 $>
@@ -374,7 +376,7 @@
 						<input type="hidden" name="CoSign.SigProfile.fields" value="fieldName;x;y;width;height;pageNumber;visible;title;showTitle;dateFormat;timeFormat;extTimeformat;signer;date;logo;graphicalImage;initials" />
 						<input type="hidden" name="CoSign.SigProfile.fieldName" value="newFieldDefault" />
  					<div class="left">
-							<div name="AdHoc">
+							<div id="AdHoc0">
 								<h1>Signature Visibility</h1>
 								<p>
 									Specify whether the CoSign digital signature should be visible in the document file.
@@ -385,12 +387,12 @@
 								Select the details that will appear in the digital signature field.  You may select any
 								&nbsp;number of elements.
 							</p>
-							<div name="AdHoc">
+							<div id="AdHoc1">
 								<br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><hr>
-								<div name="Visible" style="display: none;">
+								<div id="Visible0" style="display: none;">
 									<h1>Signature Size and Location</h1>
 									<p>
-										Specify th size and location for the CoSign digital signature. Enter coordinates for X and
+										Specify the size and location for the CoSign digital signature. Enter coordinates for X and
 										&nbsp;Y, the width and height for the signature field, as well as the page number that the
 										&nbsp;signature should appear on.
 									</p><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><hr>
@@ -413,7 +415,7 @@
 							</div>
 						</div>
 						<div class="right">
-							<div name="AdHoc">
+							<div id="AdHoc2">
 								<h2>Should CoSign digital signature be visible?</h2>
 								<p>
 <$ fieldName = 'CoSign.SigProfile.visible', fieldValue = 'true', , radioFieldCaption = 'Yes',
@@ -456,9 +458,9 @@
 <$ fieldName = 'CoSign.SigProfile.title' $>
 								Title: <$ inc( 'cosign_edit_entry' ) $><br /><br />
 							</p>
-							<div name="AdHoc">
+							<div id="AdHoc3">
 								<hr />
-								<div name="Visible" style="display: none;">
+								<div id="Visible1" style="display: none;">
 									<h2>Signature Size and Location:</h2>
 									<p>
 <$ fieldName = 'CoSign.SigProfile.x', fieldValue = 50 $>

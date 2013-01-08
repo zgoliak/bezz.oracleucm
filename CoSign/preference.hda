@@ -12,7 +12,7 @@ pOptionListName
 pOptionListDispCol
 pValue
 pIsEditable
-pAlwaysUseDefaulsOnInstall
+pAlwaysUseDefaultsOnInstall
 pNewMsgType
 pIsDisabled
 pLabel
@@ -23,13 +23,13 @@ prompt
 boolean
 
 
-False
-True
-
-
+false
+1
+0
+configurable
 
 csPromptChangePass
-
+0
 CoSign.Logic.uploadImage
 csPromptUploadImageInfo
 prompt
@@ -37,12 +37,12 @@ boolean
 
 
 False
-True
-
-
+1
+0
+configurable
 
 csPromptUploadImage
-
+0
 CoSign.Logic.workingMode
 csPromptWorkingModeInfo
 prompt
@@ -50,12 +50,12 @@ string
 
 
 pull
-True
-
-
+1
+0
+configurable
 
 csPromptWorkingMode
-
+1
 CoSign.Logic.verify
 csPromptVerifyInfo
 prompt
@@ -63,12 +63,12 @@ boolean
 
 
 True
-True
-
-
+1
+0
+configurable
 
 csPromptVerify
-
+0
 CoSign.Url.finishURL
 csPromptFinishURLInfo
 prompt
@@ -76,12 +76,12 @@ string
 
 
 
-True
-
-
+1
+0
+configurable
 
 csPromptFinishURL
-True
+1
 CoSign.Url.fileUploadURL
 csPromptFileUploadURLInfo
 prompt
@@ -89,25 +89,12 @@ string
 
 
 
-False
-
-
-
+1
+0
+configurable
+True
 csPromptFileUploadURL
-True
-CoSign.Url.notificationHandleURL
-csPromptNotificationHandleURLInfo
-prompt
-string
-
-
-
-False
-
-
-
-csPromptNotificationHandleURL
-True
+1
 useWCCUserName
 csPromptUseUserNameInfo
 prompt
@@ -115,12 +102,12 @@ boolean
 
 
 False
-True
-
-
+1
+0
+configurable
 
 csPromptUseUserName
-
+0
 wscServerAddress
 csPromptServerAddressInfo
 prompt
@@ -128,38 +115,38 @@ string
 
 
 
-True
-
-
+1
+0
+configurable
 
 csPromptServerAddress
-True
+1
 wscServerPort
-csPromptServerPortInfo
+csPromptServerPortInfo\n
 prompt
 integer
 
 
 80
-True
-
-
+1
+0
+configurable
 
 csPromptServerPort
-True
+1
 coSignSecurityGroup
 csPromptSecurityGroupInfo
 prompt
-string
-
-dSecurityGroup
+options
+SecurityGroups
+dGroupName
 CoSign
-True
-
-
+1
+0
+configurable
 
 csPromptSecurityGroup
-True
+1
 coSignSignatureProfileMetaField
 csPromptProfileFieldInfo
 prompt
@@ -167,25 +154,25 @@ string
 
 
 xCoSignSignatureTag
-True
-
-
+1
+0
+dDocType
 
 csPromptProfileField
-True
+1
 CoSign.ContentType
 csPromptContentTypeInfo
 prompt
-string
-
+options
+DocTypes
 dDocType
 Signature Profile
-False
-
-
+1
+0
+configurable
 
 csPromptContentType
-
+0
 CoSignSignatureStatus
 csPromptCoSignSignatureStatusInfo
 prompt
@@ -193,12 +180,12 @@ string
 
 
 xCoSignSignatureStatus
-False
-
-
+1
+0
+configurable
 
 csPromptCoSignSignatureStatus
-
+0
 CoSignSigner
 csPromptCoSignSignerInfo
 prompt
@@ -206,12 +193,12 @@ string
 
 
 xCoSignSigner
-False
-
-
+1
+0
+configurable
 
 csPromptCoSignSigner
-
+0
 CoSignSignTime
 csPromptCoSignSignTimeInfo
 prompt
@@ -219,12 +206,12 @@ string
 
 
 xCoSignSignTime
-False
-
-
+1
+0
+configurable
 
 csPromptCoSignSignTime
-
+0
 CoSignSignatureCount
 csPromptCoSignSignatureCountInfo
 prompt
@@ -232,12 +219,12 @@ string
 
 
 xCoSignSignatureCount
-False
-
-
+1
+0
+configurable
 
 csPromptCoSignSignatureCount
-
+0
 CoSignRequiredSignatures
 csPromptCoSignRequiredSignaturesInfo
 prompt
@@ -245,12 +232,12 @@ string
 
 
 xCoSignRequiredSignatures
-False
-
-
+1
+0
+configurable
 
 csPromptCoSignRequiredSignatures
-
+0
 CoSignSignatureReasons
 csPromptCoSignSignatureReasonsInfo
 prompt
@@ -258,10 +245,10 @@ string
 
 
 xCoSignSignatureReasons
-False
-
-
+1
+0
+configurable
 
 csPromptCoSignSignatureReasons
-
+0
 @end

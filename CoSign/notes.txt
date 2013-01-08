@@ -10,3 +10,10 @@ cd Documents\GitHub\bezz.oracleucm\CoSign
 \Oracle\Middleware\jdk160_29\bin\jar cfv classes_src.jar -C src .
 ##Move compiled jar to active server folder
 copy *.jar \Oracle\Middleware\user_projects\domains\UCM2\ucm\cs\custom\CoSign\
+
+cd Documents\GitHub\bezz.oracleucm\CoSign
+\Oracle\Middleware\jdk160_29\bin\javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar src\com\bezzotech\oracleucm\arx\*.java src\com\bezzotech\oracleucm\arx\common\*.java src\com\bezzotech\oracleucm\arx\service\*.java src\com\bezzotech\oracleucm\arx\shared\*.java
+\Oracle\Middleware\jdk160_29\bin\jar cfv classes.jar -C classes .
+\Oracle\Middleware\jdk160_29\bin\jar cfv classes_src.jar -C src .
+copy *.jar \Oracle\Middleware\user_projects\domains\UCM2\ucm\cs\custom\CoSign\
+y

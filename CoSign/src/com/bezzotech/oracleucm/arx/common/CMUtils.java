@@ -303,13 +303,22 @@ public class CMUtils {
 	 */
 	public void rollback( String error ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
-				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: " , null );
+				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: ", null );
+		String sigStatus = m_binder.getLocal( "xSignatureStatus" );
 		try {
 			m_service.executeService( "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
 		} catch ( DataException e ) {
 			throwFullError( e );
 		}
-		throw new ServiceException( error );
+
+		Report.debug( "bezzotechcosign", "Binder after undo: ", null );
+		if( sigStatus != null && sigStatus.equals( "sent-to-cosign" ) ) {
+			m_binder.putLocal( "xSignatureStatus", "" );
+			update();
+		}
+
+		if( !error.equals( "" ) )
+			throw new ServiceException( error );
 	}
 
 	/**
@@ -339,7 +348,19 @@ public class CMUtils {
 	/**
 	 *
 	 */
-	public void checkin() throws ServiceException {
+	public void checkinNew() throws ServiceException {
+		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
+		try {
+			m_service.executeService( "CHECKIN_NEW_SUB" );
+		} catch ( DataException e ) {
+			throwFullError( e );
+		}
+	}
+
+	/**
+	 *
+	 */
+	public void checkinSel() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_SEL_SUB" );

@@ -5,6 +5,7 @@ import com.bezzotech.oracleucm.arx.shared.SharedObjects;
 import intradoc.common.ExecutionContext;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
+import intradoc.common.StringUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
 import intradoc.data.ResultSet;
@@ -141,18 +142,18 @@ public class CoSignFilters implements FilterImplementor {
 							// item has been in-process for at least 5 minutes: force a timeout
 							DataBinder undo = new DataBinder( db.getEnvironment() );
 							undo.putLocal( "dDocName", id );
-							String serviceName = "UNDO_CHECKOUT_BY_NAME";
-							try {
-								ServiceManager sm = new ServiceManager();
-								ServiceData sd = sm.getService( serviceName );
-								Service service = sm.getInitializedService( serviceName, undo, ws );
-								UserData userData = SecurityUtils.createDefaultAdminUserData();
-								service.setUserData( userData );
-								undo.putLocal( "IdcService", serviceName );
-								service.doRequest();
-							} catch ( DataException e ) {
-								throw new ServiceException( e.getMessage() );
-							}
+							serviceDoRequest( "UNDO_CHECKOUT_BY_NAME", undo, ws );
+
+							DataBinder update = new DataBinder( db.getEnvironment() );
+							update.putLocal( "dDocName", id );
+							ResultSet diRSet = createResultSet( "QlatestDocInfoByName", update );
+							update.putLocal( "xSignatureStatus", "" );
+							update.putLocal( "dID", update.getResultSetValue( diRSet, "dID" ) );
+							update.putLocal( "dRevLabel", update.getResultSetValue( diRSet, "dRevLabel" ) );
+							update.putLocal( "dSecurityGroup", update.getResultSetValue( diRSet, "dSecurityGroup" ) );
+							if( StringUtils.convertToBool( m_shared.getConfig( "UseAccounts" ), false ) )
+								update.putLocal( "dDocAccount", update.getResultSetValue( diRSet, "dDocAccount" ) );
+							serviceDoRequest( "UPDATE_DOCINFO", update, ws );
 							i.remove();
 						}
 					}
@@ -303,14 +304,22 @@ public class CoSignFilters implements FilterImplementor {
 	/**
 	 *
 	 */
-	protected ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
+	protected ResultSet createResultSet( String query, DataBinder binder )
+			throws DataException, ServiceException {
 		ResultSet rset = null;
-		try {
-			rset = m_workspace.createResultSet( query, binder );
-		} catch ( DataException e ) {
-			throw new ServiceException( e.getMessage() );
-		}
-		if( rset.isEmpty() ) {	Report.trace( "bezzotechcosign", "Query returned no results", null );	}
+		rset = m_workspace.createResultSet( query, binder );
+		if( rset.isEmpty() ) Report.trace( "bezzotechcosign", "Query returned no results", null );
 		return rset;
+	}
+
+	protected void serviceDoRequest( String serviceName, DataBinder db, Workspace ws )
+			throws DataException, ServiceException {
+		ServiceManager sm = new ServiceManager();
+		ServiceData sd = sm.getService( serviceName );
+		Service service = sm.getInitializedService( serviceName, db, ws );
+		UserData userData = SecurityUtils.createDefaultAdminUserData();
+		service.setUserData( userData );
+		db.putLocal( "IdcService", serviceName );
+		service.doRequest();
 	}
 }

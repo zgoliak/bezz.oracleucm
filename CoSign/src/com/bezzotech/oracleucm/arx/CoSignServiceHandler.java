@@ -78,13 +78,20 @@ public class CoSignServiceHandler extends ServiceHandler {
 		if( dRevLabel == null || dRevLabel == "" )
 			dRevLabel = "0";
 		m_binder.putLocal( "dRevLabel", ( Integer.parseInt( dRevLabel ) + 1 ) + "" );
+		if( m_binder.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_NEW_PROFILE" ) ) m_cmutils.checkinNew();
+		else m_cmutils.checkinSel();
+
+		try {
+			Thread t = new Thread();
+			t.sleep( Long.parseLong( m_shared.getConfig( "CoSignProfileCheckinDelaySec") ) * 1000 );
+		} catch ( Exception ignore ) {}
 	}
 
 	/**
 	 *
 	 */
 	public void processSignRequest() throws ServiceException {
-		Report.trace( "bezzotechcosign", "Entering processSignRequest, passed in binder:" + m_binder.toString(), null );
+		Report.trace( "bezzotechcosign", "Entering processSignRequest, passed in binder:", null );
 		m_binder.putLocal( "xSignatureStatus", "sent-to-cosign" );
 		m_cmutils.update();
 		m_cmutils.checkout();
@@ -100,19 +107,20 @@ public class CoSignServiceHandler extends ServiceHandler {
 		drset.copy( rset );
 		m_binder.addResultSet( "DOC_INFO", drset );
 		Report.trace( "bezzotechcosign", "Required metadata for Signing Ceremony have been gathered from" +
-				" content item, resulting binder: " + m_binder.toString(), null );
+				" content item, resulting binder: ", null );
 
 		m_binder.putLocal( "CoSign.Document.content", PLACEHOLDER_CONTENT );
 		String SignRequest = m_WSC.buildSignRequest();
 
 		String msg = "";
+		int response = 0;
 		try {
 			String file = m_cmutils.getFileAsString();
 			String input = SignRequest.replaceAll( PLACEHOLDER_CONTENT, file );
 			String output = URLEncoder.encode( input, "UTF-8" );
 			SignRequest = "inputXML=" + output;
 			m_binder.putLocal( "SignRequest", SignRequest );
-			m_WSC.processSignRequest();
+			response = m_WSC.processSignRequest();
 		} catch ( UnsupportedEncodingException e ) {
 			e.printStackTrace();
 			msg += e.getMessage();
@@ -139,11 +147,16 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 	 */
 	public void processSignedDocument() throws ServiceException {
-		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder:" + m_binder.toString(), null );
+		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder:", null );
 		String msg = "";
+		int response = 0;
 		if( m_binder.getLocal( "errorMessage" ) != null ) {
-			msg = m_binder.getLocal( "errorMessage" );
-			m_undo = true;
+			if( Integer.parseInt( m_binder.getLocal( "returnCode" ) ) == WSC.USER_OPER_CANCELLED ) {
+			 response = WSC.USER_OPER_CANCELLED;
+			} else {
+				msg = m_binder.getLocal( "errorMessage" );
+				m_undo = true;
+			}
 		}
 		if( !m_undo && m_binder.getLocal( "sessionId" ) == null ) {
 			msg = "csInvalidSessionId";
@@ -157,7 +170,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_binder.putLocal( "dID", "" );
 
 		try {
-			if( !m_undo ) m_WSC.processDownloadRequest();
+			if( !m_undo ) response = m_WSC.processDownloadRequest();
 		} catch ( Exception e ) {
 			msg += e.getMessage();
 			m_undo = true;
@@ -165,33 +178,30 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 		logHistory( msg );
 
-		DataBinder qApproveBinder = new DataBinder();
-		qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
-		ResultSet rset = m_cmutils.createResultSet( "QwfDocInformation", qApproveBinder );
 		DataResultSet drset = new DataResultSet();
-		drset.copy( rset );
-		Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
-
-		String stepType = null;
-		if( !m_undo && !drset.isEmpty() ) {
-			stepType = drset.getStringValueByName( "dWfStepType" );
-			if( stepType.indexOf( ":CN:" ) >= 0 ) // allow New Revision
+		if( !m_undo && response != WSC.USER_OPER_CANCELLED ) {
+			DataBinder qApproveBinder = new DataBinder();
+			qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
+			ResultSet rset = m_cmutils.createResultSet( "QwfDocInformation", qApproveBinder );
+			drset.copy( rset );
+			Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
+			String stepType = null;
+			if( !drset.isEmpty() ) {
+				stepType = drset.getStringValueByName( "dWfStepType" );
+				if( stepType.indexOf( ":CN:" ) >= 0 ) // allow New Revision
+					m_binder.putLocal( "dRevLabel",
+							( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+				else if( stepType.indexOf( ":CE:" ) >= 0 ) {} // allow Edit Revision ZKG: Maybe build in Major/Minor revisioning
+			} else
 				m_binder.putLocal( "dRevLabel",
 						( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
-			else if( stepType.indexOf( ":CE:" ) >= 0 ) {} // allow Edit Revision ZKG: Maybe build in Major/Minor revisioning
-		} else if( !m_undo )
-			m_binder.putLocal( "dRevLabel",
-					( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+			m_cmutils.checkinSel();
+			m_WSC.log();
 
-		if( m_undo )
+			if( !drset.isEmpty() )
+				m_cmutils.approve();
+		} else
 			m_cmutils.rollback( msg );
-		else
-			m_cmutils.checkin();
-
-		m_WSC.log();
-
-		if( !drset.isEmpty() )
-			m_cmutils.approve();
 	}
 
 	/**
@@ -210,8 +220,9 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 			String msg = "";
 			boolean term = false;
+			int response = 0;
 			try {
-				m_WSC.processVerifyRequest();
+				response = m_WSC.processVerifyRequest();
 			} catch( Exception e) {
 				msg = e.getMessage();
 				term = true;

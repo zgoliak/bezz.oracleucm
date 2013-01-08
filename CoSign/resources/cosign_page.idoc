@@ -4,6 +4,7 @@
   <title>CoSign htmlIncludeOrString
  </head>
  <body>
+[[% Core functionality extensions %]]
 <@ dynamichtml extra_setup_search_results_action_popups @>
 	<$ include super.extra_setup_search_results_action_popups $>
 
@@ -99,6 +100,17 @@
 <$ trace( 'Disabled Action Popup Ids: ' & disabledActionPopupIds, '#log' ) $>
 <@ end @>
 
+[[% Navigation extensions %]]
+<@ dynamichtml navigation_filter_rset_menu_item @>
+<$ include super.navigation_filter_rset_menu_item $>
+<$ if not tmpDeleteRow $>
+	<$ if flags like "*isCoSignAdmin*" and isFalse( userHasRole( 'CoSignAdmin' ) ) $>
+		<$ tmpDeleteRow = 1 $>
+	<$ endif $>
+<$ endif $>
+<@ end @>
+
+[[% Workflow action extensions %]]
 <@ dynamichtml setup_workflow_action_popups @>
 	<$ include super.setup_workflow_action_popups $>
 
@@ -194,6 +206,7 @@
 <$ endif $>
 <@end@>
 
+[[% CoSign Search Results template table includes %]]
 <@ dynamichtml cosign_search_result_item_data_setup @>
 	<$ exec rsCreateResultSet( "RowData", "row" ) $>
 	<$ exec rsAppendNewRow( "RowData" ) $>
@@ -484,20 +497,13 @@
 	<$ tableSummary = "wwSearchResultsTable" $>
 <@ end @>
 
-<@ dynamichtml navigation_filter_rset_menu_item @>
-<$ include super.navigation_filter_rset_menu_item $>
-<$ if not tmpDeleteRow $>
-	<$ if flags like "*isCoSignAdmin*" and isFalse( userHasRole( 'CoSignAdmin' ) ) $>
-		<$ tmpDeleteRow = 1 $>
-	<$ endif $>
-<$ endif $>
-<@ end @>
-
-[%% ================================================================
- %% This include will be called to show our overrides on a query, update, or checkin
- %% page.  This one handles all three custom fields.
- %%
- %% "fieldName" is the proper variable to address the field.
+[[% ================================================================
+ % DEPRECATED: opted to use predefined OL
+	%
+	% This include will be called to show our overrides on a query, update, or checkin
+ % page.  This one handles all three custom fields.
+ %
+ % "fieldName" is the proper variable to address the field.
 <@ dynamichtml std_edit_entry @>
 	<$ if NOT isProfileCheckIn AND ( fieldName AND ( fieldName like #env.coSignSignatureProfileMetaField ) ) $>
 		<$ include cosign_content_profile_field_entry $>
@@ -505,11 +511,10 @@
 		<$ include super.std_edit_entry $>
 	<$ endif $>
 <@ end @>
- %%]
-[%% ================================================================
- %% This include will be called to display the #env.coSignSignatureProfileMetaField 
- %% select button on the query, update, and checkin pages.
- %%]
+ ==================================================================
+ % This include will be called to display the #env.coSignSignatureProfileMetaField 
+ % select button on the query, update, and checkin pages.
+ %]]
 <@ dynamichtml cosign_content_profile_field_entry @>
 	<$ include super.std_edit_entry $>
 	<$ if isQuery and isTrue( isQuery ) $></td><td><$ endif $>
@@ -518,12 +523,13 @@
 	<input type="button" value="<$ lc( "wwSelectTag" ) $>..." onClick="window.open
 ( '<$ HttpCgiPath $>?IdcService=COSIGN_RESULTS_POPUP&FormName=<$ formName $>&ElementName=<$ fieldName $>&ReturnField=<$ #env.coSignSignatureProfileMetaField $>&QueryText=<$ url( myQuery ) $>','pick','width=900,height=600' )">
 <@ end @>
-[%% ================================================================
- %% Set isEditMode on page
- %% Set fieldName on call
- %% Set fieldId on call
- %% Set fieldDefault on call
- %%]
+
+[[% CoSign Profile Page element includes %]]
+[[% Set isEditMode on page
+ % Set fieldName on call
+ % Set fieldId on call
+ % Set fieldDefault on call
+ %]]
 <@ dynamichtml cosign_memo_entry @>
 	<$ fieldRows = 2, fieldColumns = 1 $>
 	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
@@ -531,15 +537,14 @@
 	<$ include std_memo_entry $>
 	<$ exec inc( 'std_field_cleanup' ) $>
 <@ end @>
-[%% ================================================================
- %% Set isEditMode on page
- %% Set fieldName on call
- %% Set fieldId on call
- %% Set fieldEditWidth on call
- %% Set setReadOnly on call
- %% Set fieldDisabled on call
- %% Set fieldDefault on call
- %%]
+[[% Set isEditMode on page
+ % Set fieldName on call
+ % Set fieldId on call
+ % Set fieldEditWidth on call
+ % Set setReadOnly on call
+ % Set fieldDisabled on call
+ % Set fieldDefault on call
+ %]]
 <@ dynamichtml cosign_edit_entry @>
 	<$ fieldType = 'Text', fieldEditWidth = '' $>
 	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
@@ -550,10 +555,9 @@
 	<$ inc( 'std_edit_entry' ) $>
 	<$ exec inc( 'std_field_cleanup' ) $>
 <@ end @>
-[%% ================================================================
- %% Override out of box
- %% Reason: basically it was never being called?!?
- %%]
+[[% Override out of box
+ % Reason: basically it was never being called?!?
+ %]]
 <@ dynamichtml std_edit_entry_inputfield_attributes @>
 	<$ include super.std_edit_entry_inputfield_attributes $>
 	<$ if fieldOnBlur $>onblur="<$ fieldOnBlur $>"<$ endif $>
@@ -581,13 +585,12 @@
 	<$ endif $>
 	<$ exec inc( 'std_field_cleanup' ) $>
 <@ end @>
-[%% ================================================================
- %% Set isEditMode on page
- %% Set fieldName on call
- %% Set fieldId on call
- %% Set fieldValue on call
- %% Set radioFieldCaption on call
- %%]
+[[% Set isEditMode on page
+ % Set fieldName on call
+ % Set fieldId on call
+ % Set fieldValue on call
+ % Set radioFieldCaption on call
+ %]]
 <@ dynamichtml cosign_radio_entry @>
  <$ radioValueStyle = 'infoLabel' $>
 	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
@@ -604,11 +607,15 @@
 	<$ endif $>
  <$ exec inc( 'std_field_cleanup' ) $>
 <@ end @>
+[[% Extended out of box
+ % Reason: add custom CoSign variables to the cleanup
+	%]]
 <@ dynamichtml std_field_cleanup @>
  <$ include super.std_field_cleanup $>
 	<$ exec ddSetLocalEmpty( 'cosign_field_cleanup_vars' ) $>
 <@ end @>
 
+[[% CoSign frame href includes %]]
 <@ dynamichtml cosign_signing_frame @>
 <iframe height="700" src="<$ include cosign_signdocument_url $>" width="900" ></iframe>
 <@ end @>
@@ -622,6 +629,7 @@
 <$ #env.wscServerAddress $><$ if #env.wscServerPort $>:<$ #env.wscServerPort $><$ endif $>/<$ #env.CoSignServerPath $>/UploadDoc.aspx?sessionID=<$ WSC_Session $>
 <@ end @>
 
+[[% Profile Management Page table includes %]]
 <@ dynamichtml cosign_profile_define_widths @>
 	<$ colWidth_sm = '60px', colWidth_med = '105px', colWidth_med2 = '120px', colWidth_lg = '185px' $>
 <@ end @>
@@ -664,6 +672,7 @@
 	<$ endif $>
 <@ end @>
 
+[[% Review Signatures Page table includes %]]
 <@ dynamichtml cosign_verify_define_widths @>
 	<$ colWidth_sm = '60px', colWidth_med = '105px', colWidth_med2 = '120px', colWidth_lg = '185px', colWidth_fill = '17%' $>
 <@ end @>

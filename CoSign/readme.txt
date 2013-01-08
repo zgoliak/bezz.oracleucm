@@ -27,6 +27,10 @@ Requirements:
 	Navigating to Workflow Review page will load as standard
 
 Installation requirements:
+	Apps:
+		Arx CoSign Server
+		Arx Verify Service
+
 	DB
 		Tables:
 			CoSignHistory
@@ -75,26 +79,28 @@ Installation requirements:
 			//////////////////////////////////////////////////
 
 		Sequences
-			CoSignHistory ID SQL: CREATE SEQUENCE  "DEV_OCS"."COSIGNHISTORYID"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 3601 CACHE 200 ORDER  NOCYCLE ;
-			CoSignSignatureDetails SID SQL: CREATE SEQUENCE  "DEV_OCS"."COSIGNSIGNATUREDETAILSID"  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 2601 CACHE 200 ORDER  NOCYCLE ;
+
+
+			CoSignHistory ID
+			CoSignSignatureDetails SID
 
 	Content Type(s):
 		CoSignSignatureProfile
 
 	Meta Data Field(s):
 			///////////////////////////////////////////////////////////////
-			/ Name                     | Type    | Index | Option         /
+			/ Name                     | Type    | Index | Option     				/
 			/=============================================================/
-			/ SignatureStatus          | Text    |   T   | Valid          /
-			/                          |         |       | Invalid        /
-			/                          |         |       | Not Signed     /
-			/                          |         |       | sent-to-cosign /
-			/ Signer                   | Text    |   T   |                /
-			/ SignTime                 | Date    |   T   |                /
-			/ SignatureCount           | Integer |   T   |                /
-			/ CoSignRequiredSignatures | Text    |   T   | AD             /
-			/ CoSignSignatureTag       | Text    |   T   | AD             /
-			/ CoSignSignatureReasons   | Text    |   F   | AD             /
+			/ SignatureStatus          | Text    |   T   | Valid      				/
+			/                          |         |       | Invalid    				/
+			/                          |         |       | Not Signed				 /
+			/																										|									|							|	sent-to-cosign	/
+			/ Signer                   | Text    |   T   |            				/
+			/ SignTime                 | Date    |   T   |            				/
+			/ SignatureCount           | Integer |   T   |           				 /
+			/ CoSignRequiredSignatures | Text    |   T   | AD        				 /
+			/ CoSignSignatureTag       | Text    |   T   | AD        				 /
+			/ CoSignSignatureReasons   | Text    |   F   | AD        				 /
 			///////////////////////////////////////////////////////////////
 			AD = Admin Defined
 
@@ -174,7 +180,6 @@ Installation requirements:
 			coSignSignatureProfileMetaField - Meta field that will supply the Profile Tag names for
 					profile/rule user (i.e. xCoSignSignatureTag)
 
-Arx CoSign installation
-	Install IIS with ASP from .Net Framework 2.0.50727 or above
-	Configure IIS with server hostname
-	Configure WSC and Verify Service apps on IIS
+
+
+

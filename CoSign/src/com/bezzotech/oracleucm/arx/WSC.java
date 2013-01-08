@@ -44,6 +44,8 @@ import com.bezzotech.oracleucm.arx.service.FileStoreUtils;
 import com.bezzotech.oracleucm.arx.shared.SharedObjects;
 
 public class WSC {
+	protected final static int SUCCESS = 0;
+	protected final static int USER_OPER_CANCELLED = -2;
 
 	/** SharedObjects pointer to use for this request. */
 	public SharedObjects m_shared;
@@ -162,7 +164,7 @@ public class WSC {
 		m_doc = m_xmlutil.getNewDocument( response );
 		m_doc_root = m_doc.getDocumentElement();
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Error", 0 );
-		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS )
+		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == SUCCESS )
 			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Session", 0 );
 		if( isFullResponse ) {
 			parseDocument();
@@ -175,30 +177,33 @@ public class WSC {
 	/**
 	 *
 	 */
-	public void processSignRequest() throws ServiceException {
+	public int processSignRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignRequest", null );
 		String message = postRequestToWSC( "UploadDoc.aspx?docId=" +
 				m_binder.getLocal( "CoSign.Document.fileID" ), m_binder.getLocal( "SignRequest" ),
 				"application/x-www-form-urlencoded" );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
 		parseWSCResponse( message, false );
-		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS ) {
+		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == SUCCESS ) {
 			m_binder.putLocal( "WSC_Session", m_binder.getLocal( "CoSign.Session.sessionId" ) );
+		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
+			return USER_OPER_CANCELLED;
 		} else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
+		return SUCCESS;
 	}
 
 	/**
 	 *  Note: Concern over possible syncing issues
 	 */
-	public void processDownloadRequest() throws ServiceException {
+	public int processDownloadRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processDownloadRequest", null );
 		String message = postRequestToWSC( "pullSignedDoc.ashx?sessionID=" +
 				m_binder.getLocal( "sessionId" ), null, null );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
 		parseWSCResponse( message, true );
-		Report.trace( "bezzotechcosign", "Resulting binder: " + m_binder.toString(), null );
+		Report.trace( "bezzotechcosign", "Resulting binder: ", null );
 		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS ) {
 			byte[] buffer =
 					CommonDataConversion.uudecode( m_binder.getLocal( "CoSign.Document.content" ), null );
@@ -246,46 +251,53 @@ public class WSC {
 				throwFullError( e );
 			}
 			m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
+		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
+			return USER_OPER_CANCELLED;
 		} else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
+		return Errors.SUCCESS;
 	}
 
 	/**
 	 *
 	 */
-	public void processVerifyRequest() throws ServiceException {
+	public int processVerifyRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processVerifyRequest", null );
 		String message = postStreamToWSC( "VerifyService.aspx", m_binder,
 				m_binder.getResultSetValue( m_binder.getResultSet( "DOC_INFO" ), "dFormat" ) );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
 		parseVerifyResponse( message );
-		if( m_binder.getLocal( "CoSign.Error.returnCode" ) != null ) {
+		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == SUCCESS ) {
+			ResultSet rset = m_binder.getResultSet( "Fields" );
+			if( rset == null || rset.isEmpty() )	return SUCCESS;//throw new ServiceException( "Unable to retrieve valid signatures." );
+			DataResultSet drset = new DataResultSet();
+			drset.copy( rset );
+			drset.first();
+			m_binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
+			int statusCode = Integer.parseInt( drset.getStringValueByName( "status" ) );
+			String status;
+			if( statusCode == 0 ) status = "Valid";
+			else if(statusCode == 1 ) status = "Invalid";
+			else status = "Not Signed";
+			m_binder.putLocal( "xSignatureStatus", status );
+			m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
+			try {
+				SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
+				Date date = sdf.parse( drset.getStringValueByName( "signingTime" ) );
+				m_binder.putLocalDate( "xSignTime", date );
+			} catch ( ParseException e ) {
+				throwFullError( e );
+			}
+			m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
+			m_cmutil.update();
+			log();
+		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
+			return USER_OPER_CANCELLED;
+		} else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
-		ResultSet rset = m_binder.getResultSet( "Fields" );
-		if( rset == null || rset.isEmpty() )	return;//throw new ServiceException( "Unable to retrieve valid signatures." );
-		DataResultSet drset = new DataResultSet();
-		drset.copy( rset );
-		drset.first();
-		m_binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
-		int statusCode = Integer.parseInt( drset.getStringValueByName( "status" ) );
-		String status;
-		if( statusCode == 0 ) status = "Valid";
-		else if(statusCode == 1 ) status = "Invalid";
-		else status = "Not Signed";
-		m_binder.putLocal( "xSignatureStatus", status );
-		m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
-		try {
-			SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
-			Date date = sdf.parse( drset.getStringValueByName( "signingTime" ) );
-			m_binder.putLocalDate( "xSignTime", date );
-		} catch ( ParseException e ) {
-			throwFullError( e );
-		}
-		m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
-		m_cmutil.update();
-		log();
+		return SUCCESS;
 	}
 
 	/**
