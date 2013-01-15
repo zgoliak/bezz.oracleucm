@@ -106,7 +106,7 @@
 				toggleHidden( 'NonAdHoc', 'CoSign.Logic.allowAdHoc', 'false' );
 				if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked ) {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
-							'isWorkflowMode;allowAdHoc;allowUserReason;enforceReason';
+							'enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason';
 				} else {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'allowAdHoc;allowUserReason;enforceReason';
@@ -156,10 +156,10 @@
 				}
 			}
 			function alterSigProfileValues() {
-				alterValues( document.getElementsByName( 'CoSign.SigProfile.fields' )[ 0 ].value.split( ';' ) );
+				alterValues( [ 'x','y','width','height','pageNumber','title','dateFormat','timeFormat' ] );
 			}
 			function alterSigProfileLocationValues() {
-				alterValues( [ 'x', 'y', 'width', 'height', 'pageNumber' ] );
+				alterValues( [ 'x', 'y', 'width', 'height' ] );// Do not include pageNumber, value must be great than 0
 			}
 			function alterValues( fields ) {
 				for( var i = 0; i < fields.length; i++ ) {
@@ -266,6 +266,7 @@
 									<option<$ if #active.xCoSignRequiredSignatures AND #active.xCoSignRequiredSignatures like #active.row $> selected<$ endif $>><$ #active.row $>
 									<$ endloop $>
 								</select>
+<$ if #active.xCoSignRequiredSignatures $><input type="hidden" name="xCoSignRequiredSignatures" value="<$ #active.xCoSignRequiredSignatures $>" /><$ endif $>
 							</p>
 							<h2>Signature Tag:</h2>
 							<p>
@@ -276,6 +277,7 @@
 									<option<$ if #active.xCoSignSignatureTag AND #active.xCoSignSignatureTag like #active.row $> selected<$ endif $>><$ #active.row $>
 									<$ endloop $>
 								</select>
+<$ if #active.xCoSignSignatureTag $><input type="hidden" name="xCoSignSignatureTag" value="<$ #active.xCoSignSignatureTag $>" /><$ endif $>
 							</p>
 						</div>
 					</div>
@@ -319,20 +321,25 @@
 							<div style="display: none;">
 								<h2>Workflow Mode:</h2>
 								<p>
-<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'true', , radioFieldCaption = 'Yes' $>
+<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'true', radioFieldCaption = 'Yes' $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'false', , radioFieldCaption = 'No',
+<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'false', radioFieldCaption = 'No',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'true', radioFieldCaption = 'Yes' $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'false', radioFieldCaption = 'No',
 		checked = 1 $>
 <$ inc( 'cosign_radio_entry' ) $>
 								</p><br /><hr>
 							</div>
-							<h2>Ad Hoc:</h2>
+							<h2>Working Mode:</h2>
 							<p>
-<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'true', , radioFieldCaption = 'Yes',
+<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'true', radioFieldCaption = 'Ad-Hoc',
 		radioStyle = 'Enable', radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'false', , radioFieldCaption = 'No',
-		radioStyle = 'Enable', checked = 1, radioFieldFunction = 'javascript:toggleAdHoc();' $>
+<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'false', radioStyle = 'Enable', checked = 1,
+		radioFieldCaption = 'Pre-defined fields', radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p><br /><hr>
 							<h2>Enforce reasons?</h2>

@@ -95,6 +95,19 @@ configurable
 True
 csPromptFileUploadURL
 1
+CoSign.Url.notificationHandleURL
+csPromptNotificationHandleURLInfo
+prompt
+string
+
+
+
+1
+0
+configurable
+True
+csPromptNotificationHandleURL
+1
 useWCCUserName
 csPromptUseUserNameInfo
 prompt
@@ -122,7 +135,7 @@ configurable
 csPromptServerAddress
 1
 wscServerPort
-csPromptServerPortInfo\n
+csPromptServerPortInfo
 prompt
 integer
 

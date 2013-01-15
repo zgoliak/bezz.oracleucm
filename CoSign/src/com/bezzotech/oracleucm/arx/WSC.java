@@ -96,7 +96,7 @@ public class WSC {
 	 */
 	public String buildSigProfile( boolean isSignRequest ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering buildSigProfile, passed in parameters:" +
-				"\n\tisSignRequest: " + isSignRequest, null );
+				"\n\tisSignRequest: " + isSignRequest + "\n\tbinder: ", null );
 		m_doc = m_xmlutil.getNewDocument();
 		m_doc_root = m_doc.createElement( "request" );
 		m_doc.appendChild( m_doc_root );
@@ -109,7 +109,8 @@ public class WSC {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
 		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
-			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+//			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+			m_binder.putLocal( m_appName + ".Logic.enforceFieldToSign", "true" );
 			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
 			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
@@ -459,7 +460,8 @@ public class WSC {
 		return response.toString();
 	}
 
-	protected void prepareAdHocSigProfileValues () {
+	protected void prepareAdHocSigProfileValues() {
+		Report.trace( "bezzotechcosign", "Entering prepareAdHocSigProfileValues", null );
 		String [] alter = { "fieldName", ".SigField.fieldNameToSign" };
 		String [] exclude = { "fieldName", "x", "y", "width", "height", "pageNumber", "title",
 				"dateFormat", "timeFormat" };
@@ -470,7 +472,8 @@ public class WSC {
 				m_binder.putLocal( m_appName + ".SigProfile." + fieldArray[ i ], "" );
 			else
 				if( Arrays.asList( alter ).contains( fieldArray[ i ] ) ) {
-					Report.debug( "bezzotechcosign", "Altering: " + fieldArray[ i ] + " at index: " + Arrays.asList( alter ).indexOf( fieldArray[ i ] ), null );
+					Report.debug( "bezzotechcosign", "Altering: " + fieldArray[ i ] + " at index: " +
+							Arrays.asList( alter ).indexOf( fieldArray[ i ] ), null );
 					int altInd = Arrays.asList( alter ).indexOf( fieldArray[ i ] ) + 1;
 					m_binder.putLocal( m_appName + ".SigProfile." + fieldArray[ i ],
 							m_binder.getLocal( m_appName + Arrays.asList( alter ).get( altInd ) ) );
