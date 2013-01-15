@@ -55,11 +55,10 @@
 			</tr>
 			<tr>
 				<td>QsignatureProfileID</td>
-				<td>SELECT MAX( Revisions.dID ) dID, xCoSignRequiredSignatures
+				<td>SELECT Revisions.dID dID, xCoSignRequiredSignatures
 						FROM Revisions, DocMeta
 						WHERE Revisions.dID=DocMeta.dID AND Revisions.dRevRank=0 AND Revisions.dStatus<>'DELETED'
-						AND xCoSignSignatureTag=? AND dDocType='CoSignSignatureProfile'
-						GROUP BY xCoSignRequiredSignatures</td>
+						AND xCoSignSignatureTag=? AND dDocType='CoSignSignatureProfile'</td>
 				<td>xCoSignSignatureTag varchar</td>
 			</tr>
 			<tr>

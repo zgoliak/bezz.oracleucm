@@ -216,6 +216,7 @@ public class CMUtils {
 			ResultSet rset = createResultSet( "QsignatureProfileID", binder );
 			DataResultSet drset = new DataResultSet();
 			drset.copy( rset );
+			Report.debug( "bezzotechcosign", "Rows: " + drset.getNumRows(), null );
 			if( drset.getNumRows() <= 0 ) {
 				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
 						m_binder.getLocal( "CoSignProfile" ) );
@@ -224,15 +225,30 @@ public class CMUtils {
 			UserData ud = getUserData();
 			Vector userRoles = SecurityUtils.getRoleList( ud );
 			String packageStr = "";
+			boolean found = false;
 			do {
-				String requiredRoles = drset.getStringValueByName( "xCoSignRequiredSignatures" );
+				String requiredRole = drset.getStringValueByName( "xCoSignRequiredSignatures" );
 				for( int i = 0; i < userRoles.size(); i++ ) {
 					UserAttribInfo uai = ( UserAttribInfo )userRoles.elementAt( i );
-					Report.debug( "bezzotechcosign", "Required Roles: " + requiredRoles + "\n\tRole: " + uai.m_attribName + "\n\ttest: " + requiredRoles.indexOf( uai.m_attribName ), null );
-					if( requiredRoles.indexOf( uai.m_attribName ) >= 0 ) break;
-					if( i + 1 == userRoles.size() ) drset.deleteCurrentRow();
+					Report.debug( "bezzotechcosign", "Required Roles: " + requiredRole + "\n\tRole: " +
+							uai.m_attribName + "\n\ttest: " + requiredRole.indexOf( uai.m_attribName ), null );
+					if( requiredRole.indexOf( uai.m_attribName ) >= 0 ) {
+						if( found )
+							throw new ServiceException( "The content " + m_binder.getLocal( "dDocName" ) +
+									" has multiple signature profiles.  Please contact your administrator." );
+						else
+							found = true;
+					}
 				}
-			} while( drset.next() );
+				if( !found ) {
+					drset.deleteCurrentRow();
+					Report.debug( "bezzotechcosign", "Deleted ResultSet Row: " + drset.toString(), null );
+				} else
+					drset.next();
+				found = false;
+				Report.debug( "bezzotechcosign", "Current: " + drset.getCurrentRow() + "\n\tRows: " +
+						drset.getNumRows(), null );
+			} while( drset.isRowPresent() );
 			if( drset.getNumRows() <= 0 ) {
 				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
 						m_binder.getLocal( "CoSignProfile" ) );
@@ -349,7 +365,7 @@ public class CMUtils {
 	 *
 	 */
 	public void checkinNew() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
+		Report.debug( "bezzotechcosign", "Entering checkinNew, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_NEW_SUB" );
 		} catch ( DataException e ) {
@@ -361,7 +377,7 @@ public class CMUtils {
 	 *
 	 */
 	public void checkinSel() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering checkin, passed in binder: ", null );
+		Report.debug( "bezzotechcosign", "Entering checkinSel, passed in binder: " + m_binder.toString(), null );
 		try {
 			m_service.executeService( "CHECKIN_SEL_SUB" );
 		} catch ( DataException e ) {

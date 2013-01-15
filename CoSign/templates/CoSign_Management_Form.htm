@@ -113,20 +113,6 @@
 				}
 				toggleTitle();
 			}
-			function alterSigProfileValues() {
-				var fields = document.getElementsByName( 'CoSign.SigProfile.fields' )[ 0 ].value.split( ';' );
-				for( var i = 0; i < fields.length; i++ ) {
-					var field = document.getElementsByName( 'CoSign.SigProfile.' + fields[ i ] )[ 0 ];
-					switch( field.type ) {
-						case 'hidden':
-						case 'text':
-						case 'checkbox':
-						case 'radio':
-							field.value = '';
-							break;
-					}
-				}
-			}
 			function toggleVisible() {
 				toggleHidden( 'Visible', 'CoSign.SigProfile.visible', 'true' );
 			}
@@ -163,8 +149,29 @@
 					checked( 'SignatureFieldDetails', 3, 'CoSign.SigProfile.graphicalImage' );
 					checked( 'SignatureFieldDetails', 4, 'CoSign.SigProfile.initials' );
 					getReasons( 'ListOfReasons', 'CoSign.SignReasons.signReason' );
-					if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked )
+					if( document.getElementsByName( 'CoSign.SigProfile.visible' )[ 1 ].checked )
+						alterSigProfileLocationValues();
+					else if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked )
 						alterSigProfileValues();
+				}
+			}
+			function alterSigProfileValues() {
+				alterValues( document.getElementsByName( 'CoSign.SigProfile.fields' )[ 0 ].value.split( ';' ) );
+			}
+			function alterSigProfileLocationValues() {
+				alterValues( [ 'x', 'y', 'width', 'height', 'pageNumber' ] );
+			}
+			function alterValues( fields ) {
+				for( var i = 0; i < fields.length; i++ ) {
+					var field = document.getElementsByName( 'CoSign.SigProfile.' + fields[ i ] )[ 0 ];
+					switch( field.type ) {
+						case 'hidden':
+						case 'text':
+						case 'checkbox':
+						case 'radio':
+							field.value = '0';
+							break;
+					}
 				}
 			}
 			function getReasons( listId, reasonName ) {
