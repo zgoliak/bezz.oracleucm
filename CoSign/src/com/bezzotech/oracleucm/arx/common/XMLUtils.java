@@ -153,8 +153,12 @@ public class XMLUtils {
 			try {
 				String fieldValue = m_service.getPageMerger()
 						.evaluateScript ( m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
-				if( fieldValue == "0" ) fieldValue = "false";
-				else if( fieldValue == "1" ) fieldValue = "true";
+		Report.debug( "bezzotechcosign", "FieldValue before: " + fieldValue, null );
+				try {
+					if( Integer.parseInt( fieldValue ) == 0 ) fieldValue = "false";
+					else if( Integer.parseInt( fieldValue ) == 1 ) fieldValue = "true";
+				} catch ( NumberFormatException e ) {}
+		Report.debug( "bezzotechcosign", "FieldValue after: " + fieldValue, null );
 				Text text = doc.createTextNode( fieldValue );
 				child.appendChild( text );
 			} catch ( IOException e ) {
