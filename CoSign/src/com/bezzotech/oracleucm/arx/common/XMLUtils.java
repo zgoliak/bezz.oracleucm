@@ -153,6 +153,8 @@ public class XMLUtils {
 			try {
 				String fieldValue = m_service.getPageMerger()
 						.evaluateScript ( m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
+				if( fieldValue == "0" ) fieldValue = "false";
+				else if( fieldValue == "1" ) fieldValue = "true";
 				Text text = doc.createTextNode( fieldValue );
 				child.appendChild( text );
 			} catch ( IOException e ) {
