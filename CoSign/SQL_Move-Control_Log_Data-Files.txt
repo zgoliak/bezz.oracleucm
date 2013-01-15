@@ -1,0 +1,89 @@
+SELECT name FROM v$controlfile;
+SHOW PARAMETER control_files
+ALTER SYSTEM SET control_files='D:\oradata\orcl\CONTROL01.CTL', 'D:\flash_recovery_area\orcl\CONTROL02.ctl' SCOPE=SPFILE;
+SHUTDOWN IMMEDIATE
+HOST MOVE C:\app\Administrator\oradata\orcl\CONTROL01.CTL d:\oradata\orcl\CONTROL01.CTL
+HOST MOVE C:\app\Administrator\flash_recovery_area\orcl\CONTROL02.CTL d:\flash_recovery_area\orcl\CONTROL01.CTL
+STARTUP
+
+SELECT member FROM v$logfile;
+SELECT name FROM v$datafile;
+SHUTDOWN IMMEDIATE
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_BIPLATFORM.DBF d:\oradata\orcl\DEV_BIPLATFORM.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_DISCOPSTORE.DBF d:\oradata\orcl\DEV_DISCOPSTORE.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_DISCOPTM5CACHE.DBF d:\oradata\orcl\DEV_DISCOPTM5CACHE.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_DISCOPTM5META.DBF d:\oradata\orcl\DEV_DISCOPTM5META.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_EPMREG.DBF d:\oradata\orcl\DEV_EPMREG.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ESS.DBF d:\oradata\orcl\DEV_ESS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IASSDPM.DBF d:\oradata\orcl\DEV_IASSDPM.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IASTEMP.DBF d:\oradata\orcl\DEV_IASTEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IAS_IAU.DBF d:\oradata\orcl\DEV_IAS_IAU.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IAS_IAUOES.DBF d:\oradata\orcl\DEV_IAS_IAUOES.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IAS_OPSS.DBF d:\oradata\orcl\DEV_IAS_OPSS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IPM.DBF d:\oradata\orcl\DEV_IPM.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_IPMTEMP.DBF d:\oradata\orcl\DEV_IPMTEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_MDS.DBF d:\oradata\orcl\DEV_MDS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_OCS.DBF d:\oradata\orcl\DEV_OCS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_OCSSEARCH.DBF d:\oradata\orcl\DEV_OCSSEARCH.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_OCSSEARCHTEMP.DBF d:\oradata\orcl\DEV_OCSSEARCHTEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_OCSTEMP.DBF d:\oradata\orcl\DEV_OCSTEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ODI_TEMP.DBF d:\oradata\orcl\DEV_ODI_TEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ORABAM.DBF d:\oradata\orcl\DEV_ORABAM.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ORAIRM.DBF d:\oradata\orcl\DEV_ORAIRM.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ORAIRMTEMP.DBF d:\oradata\orcl\DEV_ORAIRMTEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ORASDPLS.DBF d:\oradata\orcl\DEV_ORASDPLS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ORASDPSDS.DBF d:\oradata\orcl\DEV_ORASDPSDS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_ORASDPXDMS.DBF d:\oradata\orcl\DEV_ORASDPXDMS.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_SOAINFRA.DBF d:\oradata\orcl\DEV_SOAINFRA.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_URMSERVER.DBF d:\oradata\orcl\DEV_URMSERVER.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_URMSERVERTEMP.DBF d:\oradata\orcl\DEV_URMSERVERTEMP.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\DEV_WEBCENTER_PORTLET.DBF d:\oradata\orcl\DEV_WEBCENTER_PORTLET.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\EXAMPLE01.DBF d:\oradata\orcl\EXAMPLE01.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\SYSAUX01.DBF d:\oradata\orcl\SYSAUX01.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\SYSTEM01.DBF d:\oradata\orcl\SYSTEM01.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\TEMP01.DBF d:\oradata\orcl\TEMP01.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\UNDOTBS01.DBF d:\oradata\orcl\UNDOTBS01.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\USERS01.DBF d:\oradata\orcl\USERS01.DBF
+HOST MOVE C:\app\Administrator\oradata\orcl\REDO01.LOG d:\oradata\orcl\REDO01.LOG
+HOST MOVE C:\app\Administrator\oradata\orcl\REDO02.LOG d:\oradata\orcl\REDO02.LOG
+HOST MOVE C:\app\Administrator\oradata\orcl\REDO03.LOG d:\oradata\orcl\REDO03.LOG
+STARTUP MOUNT
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_BIPLATFORM.DBF' TO 'd:\oradata\orcl\DEV_BIPLATFORM.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_DISCOPSTORE.DBF' TO 'd:\oradata\orcl\DEV_DISCOPSTORE.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_DISCOPTM5CACHE.DBF' TO 'd:\oradata\orcl\DEV_DISCOPTM5CACHE.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_DISCOPTM5META.DBF' TO 'd:\oradata\orcl\DEV_DISCOPTM5META.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_EPMREG.DBF' TO 'd:\oradata\orcl\DEV_EPMREG.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ESS.DBF' TO 'd:\oradata\orcl\DEV_ESS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IASSDPM.DBF' TO 'd:\oradata\orcl\DEV_IASSDPM.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IASTEMP.DBF' TO 'd:\oradata\orcl\DEV_IASTEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IAS_IAU.DBF' TO 'd:\oradata\orcl\DEV_IAS_IAU.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IAS_IAUOES.DBF' TO 'd:\oradata\orcl\DEV_IAS_IAUOES.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IAS_OPSS.DBF' TO 'd:\oradata\orcl\DEV_IAS_OPSS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IPM.DBF' TO 'd:\oradata\orcl\DEV_IPM.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_IPMTEMP.DBF' TO 'd:\oradata\orcl\DEV_IPMTEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_MDS.DBF' TO 'd:\oradata\orcl\DEV_MDS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_OCS.DBF' TO 'd:\oradata\orcl\DEV_OCS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_OCSSEARCH.DBF' TO 'd:\oradata\orcl\DEV_OCSSEARCH.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_OCSSEARCHTEMP.DBF' TO 'd:\oradata\orcl\DEV_OCSSEARCHTEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_OCSTEMP.DBF' TO 'd:\oradata\orcl\DEV_OCSTEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ODI_TEMP.DBF' TO 'd:\oradata\orcl\DEV_ODI_TEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ORABAM.DBF' TO 'd:\oradata\orcl\DEV_ORABAM.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ORAIRM.DBF' TO 'd:\oradata\orcl\DEV_ORAIRM.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ORAIRMTEMP.DBF' TO 'd:\oradata\orcl\DEV_ORAIRMTEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ORASDPLS.DBF' TO 'd:\oradata\orcl\DEV_ORASDPLS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ORASDPSDS.DBF' TO 'd:\oradata\orcl\DEV_ORASDPSDS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_ORASDPXDMS.DBF' TO 'd:\oradata\orcl\DEV_ORASDPXDMS.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_SOAINFRA.DBF' TO 'd:\oradata\orcl\DEV_SOAINFRA.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_URMSERVER.DBF' TO 'd:\oradata\orcl\DEV_URMSERVER.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_URMSERVERTEMP.DBF' TO 'd:\oradata\orcl\DEV_URMSERVERTEMP.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\DEV_WEBCENTER_PORTLET.DBF' TO 'd:\oradata\orcl\DEV_WEBCENTER_PORTLET.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\EXAMPLE01.DBF' TO 'd:\oradata\orcl\EXAMPLE01.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\SYSAUX01.DBF' TO 'd:\oradata\orcl\SYSAUX01.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\SYSTEM01.DBF' TO 'd:\oradata\orcl\SYSTEM01.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\TEMP01.DBF' TO 'd:\oradata\orcl\TEMP01.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\UNDOTBS01.DBF' TO 'd:\oradata\orcl\UNDOTBS01.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\USERS01.DBF' TO 'd:\oradata\orcl\USERS01.DBF';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\REDO01.LOG' TO 'd:\oradata\orcl\REDO01.LOG';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\REDO02.LOG' TO 'd:\oradata\orcl\REDO02.LOG';
+ALTER DATABASE RENAME FILE 'C:\app\Administrator\oradata\orcl\REDO03.LOG' TO 'd:\oradata\orcl\REDO03.LOG';
+ALTER DATABASE OPEN;
