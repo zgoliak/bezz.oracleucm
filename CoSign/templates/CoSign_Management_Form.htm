@@ -135,14 +135,14 @@ INPUT.boldbutton { font-family:system; }
 				toggleHidden( 'AdHoc', 'CoSign.Logic.allowAdHoc', 'true' );
 				toggleHidden( 'Visible', 'CoSign.Logic.allowAdHoc', 'true' );
 				toggleHidden( 'NonAdHoc', 'CoSign.Logic.allowAdHoc', 'false' );
-				if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked ) {
+/*				if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked ) {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason';
 				} else {
 					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
 							'allowAdHoc;allowUserReason;enforceReason';
 				}
-				toggleTitle();
+*/				toggleTitle();
 			}
 			function toggleVisible() {
 				toggleHidden( 'Visible', 'CoSign.SigProfile.visible', 'true' );
@@ -187,7 +187,7 @@ INPUT.boldbutton { font-family:system; }
 				}
 			}
 			function alterSigProfileValues() {
-				alterValues( [ 'x','y','width','height','pageNumber','title','dateFormat','timeFormat' ] );
+				alterValues( [ 'x','y','width','height','dateFormat','timeFormat' ] );// Do not include pageNumber, value must be great than 0
 			}
 			function alterSigProfileLocationValues() {
 				alterValues( [ 'x', 'y', 'width', 'height' ] );// Do not include pageNumber, value must be great than 0
@@ -325,10 +325,14 @@ INPUT.boldbutton { font-family:system; }
 							<h1>Dynamic Structure</h1>
 						</div>
 						<input type="hidden" name="CoSign.Logic.fields"
-						       value="allowAdHoc;allowUserReason;enforceReason" />
+						       value="enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason" />
 						<div class="left">
 							<!-- <h1>Dynamic Signature</h1> -->
 							<p>PDF only. Specify whether to allow the creation of signature fields dynamically.</p><br />
+							<div style="display: none;">
+								<h1>Workflow Mode</h1>
+								<p>This parameter will affect the UI behaviour.</p><br />
+							</div>
 						</div>
 						<div class="right">
 							<h2>Working Mode:</h2>
@@ -340,6 +344,21 @@ INPUT.boldbutton { font-family:system; }
 		radioFieldCaption = 'Pre-defined fields', radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p><br />
+							<div style="display: none;">
+								<h2>Workflow Mode:</h2>
+								<p>
+<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'true', radioFieldCaption = 'Yes' $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'false', radioFieldCaption = 'No',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'true', radioFieldCaption = 'Yes' $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'false', radioFieldCaption = 'No',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+								</p><br />
+							</div>
 						</div>
 					</div>
 					<div class="separator"></div>
@@ -374,10 +393,6 @@ INPUT.boldbutton { font-family:system; }
 						</div>
 						<input type="hidden" name="CoSign.SignReasons.fields" value="signReason" />
 						<div class="left">
-							<div style="display: none;">
-								<h1>Workflow Mode</h1>
-								<p>This parameter will affect the UI behaviour.</p><br />
-							</div>
 							<p>
 								By selecting "Yes" or "No" under "Enforce reasons?" you specify whether a user will need to
 								&nbsp;select a Reason for Signing or be able to enter his/her own unique reason.
@@ -390,21 +405,6 @@ INPUT.boldbutton { font-family:system; }
 							</p>
 						</div>
 						<div class="right">
-							<div style="display: none;">
-								<h2>Workflow Mode:</h2>
-								<p>
-<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'true', radioFieldCaption = 'Yes' $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'false', radioFieldCaption = 'No',
-		checked = 1 $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'true', radioFieldCaption = 'Yes' $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'false', radioFieldCaption = 'No',
-		checked = 1 $>
-<$ inc( 'cosign_radio_entry' ) $>
-								</p><br />
-							</div>
 							<h2>Enforce reasons?</h2>
 							<p>
 <$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
