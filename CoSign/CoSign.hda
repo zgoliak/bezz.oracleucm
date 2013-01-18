@@ -108,4 +108,8 @@ CoSign_IdcScheduledSystemEvents
 IdcScheduledSystemEvents
 action
 10
+CoSign_WfTopicColumns
+WfTopicColumns
+columnName
+10
 @end

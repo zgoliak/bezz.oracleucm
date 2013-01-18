@@ -55,6 +55,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 	 */
 	public void generateCoSignProfile() throws ServiceException {
+		Report.trace( "bezzotechcosign", "Entering generateCoSignProfile, passed in binder:", null );
 		String s = m_WSC.buildSigProfile( false );
 		String s1 = m_binder.getNextFileCounter() + ".xml";
 		String s2 = m_binder.getTemporaryDirectory() + s1;
@@ -78,13 +79,28 @@ public class CoSignServiceHandler extends ServiceHandler {
 		if( dRevLabel == null || dRevLabel == "" )
 			dRevLabel = "0";
 		m_binder.putLocal( "dRevLabel", ( Integer.parseInt( dRevLabel ) + 1 ) + "" );
-		if( m_binder.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_NEW_PROFILE" ) ) m_cmutils.checkinNew();
+		if( m_binder.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_NEW_PROFILE" ) )
+			m_cmutils.checkinNew();
 		else m_cmutils.checkinSel();
 
 		try {
 			Thread t = new Thread();
 			t.sleep( Long.parseLong( m_shared.getConfig( "CoSignProfileCheckinDelaySec") ) * 1000 );
 		} catch ( Exception ignore ) {}
+	}
+
+	/**
+	 *
+		*/
+	public void validateUniqueProfile() throws ServiceException {
+		Report.trace( "bezzotechcosign", "Entering validateUniqueProfile, passed in binder:", null );
+		DataBinder binder = new DataBinder();
+		binder.putLocal( "xCoSignSignatureTag", m_binder.getLocal( "xCoSignSignatureTag" ) );
+		binder.putLocal( "xCoSignRequiredSignatures", m_binder.getLocal( "xCoSignRequiredSignatures" ) );
+		ResultSet rset = m_cmutils.createResultSet( "QcosignUniqueProfile", binder );
+		if( rset.isRowPresent() )
+			throw new ServiceException( "A profile with this criteria already exists in the system, " +
+					rset.getStringValueByName( "dDocTitle" ) + "(" + rset.getStringValueByName( "dDocName" ) + ")" );
 	}
 
 	/**

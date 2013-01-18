@@ -122,5 +122,107 @@
 			</tr>
 		</table>
 <@end@>
+
+<!-- Workflow topic information columns table -->
+<@table CoSign_WfTopicColumns@>
+		<table border=1><caption><strong>WfTopicColumns</strong></caption>
+			<!-- visibility flags: (by default, topic is always visible)
+			--	isUpdateOnly = visible only if isUpdate is true and isCurrentUser is false.
+			--	isUserUpdate = visible only if isCurrentUser is true (regardless of isUpdate).
+			-->
+			<tr>
+				<td>columnName</td>
+				<td>visibilityFlags</td>
+			</tr>
+			<tr>
+				<td>dDocName</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dDocTitle</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dID</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dDocType</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dSecurityGroup</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dDocAccount</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dRevLabel</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dDocAuthor</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dOriginalName</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dWfStepName</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dWfName</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dWfStepType</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dIsCheckedOut</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dCheckoutUser</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>wfQueueActionState</td>
+				<td>isUpdateOnly</td>
+			</tr>
+			<tr>
+				<td>wfQueueLastActionTs</td>
+				<td>isUpdateOnly</td>
+			</tr>
+			<tr>
+				<td>wfQueueEnterTs</td>
+				<td>isUpdateOnly,isUserUpdate</td>
+			</tr>
+			<tr>
+				<td>dClbraName</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dProjectID</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>wfMessage</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>dWfStepIsSignature</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>xCoSignSignatureTag</td>
+				<td></td>
+			</tr>
+		</table>
+<@end@>
  </body>
 </html>

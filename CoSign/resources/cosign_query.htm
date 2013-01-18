@@ -75,6 +75,15 @@
 				<td>dID int</td>
 			</tr>
 			<tr>
+				<td>QcosignUniqueProfile</td>
+				<td>SELECT *
+						FROM Revisions, DocMeta
+						WHERE xCoSignSignatureTag=? AND xCoSignRequiredSignatures=?
+						AND dDocType='CoSignSignatureProfile'</td>
+				<td>xCoSignSignatureTag varchar
+						xCoSignRequiredSignatures varchar</td>
+			</tr>
+			<tr>
 				<td>QcheckedoutCoSignContent</td>
 				<td>SELECT dDocName
 						FROM Revisions, DocMeta

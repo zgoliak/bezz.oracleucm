@@ -83,12 +83,9 @@
 <@ end @>
 <@ dynamichtml custom_modify_action_popup_data @>
 	<$ disabledActionPopupIds = 'signWithCoSign' $>
-<$ trace( 'Disabled Action Popup Ids: ' & disabledActionPopupIds, '#log' ) $>
-<$ trace( 'Required Roles: ' & #active.xCoSignRequiredSignatures, '#log' ) $>
 	<$ rsMakeFromString( 'Roles', #active.xCoSignRequiredSignatures ) $>
 	<$ if rsExists( 'Roles' ) $>
 		<$ loop Roles $>
-<$ trace( 'User Matches Role: ' & userHasRole( Roles.row ), '#log' ) $>
 			<$ if userHasRole( Roles.row ) $>
 				<$ disabledActionPopupIds = '' $>
 				<$ break $>
@@ -97,7 +94,6 @@
 	<$ else $>
 		<$ disabledActionPopupIds = '' $>
 	<$ endif $>	
-<$ trace( 'Disabled Action Popup Ids: ' & disabledActionPopupIds, '#log' ) $>
 <@ end @>
 
 [[% Navigation extensions %]]
@@ -162,6 +158,7 @@
 <@ dynamichtml workflow_doc_action_forms @>
 <$ if rsExists( 'WfDocuments' ) $><$ value = getValue( 'WfDocuments', #env.coSignSignatureProfileMetaField ) $>
 <$ elseif rsExists( 'DOC_INFO' ) $><$ value = getValue( 'DOC_INFO', #env.coSignSignatureProfileMetaField ) $>
+<$ elseif rsExists( 'WorkflowInQueue' ) $><$ value = getValue( 'WorkflowInQueue', #env.coSignSignatureProfileMetaField ) $>
 <$ else $><$ value = '' $><$ endif $>
 <$ if userHasRole( 'CoSignSigner' ) AND ( value AND ( NOT strEquals( value, '' ) AND value OR NOT strEquals( value, 'Externally Signed' ) ) ) $>
 <form name="Approve_<$ dID $>" method="POST" action="<$ HttpCgiPath $>">
@@ -204,7 +201,7 @@
 <$ else $>
 	<$ include super.workflow_doc_action_forms $>
 <$ endif $>
-<@end@>
+<@ end @>
 
 [[% CoSign Search Results template table includes %]]
 <@ dynamichtml cosign_search_result_item_data_setup @>
@@ -749,6 +746,7 @@ name
 radioStyle
 checkboxStyle
 setReadOnly
+radioFieldFunction
 <@ end @>
 <@ dynamicdata CoreMenuItems @>
 id, label, linkType, linkData
