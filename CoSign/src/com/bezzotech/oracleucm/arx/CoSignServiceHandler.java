@@ -163,16 +163,19 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 	 */
 	public void processSignedDocument() throws ServiceException {
-		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder:", null );
+		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder: ", null );
 		String msg = "";
 		int response = 0;
+		m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
+		m_binder.putLocal( "dID", "" );
 		if( m_binder.getLocal( "errorMessage" ) != null ) {
 			if( Integer.parseInt( m_binder.getLocal( "returnCode" ) ) == WSC.USER_OPER_CANCELLED ) {
-			 response = WSC.USER_OPER_CANCELLED;
-			} else {
-				msg = m_binder.getLocal( "errorMessage" );
-				m_undo = true;
+				String redirectURL = "<$ HttpCgiPath $>?IdcService=DOC_INFO_BY_NAME" +
+						"&RevisionSelectionMethod=LatestReleased&dDocName=" + m_binder.getLocal( "dDocName" );
+			 m_binder.putLocal( "RedirectURL", redirectURL );
 			}
+			msg = m_binder.getLocal( "errorMessage" );
+			m_undo = true;
 		}
 		if( !m_undo && m_binder.getLocal( "sessionId" ) == null ) {
 			msg = "csInvalidSessionId";
@@ -182,8 +185,6 @@ public class CoSignServiceHandler extends ServiceHandler {
 			msg = "csInvalidDocId";
 			m_undo = true;
 		}
-		m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
-		m_binder.putLocal( "dID", "" );
 
 		try {
 			if( !m_undo ) response = m_WSC.processDownloadRequest();

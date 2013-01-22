@@ -7,15 +7,16 @@
 [[% Core functionality extensions %]]
 <@ dynamichtml extra_setup_search_results_action_popups @>
 	<$ include super.extra_setup_search_results_action_popups $>
-
+[[%
+	<$ include cosign_compute_userhasrequiredrole $>
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
 	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
-	<$ exec setValue( "PopupProps", "ifClause", "userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
+	<$ exec setValue( "PopupProps", "ifClause", "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
 	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
 	<$ exec setValue( "PopupProps", "class", "document" ) $>
 	<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
-
+%]]
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignatures" ) ) $>
 	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
@@ -49,6 +50,7 @@
 <@ dynamichtml custom_search_results_action_popup @>
 	<$ include super.custom_search_results_action_popup $>
 	<$ if NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) $>
+[[%
 		<$ if userHasRole( 'CoSignSigner' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) $>
 	<tr>
 		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
@@ -58,6 +60,7 @@
 		</td>
 	</tr>
 		<$ endif $>
+%]]
 	<tr>
 		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
 				onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">

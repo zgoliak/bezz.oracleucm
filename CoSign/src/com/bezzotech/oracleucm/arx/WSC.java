@@ -10,6 +10,7 @@ import intradoc.data.DataBinder;
 import intradoc.data.DataException;
 import intradoc.data.DataResultSet;
 import intradoc.data.ResultSet;
+import intradoc.data.ResultSetUtils;
 import intradoc.data.Workspace;
 import intradoc.server.Service;
 
@@ -251,7 +252,12 @@ public class WSC {
 			} catch ( ParseException e ) {
 				throwFullError( e );
 			}
-			m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
+			try {
+				m_binder.putLocal( "xSignatureCount", "" + ResultSetUtils
+						.createFilteredStringArrayForColumn( drset, "fieldName", "status", "0", false, false).length );
+			} catch ( DataException e ) {
+				throwFullError( e );
+			}
 		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
 			return USER_OPER_CANCELLED;
 		} else {
@@ -290,7 +296,12 @@ public class WSC {
 			} catch ( ParseException e ) {
 				throwFullError( e );
 			}
-			m_binder.putLocal( "xSignatureCount", drset.getNumRows() + "" );
+			try {
+				m_binder.putLocal( "xSignatureCount", "" + ResultSetUtils
+						.createFilteredStringArrayForColumn( drset, "fieldName", "status", "0", false, false).length );
+			} catch ( DataException e ) {
+				throwFullError( e );
+			}
 			m_cmutil.update();
 			log();
 		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {

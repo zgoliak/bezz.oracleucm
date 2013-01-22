@@ -320,7 +320,6 @@ public class CMUtils {
 	public void rollback( String error ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
 				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: ", null );
-		String sigStatus = m_binder.getLocal( "xSignatureStatus" );
 		try {
 			m_service.executeService( "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
 		} catch ( DataException e ) {
@@ -328,12 +327,15 @@ public class CMUtils {
 		}
 
 		Report.debug( "bezzotechcosign", "Binder after undo: ", null );
+		ResultSet rset = m_binder.getResultSet( "DOC_INFO" );
+		String sigStatus = m_binder.getResultSetValue( rset, "xSignatureStatus" );
 		if( sigStatus != null && sigStatus.equals( "sent-to-cosign" ) ) {
 			m_binder.putLocal( "xSignatureStatus", "" );
 			update();
 		}
-
-		if( !error.equals( "" ) )
+/*  Want to redirect user to Doc_info on Cancel */
+		if( !error.equals( "" ) &&
+				( m_binder.getLocal( "RedirectURL" ) == null || m_binder.getLocal( "RedirectURL" ) == "" ) )
 			throw new ServiceException( error );
 	}
 
