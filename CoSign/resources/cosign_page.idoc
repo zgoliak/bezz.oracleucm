@@ -6,17 +6,21 @@
  <body>
 [[% Core functionality extensions %]]
 <@ dynamichtml extra_setup_search_results_action_popups @>
+	<$ traceLog = '###begin extra_setup_search_results_action_popups log' $>
 	<$ include super.extra_setup_search_results_action_popups $>
-[[%
-	<$ include cosign_compute_userhasrequiredrole $>
-	<$ exec rsAppendNewRow( "PopupProps" ) $>
-	<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
-	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
-	<$ exec setValue( "PopupProps", "ifClause", "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
-	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
-	<$ exec setValue( "PopupProps", "class", "document" ) $>
-	<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
-%]]
+
+	<$ traceLog = traceLog & '\n\tEnable Sign on Search: ' & enableSignOnSearch $>
+	<$ if enableSignOnSearch $>
+		<$ include cosign_compute_userhasrequiredrole $>
+		<$ exec rsAppendNewRow( "PopupProps" ) $>
+		<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
+		<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
+		<$ exec setValue( "PopupProps", "ifClause", "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
+		<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+		<$ exec setValue( "PopupProps", "class", "document" ) $>
+		<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
+	<$ endif $>
+
 	<$ exec rsAppendNewRow( "PopupProps" ) $>
 	<$ exec setValue( "PopupProps", "label", lc( "wwReviewSignatures" ) ) $>
 	<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
@@ -24,8 +28,13 @@
 	<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
 	<$ exec setValue( "PopupProps", "class", "document" ) $>
 	<$ exec setValue( "PopupProps", "id", "reviewSignatures" ) $>
+	
+	<$ if pageDebug and isTrue( pageDebug ) $>
+		<$ trace( traceLog & '\n\t###end extra_setup_search_results_action_popups log###', '#console' ) $>
+	<$ endif $>
 <@ end @>
 <@ dynamichtml custom_docinfo_menus_setup @>
+	<$ traceLog = '###begin custom_docinfo_menus_setup log' $>
 	<$ include super.custom_docinfo_menus_setup $>
 
 	<$ include cosign_compute_userhasrequiredrole $>
@@ -46,12 +55,20 @@
 	<$ PageMenusData.type = "item" $>
 	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_VERIFYSIGNATURES&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" $>
 	<$ PageMenusData.loadOrder = 10 $>
+	<$ if pageDebug and isTrue( pageDebug ) $>
+		<$ trace( traceLog & '\n\t###end custom_docinfo_menus_setup log###', '#console' ) $>
+	<$ endif $>
 <@ end @>
 <@ dynamichtml custom_search_results_action_popup @>
+	<$ traceLog = '###begin custom_search_results_action_popup log' $>
 	<$ include super.custom_search_results_action_popup $>
+	<$ traceLog = traceLog & '\n\tTagged: ' & #env.coSignSignatureProfileMetaField $>
 	<$ if NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) $>
-[[%
-		<$ if userHasRole( 'CoSignSigner' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) $>
+		<$ traceLog = traceLog & '\n\tEnable Sign on Search: ' & enableSignOnSearch $>
+		<$ if enableSignOnSearch $>
+			<$ traceLog = traceLog & '\n\tCoSigner: ' & userHasRole( 'CoSignSigner' ) &
+					'\n\tExternally Signed: ' & strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) $>
+			<$ if userHasRole( 'CoSignSigner' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) $>
 	<tr>
 		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
 				onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
@@ -59,8 +76,8 @@
 					target="<$ popupLinkTarget $>"><$ lc( "wwSignWithCoSign" ) $></a>
 		</td>
 	</tr>
+			<$ endif $>
 		<$ endif $>
-%]]
 	<tr>
 		<td class="xuiPopupLink" nowrap onMouseOver="glowPopupRow( this,'xuiPopupLink_over','xuiPopupLink' )"
 				onMouseOut="fadePopupRow( this,'xuiPopupLink' )" onClick="linkItem_onclick( event, this )">
@@ -69,12 +86,24 @@
 		</td>
 	</tr>
 	<$ endif $>
+	<$ if pageDebug and isTrue( pageDebug ) $>
+		<$ trace( traceLog & '\n\t###end custom_search_results_action_popup log###', '#console' ) $>
+	<$ endif $>
 <@ end @>
 <@ dynamichtml cosign_compute_userhasrequiredrole @>
+	<$ if traceLog $>
+		<$ delayTrace = 1 $>
+		<$ traceLog = traceLog & '\n\t' $>
+	<$ else $>
+		<$ traceLog = '' $>
+	<$ endif $>
+	<$ traceLog = traceLog & '###begin cosign_compute_userhasrequiredrole log###' $>
+
 	<$ userHasRequiredRole = 0 $>
 	<$ rsMakeFromString( 'Roles', #active.xCoSignRequiredSignatures ) $>
 	<$ if rsExists( 'Roles' ) $>
 		<$ loop Roles $>
+			<$ traceLog = traceLog & '\n\tRole: ' & Roles.row & ' - ' & userHasRole( Roles.row ) $>
 			<$ if userHasRole( Roles.row ) $>
 				<$ userHasRequiredRole = 1 $>
 				<$ break $>
@@ -82,6 +111,12 @@
 		<$ endloop $>
 	<$ else $>
 		<$ userHasRequiredRole = 1 $>
+	<$ endif $>
+
+	<$ if not delayTrace and ( pageDebug and isTrue( pageDebug ) ) $>
+		<$ trace( traceLog & '\n\t###end cosign_compute_userhasrequiredrole log###', '#console' ) $>
+	<$ else $>
+		<$ traceLog = traceLog & '\n\t###end cosign_compute_userhasrequiredrole log###' $>
 	<$ endif $>
 <@ end @>
 <@ dynamichtml custom_modify_action_popup_data @>
@@ -159,51 +194,93 @@
 	</span>
 <@ end @>
 <@ dynamichtml workflow_doc_action_forms @>
-<$ if rsExists( 'WfDocuments' ) $><$ value = getValue( 'WfDocuments', #env.coSignSignatureProfileMetaField ) $>
-<$ elseif rsExists( 'DOC_INFO' ) $><$ value = getValue( 'DOC_INFO', #env.coSignSignatureProfileMetaField ) $>
-<$ elseif rsExists( 'WorkflowInQueue' ) $><$ value = getValue( 'WorkflowInQueue', #env.coSignSignatureProfileMetaField ) $>
-<$ else $><$ value = '' $><$ endif $>
-<$ if userHasRole( 'CoSignSigner' ) AND ( value AND ( NOT strEquals( value, '' ) AND value OR NOT strEquals( value, 'Externally Signed' ) ) ) $>
+	<$ traceLog = '###begin workflow_doc_action_forms log' $>
+
+	<$ if rsExists( 'WfDocuments' ) $><$ value = getValue( 'WfDocuments', #env.coSignSignatureProfileMetaField ) $>
+	<$ elseif rsExists( 'DOC_INFO' ) $><$ value = getValue( 'DOC_INFO', #env.coSignSignatureProfileMetaField ) $>
+	<$ elseif rsExists( 'WorkflowInQueue' ) $><$ value = getValue( 'WorkflowInQueue', #env.coSignSignatureProfileMetaField ) $>
+	<$ else $><$ value = '' $><$ endif $>
+	<$ traceLog = traceLog & '\n\tTagged: ' & value & '\n\tWfDocuments: ' & rsExists( 'WfDocuments' ) & '\n\tWorkflowInQueue: ' & rsExists( 'WorkflowInQueue' ) $>
+	<$ include cosign_compute_workflowtypenotreview $>
+	<$ if isTrue( workflowTypeNotReview ) AND ( userHasRole( 'CoSignSigner' ) AND ( value AND ( NOT strEquals( value, '' ) AND value OR NOT strEquals( value, 'Externally Signed' ) ) ) ) $>
 <form name="Approve_<$ dID $>" method="POST" action="<$ HttpCgiPath $>">
-	<$ include idc_token_form_field $>
+		<$ include idc_token_form_field $>
 	<input type="hidden" name="IdcService" value="COSIGN_SIGNDOCUMENT" />
 	<input type="hidden" name="RedirectUrl" value="<$ HttpCgiPath $>?IdcService=REVIEW_WORKFLOW_DOC&WSC_Session=&lt;$ url( WSC_Session ) $&gt;&dProjectID=<$ url( dProjectID ) $>&dWfName=<$ url( dWfName ) $>&dDocName=<$ url( dDocName ) $>&dWfStepName=<$ url( dWfStepName ) $>&CoSignApproved=1<$ if inQueueRedirect $>&inQueueRedirect=1<$ endif $>" />
 	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
 	<input type="hidden" name="dID" value="<$ dID $>" />
 </form>
-	<$ if IsStaging $>
+		<$ if IsStaging $>
 <form name="ProblemReport_<$ dID $>" method="GET" action="<$ HttpCgiPath $>">
-		<$ include idc_token_form_field $>
-		<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
+			<$ include idc_token_form_field $>
+			<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
 	<input type="hidden" name="IdcService" value="GET_DOCUMENT_PROBLEMREPORTS" />
 	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
 	<input type="hidden" name="dDocTitle" value="<$ url( dDocTitle ) $>" />
 	<input type="hidden" name="dID" value="<$ dID $>" />
 </form>
-	<$ else $>
+		<$ else $>
 <form name="Reject_<$ dID $>" method="GET" action="<$ HttpCgiPath $>">
-		<$ include idc_token_form_field $>
-		<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
+			<$ include idc_token_form_field $>
+			<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
 	<input type="hidden" name="IdcService" value="WORKFLOW_REJECT_FORM" />
 	<input type="hidden" name="dWfName" value="<$ dWfName $>" />
 	<input type="hidden" name="dWfStepName" value="<$ dWfStepName $>" />
 	<input type="hidden" name="dID" value="<$ dID $>" />
 	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
 </form>
-	<$ endif $>
-	<$ if isTrue( IsPreviewRegistered ) $>
+		<$ endif $>
+		<$ if isTrue( IsPreviewRegistered ) $>
 <form name="Preview_<$ dID $>" method="GET" action="<$ HttpCgiPath $>" />
 	<input type="hidden" name="IdcService" value="GET_PREVIEW_LIST_EX" />
-		<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
+			<$ if inQueueRedirect $><input type="hidden" name="inQueueRedirect" value="1" /><$ endif $>
 	<input type="hidden" name="dWfName" value="<$ dWfName $>" />
 	<input type="hidden" name="dID" value="<$ dID $>" />
 	<input type="hidden" name="dDocName" value="<$ dDocName $>" />
 	<input type="hidden" name="IsSimplePreview" value="1" />
 </form>
+		<$ endif $>
+	<$ else $>
+		<$ include super.workflow_doc_action_forms $>
 	<$ endif $>
-<$ else $>
-	<$ include super.workflow_doc_action_forms $>
-<$ endif $>
+
+	<$ if pageDebug and isTrue( pageDebug ) $>
+		<$ trace( traceLog & '\n\t###end workflow_doc_action_forms log###', '#console' ) $>
+	<$ endif $>
+<@ end @>
+<@ dynamichtml cosign_compute_workflowtypenotreview @>
+	<$ if traceLog $>
+		<$ delayTrace = 1 $>
+		<$ traceLog = traceLog & '\n\t' $>
+	<$ else $>
+		<$ traceLog = '' $>
+	<$ endif $>
+	<$ traceLog = traceLog & '###begin cosign_compute_workflowtypenotreview log###' $>
+
+	<$ workflowTypeNotReview = 1 $>
+
+	<$ stepType = '' $>
+	<$ if rsExists( 'WfDocuments' ) $>
+		<$ stepId = getValue( 'WfDocuments', 'dWfCurrentStepID' ) $>
+		<$ loop WorkflowSteps $>
+			<$ if strEquals( getValue( 'WorkflowSteps', 'dWfStepID' ), stepId ) $>
+				<$ stepType = getValue( 'WorkflowSteps', 'dWfStepType' ) $>
+				<$ break $>
+			<$ endif $>
+		<$ endloop $>
+		<$ rsFirst( 'WorkflowSteps' ) $>
+	<$ elseif rsExists( 'WorkflowInQueue' ) $><$ stepType = getValue( 'WorkflowInQueue', 'dWfStepType' ) $><$ endif $>
+	<$ traceLog = traceLog & '\n\tWorkflow Step Type: ' & stepType $>
+	<$ if strEquals( stepType, ':R:' ) $>
+		<$ workflowTypeNotReview = 0 $>
+	<$ endif $>
+	<$ traceLog = traceLog & '\n\tWorkflow Type Not Review: ' & workflowTypeNotReview $>
+
+	<$ if not delayTrace and ( pageDebug and isTrue( pageDebug ) ) $>
+		<$ trace( traceLog & '\n\t###end cosign_compute_workflowtypenotreview log###', '#console' ) $>
+	<$ else $>
+		<$ traceLog = traceLog & '\n\t###end cosign_compute_workflowtypenotreview log###' $>
+	<$ endif $>
 <@ end @>
 
 [[% CoSign Search Results template table includes %]]

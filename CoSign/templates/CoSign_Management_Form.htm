@@ -170,7 +170,7 @@ INPUT.boldbutton { font-family:system; }
 				}
 			}
 			function submitProfile() {
-				if(document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
+				if( document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
 					getPageNumber();
 					checked( 'SignatureFieldDetails', 5, 'CoSign.SigProfile.showTitle' );
 					checked( 'DisplayGMTOffset', 0, 'CoSign.SigProfile.extTimeformat' );
@@ -184,7 +184,9 @@ INPUT.boldbutton { font-family:system; }
 						alterSigProfileLocationValues();
 					else if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 1 ].checked )
 						alterSigProfileValues();
-				}
+				} else
+					document.getElementsByName( 'CoSign.SigProfile.fieldName' )[ 0 ].value =
+							document.getElementById( 'CoSign.SigField.fieldNameToSign' ).value;
 			}
 			function alterSigProfileValues() {
 				alterValues( [ 'x','y','width','height','dateFormat','timeFormat' ] );// Do not include pageNumber, value must be great than 0
