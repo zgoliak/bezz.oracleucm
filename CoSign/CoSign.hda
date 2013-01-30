@@ -8,7 +8,7 @@ hasInstallStrings=1
 hasPreferenceData=1
 installID=CoSign
 preventAdditionalComponentDowngrade=0
-version=2013_01_22(build 3.6.6)
+version=2013_01_30(build 3.6.6.1)
 @end
 @ResultSet ClassAliases
 3

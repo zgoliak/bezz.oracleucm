@@ -200,7 +200,7 @@
 	<$ elseif rsExists( 'DOC_INFO' ) $><$ value = getValue( 'DOC_INFO', #env.coSignSignatureProfileMetaField ) $>
 	<$ elseif rsExists( 'WorkflowInQueue' ) $><$ value = getValue( 'WorkflowInQueue', #env.coSignSignatureProfileMetaField ) $>
 	<$ else $><$ value = '' $><$ endif $>
-	<$ traceLog = traceLog & '\n\tTagged: ' & value & '\n\tWfDocuments: ' & rsExists( 'WfDocuments' ) & '\n\tWorkflowInQueue: ' & rsExists( 'WorkflowInQueue' ) $>
+	<$ traceLog = traceLog & '\n\tTagged: ' & value & '\n\tWfDocuments: ' & rsExists( 'WfDocuments' ) & '\n\tWorkflowInQueue: ' & rsExists( 'WorkflowInQueue' ) & '\n\tDOC_INFO: ' & rsExists( 'DOC_INFO' ) $>
 	<$ include cosign_compute_workflowtypenotreview $>
 	<$ if isTrue( workflowTypeNotReview ) AND ( userHasRole( 'CoSignSigner' ) AND ( value AND ( NOT strEquals( value, '' ) AND value OR NOT strEquals( value, 'Externally Signed' ) ) ) ) $>
 <form name="Approve_<$ dID $>" method="POST" action="<$ HttpCgiPath $>">
@@ -269,8 +269,9 @@
 			<$ endif $>
 		<$ endloop $>
 		<$ rsFirst( 'WorkflowSteps' ) $>
-	<$ elseif rsExists( 'WorkflowInQueue' ) $><$ stepType = getValue( 'WorkflowInQueue', 'dWfStepType' ) $><$ endif $>
-	<$ traceLog = traceLog & '\n\tWorkflow Step Type: ' & stepType $>
+	<$ elseif rsExists( 'WorkflowInQueue' ) $><$ stepType = getValue( 'WorkflowInQueue', 'dWfStepType' ) $>
+	<$ else $><$ stepType = getValue( '#local', 'dWfStepType' ) $><$ endif $>
+	<$ traceLog = traceLog & '\n\tWorkflow Step Type: ' & stepType & '\n\tWfDocuments: ' & rsExists( 'WfDocuments' ) & '\n\tWorkflowInQueue: ' & rsExists( 'WorkflowInQueue' ) $>
 	<$ if strEquals( stepType, ':R:' ) $>
 		<$ workflowTypeNotReview = 0 $>
 	<$ endif $>
