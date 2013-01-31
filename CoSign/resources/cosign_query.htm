@@ -14,9 +14,10 @@
 				<td>INSERT INTO CoSignSignatureDetails (sID, dID, dDocName, fieldName, status, signingTime,
 				  signerEmail, signerName, signReason, certErrorStatus, x, y, width, height, pageNumber,
 				  dateFormat, timeFormat, graphicalImage, signer, signDate, initials, logo, showTitle,
-				  showReason, title, reason) VALUES (CoSignSignatureDetailsID.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?,
+				  showReason, title, reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,
 				  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)</td>
-				<td>dID int
+				<td>sID int
+						dID int
 				  dDocName varchar
 				  fieldName varchar
 				  status varchar
@@ -45,8 +46,9 @@
 			<tr>
 				<td>IcosignHistory</td>
 				<td>INSERT INTO CoSignHistory (ID, PerformingUser, DatePerformed, Operation, ErrorMessage,
-				  dDocName, dID) VALUES (CoSignHistoryID.NEXTVAL, ?, ?, ?, ?, ?, ?)</td>
-				<td>User varchar
+				  dDocName, dID) VALUES (?, ?, ?, ?, ?, ?, ?)</td>
+				<td>ID int
+				  User varchar
 				  date date
 				  Operation varchar
 				  Error varchar

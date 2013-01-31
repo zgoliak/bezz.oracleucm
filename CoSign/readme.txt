@@ -78,12 +78,6 @@ Installation requirements:
 			/ REASON          | VARCHAR2  | 200  |  T   | F  /
 			//////////////////////////////////////////////////
 
-		Sequences
-
-
-			CoSignHistory ID
-			CoSignSignatureDetails SID
-
 	Content Type(s):
 		CoSignSignatureProfile
 

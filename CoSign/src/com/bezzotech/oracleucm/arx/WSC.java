@@ -9,6 +9,7 @@ import intradoc.common.StringUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
 import intradoc.data.DataResultSet;
+import intradoc.data.IdcCounterUtils;
 import intradoc.data.ResultSet;
 import intradoc.data.ResultSetUtils;
 import intradoc.data.Workspace;
@@ -613,6 +614,8 @@ public class WSC {
 				} catch ( ParseException e ) {
 					throwFullError( e );
 				}
+    long seq = IdcCounterUtils.nextValue( m_workspace, "ESIG_SEQ" );
+				queryBinder.putLocal( "sID", Long.toString( seq ) );
 				m_workspace.execute( "IcosignSignatureDetails", queryBinder );
 			}	while( drset.next() );
 		} catch ( DataException e ) {
