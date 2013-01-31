@@ -5,8 +5,10 @@ import intradoc.common.ServiceException;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
 import intradoc.data.DataResultSet;
+import intradoc.data.IdcCounterUtils;
 import intradoc.data.ResultSet;
 import intradoc.data.ResultSetUtils;
+import intradoc.data.Workspace;
 import intradoc.server.Service;
 import intradoc.server.ServiceHandler;
 
@@ -35,6 +37,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	protected CMUtils m_cmutils;
 	protected XMLUtils m_xmlutils;
 	protected WSC m_WSC;
+	protected Workspace m_workspace;
 
 	/** Initialize the handler and set up the <span class="code">m_fsutil</span> object.
 	 * @param s the Service that we operate with.
@@ -49,6 +52,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_shared = SharedObjects.getSharedObjects( s );
 		m_WSC = WSC.getWSC( s );
 		m_cmutils = m_WSC.getCM();
+		m_workspace = s.getWorkspace();
 	}
 
 	/**
@@ -281,6 +285,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		binder.putLocal( "dID", m_binder.getLocal( "dID" ) );
 		binder.putLocalDate( "date", new java.util.Date() );
 		try {
+			long seq = IdcCounterUtils.nextValue( m_workspace, "ESIG_SEQ" );
+			binder.putLocal( "ID", Long.toString( seq ) );
 			m_workspace.execute( "IcosignHistory", binder );
 		} catch ( DataException e ) {
 			throwFullError( e );
