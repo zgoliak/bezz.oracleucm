@@ -8,7 +8,7 @@ hasInstallStrings=1
 hasPreferenceData=1
 installID=CoSign
 preventAdditionalComponentDowngrade=0
-version=2013_00_31-dev(build 3.6.7)
+version=2013_01_31-dev(build 3.6.8)
 @end
 @ResultSet ClassAliases
 3
@@ -123,5 +123,17 @@ action
 CoSign_WfTopicColumns
 WfTopicColumns
 columnName
+10
+CoSign_DataStoreDesignTableList
+DataStoreDesignTableList
+dsdTableName
+1
+CoSign_ColumnsIndexed
+DataStoreDesignColumnsIndexed
+
+1
+CoSign_DocMetaDefinition
+DataStoreDesignCreateDocMetaDefinition
+dName
 10
 @end

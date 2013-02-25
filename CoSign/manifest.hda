@@ -1,7 +1,7 @@
 ﻿<?hda version="11gR1-11.1.1.6.0-idcprod1-111219T111403" jcharset="UTF8" encoding="utf-8"?>
 @Properties LocalData
 ComponentName=CoSign
-CreateDate=8/24/12 3:41 PM
+CreateDate=1/31/13 8:40 PM
 blDateFormat=M/d{/yy}{ h:mm[:ss]{ a}}!mAM,PM!tUTC
 blFieldTypes=CreateDate date
 @end
@@ -23,4 +23,6 @@ componentExtra
 CoSign/install_strings.htm
 componentExtra
 CoSign/preference.hda
+componentextra
+CoSign/cosign_environment.cfg
 @end
