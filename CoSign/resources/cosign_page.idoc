@@ -9,16 +9,18 @@
 	<$ traceLog = '###begin extra_setup_search_results_action_popups log' $>
 	<$ include super.extra_setup_search_results_action_popups $>
 
-	<$ traceLog = traceLog & '\n\tEnable Sign on Search: ' & enableSignOnSearch $>
 	<$ if enableSignOnSearch $>
-		<$ include cosign_compute_userhasrequiredrole $>
-		<$ exec rsAppendNewRow( "PopupProps" ) $>
-		<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
-		<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
-		<$ exec setValue( "PopupProps", "ifClause", "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
-		<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
-		<$ exec setValue( "PopupProps", "class", "document" ) $>
-		<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
+		<$ traceLog = traceLog & '\n\tEnable Sign on Search: ' & enableSignOnSearch $>
+		<$ if isTrue( enableSignOnSearch ) $>
+			<$ include cosign_compute_userhasrequiredrole $>
+			<$ exec rsAppendNewRow( "PopupProps" ) $>
+			<$ exec setValue( "PopupProps", "label", lc( "wwSignWithCoSign" ) ) $>
+			<$ exec setValue( "PopupProps", "function", "<$ SearchHttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" ) $>
+			<$ exec setValue( "PopupProps", "ifClause", "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" ) $>
+			<$ exec setValue( "PopupProps", "linkTarget", "" ) $>
+			<$ exec setValue( "PopupProps", "class", "document" ) $>
+			<$ exec setValue( "PopupProps", "id", "signWithCoSign" ) $>
+		<$ endif $>
 	<$ endif $>
 
 	<$ exec rsAppendNewRow( "PopupProps" ) $>

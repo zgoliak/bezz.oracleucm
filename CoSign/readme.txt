@@ -78,6 +78,10 @@ Installation requirements:
 			/ REASON          | VARCHAR2  | 200  |  T   | F  /
 			//////////////////////////////////////////////////
 
+		Sequences
+			CoSignHistory ID
+			CoSignSignatureDetails SID
+
 	Content Type(s):
 		CoSignSignatureProfile
 
@@ -173,7 +177,3 @@ Installation requirements:
 			coSignSecurityGroup - Security Group to hide profile content in (i.e. CoSign)
 			coSignSignatureProfileMetaField - Meta field that will supply the Profile Tag names for
 					profile/rule user (i.e. xCoSignSignatureTag)
-
-
-
-

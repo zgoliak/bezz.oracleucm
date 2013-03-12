@@ -98,8 +98,8 @@ public class CoSignInstallFilters implements FilterImplementor {
 		} catch(Exception e) {
 			trace(false, "doCheckDatabase",
 					(new StringBuilder()).append("Fatal Error: Unexpected Exception ").append(e).toString());
-//			String errMsg = LocaleUtils.encodeMessage("csSctErrUnexExceptionInitingDatabaseProvider", null, e);
-//			showError(LocaleResources.localizeMessage(errMsg, null));
+			String errMsg = LocaleUtils.encodeMessage("csSctErrUnexExceptionInitingDatabaseProvider", null, e);
+			showError(LocaleResources.localizeMessage(errMsg, null));
 		}
 		trace(false, "doCheckDatabase", "Normal exit ...");
 	}
@@ -110,12 +110,12 @@ public class CoSignInstallFilters implements FilterImplementor {
 		if(p != null) {
 			m_dbCSWorkspace = (Workspace)p.getProvider();
 			if(m_dbCSWorkspace == null) {
-//				String errMsg = LocaleUtils.encodeMessage("csSctErrCannotConnectToSystemDatabaseWorkspace", null);
-//				showError(LocaleResources.localizeMessage(errMsg, null));
+				String errMsg = LocaleUtils.encodeMessage("csSctErrCannotConnectToSystemDatabaseWorkspace", null);
+				showError(LocaleResources.localizeMessage(errMsg, null));
 			}
 		} else {
-//			String errMsg = LocaleUtils.encodeMessage("csSctErrNoSystemDatabaseProvider", null);
-//			showError(LocaleResources.localizeMessage(errMsg, null));
+			String errMsg = LocaleUtils.encodeMessage("csSctErrNoSystemDatabaseProvider", null);
+			showError(LocaleResources.localizeMessage(errMsg, null));
 		}
 	}
 
@@ -170,7 +170,7 @@ public class CoSignInstallFilters implements FilterImplementor {
 	}
 
 	protected void showError(String msg) throws ServiceException {
-		String errMsg = LocaleUtils.encodeMessage("csESigErrConfiguringElectronicSignatures", null, msg);
+		String errMsg = LocaleUtils.encodeMessage("csESigErrConfiguringCoSign", null, msg);
 		Log.error(LocaleResources.localizeMessage(errMsg, null));
 		throw new ServiceException(LocaleResources.localizeMessage(errMsg, null));
 	}

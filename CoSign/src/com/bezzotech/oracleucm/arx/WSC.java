@@ -104,9 +104,10 @@ public class WSC {
 		m_doc.appendChild( m_doc_root );
 		if( !Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) ) {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SigField" ) );
-			prepareAdHocSigProfileValues();
+//			prepareAdHocSigProfileValues();
+		} else {
+			m_doc_root.appendChild( buildSigProfilesElement() );
 		}
-		m_doc_root.appendChild( buildSigProfilesElement() );
 		if( isSignRequest )
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
@@ -153,9 +154,10 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering parseSigProfileEx", null );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SignReasons", 0 );
 		m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "Logic", 0 );
-		parseSigProfiles();
 		if( !Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) )
 			m_xmlutil.parseChildrenToLocal( m_appName, m_doc_root, "SigField", 0 );
+		else
+			parseSigProfiles();
 	}
 
 	/**
