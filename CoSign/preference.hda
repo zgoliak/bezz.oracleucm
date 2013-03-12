@@ -160,6 +160,19 @@ configurable
 
 csPromptSecurityGroup
 1
+coSignSignatureProfileMetaField
+csPromptProfileFieldInfo
+prompt
+string
+
+
+xCoSignSignatureTag
+1
+0
+dDocType
+
+csPromptProfileField
+1
 CoSign.ContentType
 csPromptContentTypeInfo
 prompt
