@@ -230,7 +230,13 @@ INPUT.boldbutton { font-family:system; }
 						cb = document.getElementsByName( elementId )[ index ];
 					if( cb != null && cb.checked )  result = true;
 				}
-				if( CM != null || CM != undefined ) document.getElementsByName( CM )[0].value = result;
+				if( CM != null || CM != undefined )
+					if( navigator.userAgent.indexOf( 'MSIE' ) > -1 &&
+							( document.getElementsByName( CM )[1] != null ||
+									document.getElementsByName( CM )[1] != undefined ) )
+						document.getElementsByName( CM )[1].value = result;
+					else
+						document.getElementsByName( CM )[0].value = result;
 			}
 			function getPageNumber() {
 				var elements = document.getElementsByName( 'sPage' );
