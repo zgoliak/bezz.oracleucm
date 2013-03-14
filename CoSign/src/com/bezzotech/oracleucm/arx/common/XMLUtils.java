@@ -11,14 +11,24 @@ import intradoc.server.Service;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DOMImplementation;
@@ -244,10 +254,18 @@ public class XMLUtils {
 		m_binder.putLocal( appName + "." + baseName + ".fields", fields );
 	}
 
-	public void parseChildrenToResultSet( String appName, Element root, String parentName ) {
+	public void parseChildrenToResultSet( String appName, Element root, String parentName,
+			String sortField ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering parseChildrenToResultSet, passed in parameter(s):" +
 				"\n\tappName: " + appName + "\n\troot:\n\tparentName: " + parentName, null );
 		Element parent = ( Element )root.getElementsByTagName( parentName ).item( 0 );
+		MyComparator mc = new MyComparator();
+		mc.setSortNodeName( sortField );
+		Report.debug( "bezzotechcosign", "Sorting nodes by " + sortField + "\n\tCurrent document: " +
+				nodeToString( root ), null );
+		sortChildNodes( parent, false, 1, mc );
+		Report.debug( "bezzotechcosign", "Sorted nodes by " + sortField + "\n\tCurrent document: " +
+				nodeToString( root ), null );
 		NodeList children = parent.getChildNodes();
 		if( children.getLength() > 0 ) {
 			DataResultSet rset = null;
@@ -306,6 +324,19 @@ public class XMLUtils {
 		return _out.toString();
 	}
 
+	private static String nodeToString( Node node ) throws ServiceException {
+		StringWriter sw = new StringWriter();
+		try {
+			Transformer t = TransformerFactory.newInstance().newTransformer();
+			t.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
+			t.setOutputProperty( OutputKeys.INDENT, "yes" );
+			t.transform( new DOMSource( node ), new StreamResult( sw ) );
+		} catch ( TransformerException te ) {
+			throw new ServiceException( "nodeToString Transformer Exception" );
+		}
+		return sw.toString();
+	}
+
 	/**	Injects values, as text node, into named node under root element
 	 *
 	 *  doc   - [Document] XML document to create text node
@@ -323,6 +354,88 @@ public class XMLUtils {
 		Text t = doc.createTextNode( value );
 		n.appendChild( t );
 		return root;
+	}
+
+	/**
+ 	* Sorts the children of the given node upto the specified depth if
+	 * available
+ 	* 
+	 * @param node -
+ 	*            node whose children will be sorted
+	 * @param descending -
+ 	*            true for sorting in descending order
+	 * @param depth -
+ 	*            depth upto which to sort in DOM
+	 * @param comparator -
+ 	*           comparator used to sort, if null a default NodeName
+	 *           comparator is used.
+ 	*/
+	protected void sortChildNodes( Node node, boolean descending, int depth, Comparator comparator ) {
+		NodeList childNodeList = node.getChildNodes();
+		List nodes = new ArrayList();
+		if( depth > 0 && childNodeList.getLength() > 0 ) {
+			for( int i = 0; i < childNodeList.getLength(); i++ ) {
+				Node tNode = childNodeList.item( i );
+				sortChildNodes( tNode, descending, depth - 1, comparator );
+				// Remove empty text nodes
+				if( ( !( tNode instanceof Text ) ) ||
+						( tNode instanceof Text && ( ( Text ) tNode ).getTextContent().trim().length() > 1 ) ) {
+					nodes.add( tNode );
+				}
+			}
+			Comparator comp = ( comparator != null ) ? comparator : new DefaultNodeNameComparator();
+			if( descending ) {
+				//if descending is true, get the reverse ordered comparator
+				Collections.sort( nodes, Collections.reverseOrder( comp ) );
+			} else {
+				Collections.sort( nodes, comp );
+			}
+
+			for( Iterator iter = nodes.iterator(); iter.hasNext(); ) {
+				Node element = ( Node ) iter.next();
+				node.appendChild( element );
+			}
+		}
+	}
+
+	class DefaultNodeNameComparator implements Comparator {
+		public int compare( Object arg0, Object arg1 ) {
+			return ( ( Node ) arg0 ).getNodeName().compareTo( ( ( Node ) arg1 ).getNodeName() );
+		}
+	}
+
+	class MyComparator implements Comparator {
+		private String m_sortNodeName;
+
+		public int compare( Object arg0, Object arg1 ) {
+			if( arg0 instanceof Element && arg1 instanceof Element ) {
+				NodeList arg0Children = ( (Element) arg0 ).getChildNodes();
+				Node arg0Child = null;
+				Node arg1Child = null;
+				for( int i = 0; i < arg0Children.getLength(); i++ ) {
+					arg0Child = arg0Children.item( i );
+					Report.debug( "bezzotechcosign", "Comparing node name: " + arg0Child.getNodeName() +
+							"\n\tSort node name: " + m_sortNodeName, null );
+					if( arg0Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
+						break;
+				}
+				NodeList arg1Children = ( (Element) arg1 ).getChildNodes();
+				for( int j = 0; j < arg1Children.getLength(); j++ ) {
+					arg1Child = arg1Children.item( j );
+					Report.debug( "bezzotechcosign", "Comparing node name: " + arg1Child.getNodeName() +
+							"\n\tSort node name: " + m_sortNodeName, null );
+					if( arg1Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
+						break;
+				}
+				return arg0Child.getTextContent().compareTo( arg1Child.getTextContent() );
+			} else {
+				return ( (Node) arg0 ).getNodeName().compareTo( ( (Node) arg1 ).getNodeName() );
+			}
+		}
+
+		public void setSortNodeName( String arg ) {
+			m_sortNodeName = arg;
+		}
 	}
 
 	/** Prints out error message and stack trace from caught exceptions and throws them as message in

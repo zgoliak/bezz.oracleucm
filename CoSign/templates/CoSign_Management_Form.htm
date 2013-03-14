@@ -135,21 +135,12 @@ INPUT.boldbutton { font-family:system; }
 				toggleHidden( 'AdHoc', 'CoSign.Logic.allowAdHoc', 'true' );
 				toggleHidden( 'Visible', 'CoSign.Logic.allowAdHoc', 'true' );
 				toggleHidden( 'NonAdHoc', 'CoSign.Logic.allowAdHoc', 'false' );
-/*				if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 0 ].checked ) {
-					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
-							'enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason';
-				} else {
-					document.getElementsByName( 'CoSign.Logic.fields' )[ 0 ].value =
-							'allowAdHoc;allowUserReason;enforceReason';
-				}
-*/				toggleTitle();
 			}
 			function toggleVisible() {
 				toggleHidden( 'Visible', 'CoSign.SigProfile.visible', 'true' );
 			}
 			function toggleHidden( targetName, triggerName, test ) {
 				var trigger = document.getElementsByName( triggerName );
-//				var target = document.getElementsByName( targetName );  IE does not allow for expando values to be returned here
 				switch( trigger[ 0 ].type ) {
 					case 'checkbox':
 					case 'radio':
@@ -189,7 +180,7 @@ INPUT.boldbutton { font-family:system; }
 							document.getElementById( 'CoSign.SigField.fieldNameToSign' ).value;
 			}
 			function alterSigProfileValues() {
-				alterValues( [ 'x','y','width','height','dateFormat','timeFormat' ] );// Do not include pageNumber, value must be great than 0
+				alterValues( [ 'x', 'y', 'width', 'height', 'dateFormat', 'timeFormat' ] );// Do not include pageNumber, value must be great than 0
 			}
 			function alterSigProfileLocationValues() {
 				alterValues( [ 'x', 'y', 'width', 'height' ] );// Do not include pageNumber, value must be great than 0
@@ -472,7 +463,7 @@ INPUT.boldbutton { font-family:system; }
 					<div class="separator" id="AdHoc1"></div>
 
 					<!-- Signature Field Details -->
-					<div class="row">
+					<div class="row" id="AdHoc2">
 						<div class="row-headline">
 							<h1>Signature Field Details</h1>
 						</div>
@@ -484,38 +475,36 @@ INPUT.boldbutton { font-family:system; }
 							</p>
 						</div>
 						<div class="right">
-							<div id="AdHoc2">
-								<h2>Include&nbsp;Element Name</h2>
-								<p>
+							<h2>Include&nbsp;Element Name</h2>
+							<p>
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.signer', checked = 1,
 		fieldCaption = 'Signed By', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-									<input type="hidden" name="CoSign.SigProfile.signer" value="" /><br /><br />
+								<input type="hidden" name="CoSign.SigProfile.signer" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.logo', fieldCaption = 'Logo',
 		fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-									<input type="hidden" name="CoSign.SigProfile.logo" value="" /><br /><br />
+								<input type="hidden" name="CoSign.SigProfile.logo" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.date', checked = 1,
 		fieldCaption = 'Date\Time', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-									<input type="hidden" name="CoSign.SigProfile.date" value="" /><br /><br />
+								<input type="hidden" name="CoSign.SigProfile.date" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.graphicalImage', checked = 1,
 		fieldCaption = 'Graphical Signature', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-									<input type="hidden" name="CoSign.SigProfile.graphicalImage" value="" /><br /><br />
+								<input type="hidden" name="CoSign.SigProfile.graphicalImage" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.initials',
 		fieldCaption = 'Initials', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-									<input type="hidden" name="CoSign.SigProfile.initials" value="" /><br /><br />
+								<input type="hidden" name="CoSign.SigProfile.initials" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.showTitle',
 		fieldCaption = 'Show Title', fieldCheckValue = 'true', checkboxStyle = 'Enable',
 		checkboxFieldFunction = 'javascript:toggleTitle()' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
-									<input type="hidden" name="CoSign.SigProfile.showTitle" value="" />
-								</p>
-							</div>
+								<input type="hidden" name="CoSign.SigProfile.showTitle" value="" />
 <$ fieldName = 'CoSign.SigProfile.title' $>
 								Title: <$ inc( 'cosign_edit_entry' ) $><br /><br />
+							</p>
 						</div>
 					</div>
 					<div class="separator" id="AdHoc3"></div>

@@ -697,7 +697,7 @@
 
 [[% CoSign frame href includes %]]
 <@ dynamichtml cosign_signing_frame @>
-<iframe height="700" src="<$ include cosign_signdocument_url $>" width="900" ></iframe>
+<iframe height="884" src="<$ include cosign_signdocument_url $>" width="900" frameborder="0" ></iframe>
 <@ end @>
 <@ dynamichtml determine_wf_review_rendition_url @>
 <$ include super.determine_wf_review_rendition_url $>

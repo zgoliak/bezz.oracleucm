@@ -379,7 +379,7 @@ public class CMUtils {
 	 *
 	 */
 	public void checkinSel() throws ServiceException {
-		Report.debug( "bezzotechcosign", "Entering checkinSel, passed in binder: " + m_binder.toString(), null );
+		Report.debug( "bezzotechcosign", "Entering checkinSel, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_SEL_SUB" );
 		} catch ( DataException e ) {
