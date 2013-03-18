@@ -26,61 +26,16 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-/*
-import intradoc.common.StringUtils;
-import intradoc.data.DataResultSet;
-//import intradoc.data.FieldInfo;
-//import intradoc.data.IdcCounterUtils;
-import intradoc.server.datastoredesign.DataDesignGenerator;
-import intradoc.server.utils.CompInstallUtils;
 
-import java.util.Properties;
-//import java.util.StringBuilder;
-*/
 public class CoSignFilters implements FilterImplementor {
 	protected static HashSet < String > m_oldContentIds = new HashSet < String > ();
-/*
-	class CoSignIndexGenerator extends DataDesignGenerator {
-		void generateIndexes( String tableName ) throws DataException, ServiceException {
-			DataBinder indexResults = interrogateIndices( null, tableName );
-			DataResultSet newIndices = ( DataResultSet )indexResults.getResultSet( "newIndices" );
-			if( newIndices != null ) {
-				String indexSyntax[] = generateSQLIndexDefinition( tableName, newIndices, false );
-				for( int j = 0; j < indexSyntax.length; j++ ) {
-					if( indexSyntax[ j ].length() == 0 )
-						continue;
-					try {
-						m_ws.executeSQL( indexSyntax[ j ] );
-					} catch( Exception e ) {
-						Report.error( "cosigninstall", e,
-								( new StringBuilder() )
-										.append( "Error creating indicies for table: " )
-										.append( tableName )
-										.toString(),
-								new Object[ 0 ] );
-					}
-				}
-			}
-		}
-
-		final CoSignFilters this$0;
-
-		public CoSignIndexGenerator( Workspace ws ) throws ServiceException {
-			super();
-			this$0 = CoSignFilters.this;
-			init( ws );
-		}
-	}
-*/
 	protected static String m_currentVersion = "3.5";
 	protected static String m_currentUpdateValue = "1";
 	protected Workspace m_workspace;
-//	private CoSignIndexGenerator m_indexGenerator;
 	protected SharedObjects m_shared;
 
 	public CoSignFilters() {
 		m_workspace = null;
-//		m_indexGenerator = null;
 		m_shared = null;
 	}
 
@@ -88,7 +43,6 @@ public class CoSignFilters implements FilterImplementor {
 			throws DataException, ServiceException {
 		Report.trace( "bezzotechcosign", "Entering CoSignFilters.doFilter", null );
 		m_workspace = ws;
-//		m_indexGenerator = new CoSignIndexGenerator( ws );
 		if( ec == null ) {
 			System.out.println( "Plugin filter called without a context." );
 			return FilterImplementor.CONTINUE;
@@ -100,13 +54,6 @@ public class CoSignFilters implements FilterImplementor {
 			return FilterImplementor.CONTINUE;
 		}
 		String s = ( String )obj;
-/*		IdcExtendedLoader loader = null;
-		if( ec instanceof IdcExtendedLoader ) {
-			loader = ( IdcExtendedLoader )ec;
-			if( ws == null )
-				ws = loader.getLoaderWorkspace();
-		}
-*/
 		if( s.equals( "validateCoSign" ) ) {
 			if( db.getLocal( "IdcService" ) == null || 
 					( db.getLocal( "IdcService" ).contains( "CHECKIN" ) && 
@@ -140,7 +87,6 @@ public class CoSignFilters implements FilterImplementor {
 				Date dateNow = new Date ();
 				SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MMddyyyy");
 				String now = dateformatMMDDYYYY.format( dateNow );
-
 				DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
 				if( drset == null ) {
 					drset = new DataResultSet( new String[] { "dDocName", "tsDateTime" } );

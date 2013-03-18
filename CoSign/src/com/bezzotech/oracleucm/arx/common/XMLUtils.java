@@ -162,7 +162,7 @@ public class XMLUtils {
 			Element child = doc.createElement( fieldName );
 			try {
 				String fieldValue = m_service.getPageMerger()
-						.evaluateScript ( m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
+						.evaluateScript( m_shared.getConfig( appName + "." + rootName + "." + fieldName ) );
 		Report.debug( "bezzotechcosign", "FieldValue before: " + fieldValue, null );
 				try {
 					if( Integer.parseInt( fieldValue ) == 0 ) fieldValue = "false";
@@ -320,7 +320,7 @@ public class XMLUtils {
 		lsOutput.setEncoding( "UTF-8" );
 		StringWriter _out = new StringWriter();
 		lsOutput.setCharacterStream( _out );
-		serializer.write(doc, lsOutput);
+		serializer.write( doc, lsOutput );
 		return _out.toString();
 	}
 
@@ -400,7 +400,7 @@ public class XMLUtils {
 
 	class DefaultNodeNameComparator implements Comparator {
 		public int compare( Object arg0, Object arg1 ) {
-			return ( ( Node ) arg0 ).getNodeName().compareTo( ( ( Node ) arg1 ).getNodeName() );
+			return ( ( Node )arg0 ).getNodeName().compareTo( ( ( Node )arg1 ).getNodeName() );
 		}
 	}
 
@@ -409,27 +409,35 @@ public class XMLUtils {
 
 		public int compare( Object arg0, Object arg1 ) {
 			if( arg0 instanceof Element && arg1 instanceof Element ) {
-				NodeList arg0Children = ( ( Element ) arg0 ).getChildNodes();
+				NodeList arg0Children = ( ( Element )arg0 ).getChildNodes();
 				Node arg0Child = null;
+				int i = 0;
 				Node arg1Child = null;
-				for( int i = 0; i < arg0Children.getLength(); i++ ) {
-					arg0Child = arg0Children.item( i );
+				int j = 0;
+				while( arg0Child = arg0Children.item( i ) != null ) {
+//				for( int i = 0; i < arg0Children.getLength(); i++ ) {
+//					arg0Child = arg0Children.item( i );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg0Child.getNodeName() +
 							"\n\tSort node name: " + m_sortNodeName, null );
 					if( arg0Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
 						break;
+					i++;
 				}
+				if( arg0Child == null ) return -1;
 				NodeList arg1Children = ( ( Element ) arg1 ).getChildNodes();
-				for( int j = 0; j < arg1Children.getLength(); j++ ) {
-					arg1Child = arg1Children.item( j );
+				while( arg1Child = arg1Children.item( i ) != null ) {
+//				for( int j = 0; j < arg1Children.getLength(); j++ ) {
+//					arg1Child = arg1Children.item( j );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg1Child.getNodeName() +
 							"\n\tSort node name: " + m_sortNodeName, null );
 					if( arg1Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
 						break;
+					i++;
 				}
+				if( arg1Child == null ) return 1;
 				return arg0Child.getTextContent().compareTo( arg1Child.getTextContent() );
 			} else {
-				return ( (Node) arg0 ).getNodeName().compareTo( ( (Node) arg1 ).getNodeName() );
+				return ( ( Node ) arg0 ).getNodeName().compareTo( ( ( Node ) arg1 ).getNodeName() );
 			}
 		}
 

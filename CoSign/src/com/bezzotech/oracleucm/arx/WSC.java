@@ -553,7 +553,7 @@ public class WSC {
 		Element root = ( Element )m_doc_root.getElementsByTagName( "Verify" ).item( 0 );
 		m_xmlutil.parseChildrenToLocal( m_appName, root, "Status", 0 );
 		try {
-			m_xmlutil.parseChildrenToResultSet( m_appName, root, "Fields", "status" );
+			m_xmlutil.parseChildrenToResultSet( m_appName, root, "Fields", "signingTime" );
 		} catch ( Exception e ) {
 			throwFullError( e );
 			// Swallow error, if no Fields is returned likely there is an error with WSC
