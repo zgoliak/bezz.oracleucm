@@ -9,9 +9,12 @@ import intradoc.common.ServiceException;
 import intradoc.common.Sort;
 import intradoc.common.SortUtilsComparator;
 import intradoc.data.DataBinder;
+import intradoc.data.DataResultSet;
 import intradoc.server.Service;
 
 import static intradoc.shared.SharedObjects.getEnvironmentValue;
+import static intradoc.shared.SharedObjects.getTable;
+import static intradoc.shared.SharedObjects.putTable;
 
 public class SharedObjects {
 	/** An ExecutionContext associated with this request. */
@@ -97,5 +100,30 @@ public class SharedObjects {
 				l.put( keyString.substring( keyPrefix.length() + 1 ), props.getProperty( keyString ) );
 		}
 		return l;
+	}
+
+	/** Return a DataResultSet from SharedObjects.  This is equivalent to 
+	 * the core method <span class="code">intradoc.shared.SharedObjects.getTable()</span> 
+	 * but will throw an exception if the DataResultSett does not exist.  
+	 * @param name The name of the DataResultSet to return.
+	 * @return The requested DataResultSet.
+	 * @throws ServiceException if name does not exist.
+	 * @see intradoc.shared.SharedObjects#getTable
+	 */
+	public DataResultSet getResultSet( String name, boolean isRequired ) throws ServiceException {
+		DataResultSet rset = getTable( name );
+		if( rset == null && isRequired ) {
+			throw new ServiceException( null, "syResultSetMissing", name );
+		}
+		return rset;
+	}
+
+	/** Put a DataResultSet into SharedObjects.
+	 * @param name Name to assign to the DataResultSet.
+	 * @param drset The DataResultSet to store in SharedObjects.
+	 * @see intradoc.shared.SharedObjects#putTable
+	 */
+	public void putResultSet( String name, DataResultSet drset ) {
+		putTable( name, drset );
 	}
 }

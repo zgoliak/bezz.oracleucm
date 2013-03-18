@@ -8,7 +8,9 @@ import intradoc.common.ServiceException;
 import intradoc.common.StringUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
+import intradoc.data.DataResultSet;
 import intradoc.data.ResultSet;
+import intradoc.data.ResultSetUtils;
 import intradoc.data.Workspace;
 import intradoc.server.IdcExtendedLoader;
 import intradoc.server.Service;
@@ -18,8 +20,12 @@ import intradoc.shared.FilterImplementor;
 import intradoc.shared.SecurityUtils;
 import intradoc.shared.UserData;
 
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 /*
 import intradoc.common.StringUtils;
 import intradoc.data.DataResultSet;
@@ -115,7 +121,8 @@ public class CoSignFilters implements FilterImplementor {
 				db.putLocal( "xSignatureStatus", "" );
 			}
 			return FINISHED;
-		} else if( s.equals( "alterCoSignRole" ) ) {
+		} else
+		if( s.equals( "alterCoSignRole" ) ) {
 			if(	db.getLocal( "IdcService" ) != null &&
 					db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) {
 				UserData userData = ( UserData )ec.getCachedObject( "TargetUserData" );
@@ -123,22 +130,54 @@ public class CoSignFilters implements FilterImplementor {
 				Report.trace(null, "Granting the 'admin' role.", null);
 			}
 			return FINISHED;
-		} else if( s.equals( "CoSignFrequentEvent" ) ) {
+		} else
+		if( s.equals( "CoSignFrequentEvent" ) ) {
 			Report.trace( "bezzotechcosign", "Running Frequent Event now!", null );
+
 		 // Locate and checkout content that is involved in CoSign for too long
 			ResultSet rset = createResultSet( "QcheckedoutCoSignContent", db );
 			if( rset != null && !rset.isEmpty() ) {
-				HashSet < String > newContentIds = new HashSet < String > ();
-				do{
-					newContentIds.add( rset.getStringValueByName( "dDocName" ) );
-				}while( rset.next() );
-				Report.trace( "bezzotechcosign", "Found content names: " + newContentIds.toString(), null );
-				if( !m_oldContentIds.isEmpty() ) {
-					Report.trace( "bezzotechcosign", "Known content names: " + m_oldContentIds.toString(), null );
-					Iterator < String > i = newContentIds.iterator();
-					while( i.hasNext() ) {
-						String id = i.next();
-						if ( m_oldContentIds.contains( id ) ) {
+				Date dateNow = new Date ();
+				SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MMddyyyy");
+				String now = dateformatMMDDYYYY.format( dateNow );
+
+				DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
+				if( drset == null ) {
+					drset = new DataResultSet( new String[] { "dDocName", "tsDateTime" } );
+				}
+				// HashSet < String > newContentIds = new HashSet < String > ();
+				if( drset.isEmpty() ) {
+					drset.copy( rset );
+					String removed[] = ResultSetUtils.getFieldListAsStringArray( drset );
+					for( int i = 0; i < removed.length; i++ ) {
+						if( removed[ i ].equalsIgnoreCase( "dDocName" ) ) {
+							List <String> removedL = Arrays.asList( removed );
+							removedL.remove( i );
+							removed = ( String[] )removedL.toArray();
+							break;
+						}
+					}
+					drset.removeFields( removed );
+					String values[] = new String [] { now };
+					String colmns[] = new String [] { "tsDateTime" };
+					ResultSetUtils.addColumnsWithDefaultValues( drset, null, values, colmns );
+				} else
+				{
+					DataResultSet tmpRS = new DataResultSet();
+					tmpRS.copy( rset );
+					do {
+/*					newContentIds.add( rset.getStringValueByName( "dDocName" ) );
+//				}while( rset.next() );
+//				Report.trace( "bezzotechcosign", "Found content names: " + newContentIds.toString(), null );
+//				if( !m_oldContentIds.isEmpty() ) {
+//					Report.trace( "bezzotechcosign", "Known content names: " + m_oldContentIds.toString(), null );
+//					Iterator < String > i = newContentIds.iterator();
+//					while( i.hasNext() ) {
+//						String id = i.next();
+//						if ( m_oldContentIds.contains( id ) ) {*/
+						String id = tmpRS.getStringValueByName( "dDocName" );
+						if( drset.findRow( drset.getFieldInfoIndex( "dDocName" ), id ) != null ) {
+
 							// item has been in-process for at least 5 minutes: force a timeout
 							DataBinder undo = new DataBinder( db.getEnvironment() );
 							undo.putLocal( "dDocName", id );
@@ -147,18 +186,23 @@ public class CoSignFilters implements FilterImplementor {
 							DataBinder update = new DataBinder( db.getEnvironment() );
 							update.putLocal( "dDocName", id );
 							ResultSet diRSet = createResultSet( "QlatestDocInfoByName", update );
+							update.mergeResultSetRowIntoLocalData( diRSet );
 							update.putLocal( "xSignatureStatus", "" );
-							update.putLocal( "dID", update.getResultSetValue( diRSet, "dID" ) );
-							update.putLocal( "dRevLabel", update.getResultSetValue( diRSet, "dRevLabel" ) );
-							update.putLocal( "dSecurityGroup", update.getResultSetValue( diRSet, "dSecurityGroup" ) );
-							if( StringUtils.convertToBool( m_shared.getConfig( "UseAccounts" ), false ) )
-								update.putLocal( "dDocAccount", update.getResultSetValue( diRSet, "dDocAccount" ) );
+							/* update.putLocal( "dID", update.getResultSetValue( diRSet, "dID" ) );
+							// update.putLocal( "dRevLabel", update.getResultSetValue( diRSet, "dRevLabel" ) );
+							// update.putLocal( "dSecurityGroup", update.getResultSetValue( diRSet, "dSecurityGroup" ) );
+							// if( StringUtils.convertToBool( m_shared.getConfig( "UseAccounts" ), false ) )
+								// update.putLocal( "dDocAccount", update.getResultSetValue( diRSet, "dDocAccount" ) );*/
 							serviceDoRequest( "UPDATE_DOCINFO", update, ws );
-							i.remove();
+							tmpRS.deleteCurrentRow();
+//							i.remove();
 						}
-					}
+					} while( tmpRS.next() );
+					drset = tmpRS;
 				}
-				m_oldContentIds = newContentIds;
+//				}
+//				m_oldContentIds = newContentIds;
+				m_shared.putResultSet( "CoSignCheckedOutItems", drset );
 			}
 			return FINISHED;
 		}

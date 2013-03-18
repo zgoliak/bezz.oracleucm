@@ -409,7 +409,7 @@ public class XMLUtils {
 
 		public int compare( Object arg0, Object arg1 ) {
 			if( arg0 instanceof Element && arg1 instanceof Element ) {
-				NodeList arg0Children = ( (Element) arg0 ).getChildNodes();
+				NodeList arg0Children = ( ( Element ) arg0 ).getChildNodes();
 				Node arg0Child = null;
 				Node arg1Child = null;
 				for( int i = 0; i < arg0Children.getLength(); i++ ) {
@@ -419,7 +419,7 @@ public class XMLUtils {
 					if( arg0Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
 						break;
 				}
-				NodeList arg1Children = ( (Element) arg1 ).getChildNodes();
+				NodeList arg1Children = ( ( Element ) arg1 ).getChildNodes();
 				for( int j = 0; j < arg1Children.getLength(); j++ ) {
 					arg1Child = arg1Children.item( j );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg1Child.getNodeName() +

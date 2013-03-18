@@ -626,12 +626,13 @@
  % Set fieldDefault on call
  %]]
 <@ dynamichtml cosign_edit_entry @>
-	<$ fieldType = 'Text', fieldEditWidth = '' $>
+	<$ fieldType = 'Text' $>
 	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
 	<$ include compute_std_field_value $>
 	<$ if fieldValue AND ( setReadOnly AND isTrue( setReadOnly ) ) $>
 		<$ fieldReadOnly = 1, setReadOnly = 0 $>
 	<$ endif $>
+	<$ if NOT fieldEditWidth $><$ fieldEditWidth = '' $><$ endif $>
 	<$ inc( 'std_edit_entry' ) $>
 	<$ exec inc( 'std_field_cleanup' ) $>
 <@ end @>
@@ -674,7 +675,8 @@
 <@ dynamichtml cosign_radio_entry @>
  <$ radioValueStyle = 'infoLabel' $>
 	<$ if NOT fieldId $><$ fieldId = fieldName $><$ endif $>
-	<$ radioValue = getValue( '#local', fieldName ) $>
+	<$ radioValue = getValue( '#active', fieldName ) $>
+	<$ if not radioValue $><$ radioValue = getValue( '#active', fieldId ) $><$ endif $>
 	<$ if fieldValue like radioValue $><$ checked = 1 $>
 	<$ elseif radioValue and checked $><$ checked = '' $><$ endif $>
 	<input type="radio" id="<$ fieldId $>" name="<$ fieldName $>" value="<$ fieldValue $>" 
@@ -830,6 +832,8 @@ radioStyle
 checkboxStyle
 setReadOnly
 radioFieldFunction
+fieldMaxLength
+fieldEditWidth
 <@ end @>
 <@ dynamicdata CoreMenuItems @>
 id, label, linkType, linkData

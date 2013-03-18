@@ -8,97 +8,87 @@ INPUT.boldbutton { font-family:system; }
 -->
 		</style>
 		<style>
-			h1, h2, p, input, textarea, select {
+			h1, h2, input, p, select, textarea {
 				text-align: left;
-			}
-			h1 {
-				padding: 0px;
-				margin-bottom: 10px;
-				font-weight: bold;
-				font-size:12px;
 			}
 			.row-headline {
 				clear:both;
 			}
 			.row-headline h1 {
-				padding: 9px;
-				margin-bottom: 0px;
-				font-weight: bold;
-				border-top:1px solid #f1f1f1;
-				border-right:1px solid #999;
 				border-bottom:1px solid #999;
 				border-left:1px solid #f1f1f1;
+				border-right:1px solid #999;
+				border-top:1px solid #f1f1f1;
 				background-color:#dce2f5;
-				width:980px;
 				font-size:13px;
+				font-weight: bold;
+				margin-bottom: 0px;
+				padding: 9px;
+				width:980px;
 			}
 			h2 {
-				padding: 5px 0 5px 0px;
 				font-size: 12px;
+				margin-bottom: 0px;
+				padding: 5px 0 5px 0px;
 			}
 			input[type="checkbox"] {
-				margin: 0 0px 0 20px;
-			}
-			input[type="radio"] {
 				margin: 0 0px 0 20px;
 			}
 			select[multiple="multiple"] {
 				width: 90%
 			}
 			input[type="text"] {
-				padding: 2px;
 				margin-left: 0px;
+				padding: 2px;
 			}
 			input[readonly="readonly"], input[readonly] {
 				background: lightgrey;
 			}
 			textarea {
-				width: 90%
+				overflow: hidden;
+				width: 100%;
 			}
 			.container {
 				width: 1000px;
 			}
 			.left {
 				float: left;
-				width: 569px;
 				padding: 9px 20px 9px 9px;
+				width: 569px;
 			}
 			.innerLeft {
-				float: left;
-				width: 45%;
 				color: #999;
+				float: left;
 				margin-top:10px;
 				padding-left:5%;
+				width: 45%;
 			}
 			.innerRight {
-				float: left;
-				width: 50%;
 				color: #999;
+				float: left;
 				margin-top:10px;
+				width: 50%;
 			}
 			.right {
 				background-color: #f1f1f1;
-				float: left;
-				width: 380px;
-				padding: 10px;
 				border-left: 1px solid #f1f1f1;
 				border-right: 1px solid #999;
-			}
-			.right p {
-				padding: 0 0 0px 0px;
+				float: left;
+				padding: 10px;
+				width: 380px;
 			}
 			.center {
 				clear: both;
-				position: relative;
 				left: 450px;
 				padding: 15px 0;
+				position: relative;
 			}
 			.separator {
 				background-color: #999;
-				float: left;
-				height: 1px;
-				width: 1000px;
 				border-bottom:1px solid #f1f1f1;
+				float: left;
+				width: 1000px;
+				height: 1px;
 			}
 			.footer {
 				padding: 20px 0 40px 0;
@@ -163,23 +153,22 @@ INPUT.boldbutton { font-family:system; }
 			function submitProfile() {
 				if( document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
 					getPageNumber();
-					checked( 'SignatureFieldDetails', 5, 'CoSign.SigProfile.showTitle' );
-					checked( 'DisplayGMTOffset', 0, 'CoSign.SigProfile.extTimeformat' );
+					checked( 'SignatureFieldDetails', 3, 'CoSign.SigProfile.showTitle' );
 					checked( 'SignatureFieldDetails', 0, 'CoSign.SigProfile.signer' );
-					checked( 'SignatureFieldDetails', 2, 'CoSign.SigProfile.date' );
-					checked( 'SignatureFieldDetails', 1, 'CoSign.SigProfile.logo' );
-					checked( 'SignatureFieldDetails', 3, 'CoSign.SigProfile.graphicalImage' );
-					checked( 'SignatureFieldDetails', 4, 'CoSign.SigProfile.initials' );
+					checked( 'SignatureFieldDetails', 1, 'CoSign.SigProfile.date' );
+//					checked( 'SignatureFieldDetails', 1, 'CoSign.SigProfile.logo' );
+					checked( 'SignatureFieldDetails', 2, 'CoSign.SigProfile.graphicalImage' );
+//					checked( 'SignatureFieldDetails', 4, 'CoSign.SigProfile.initials' );
 					getReasons( 'ListOfReasons', 'CoSign.SignReasons.signReason' );
-					if( document.getElementsByName( 'CoSign.SigProfile.visible' )[ 1 ].checked )
+/*					if( document.getElementsByName( 'CoSign.SigProfile.visible' )[ 1 ].checked )
 						alterSigProfileLocationValues();
 					else if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 1 ].checked )
-						alterSigProfileValues();
+						alterSigProfileValues();*/
 				} else
 					document.getElementsByName( 'CoSign.SigProfile.fieldName' )[ 0 ].value =
 							document.getElementById( 'CoSign.SigField.fieldNameToSign' ).value;
 			}
-			function alterSigProfileValues() {
+/*			function alterSigProfileValues() {
 				alterValues( [ 'x', 'y', 'width', 'height', 'dateFormat', 'timeFormat' ] );// Do not include pageNumber, value must be great than 0
 			}
 			function alterSigProfileLocationValues() {
@@ -197,7 +186,7 @@ INPUT.boldbutton { font-family:system; }
 							break;
 					}
 				}
-			}
+			}*/
 			function getReasons( listId, reasonName ) {
 				var list = document.getElementById( listId ).options;
 				var val = document.getElementsByName( reasonName )[ 0 ].value;
@@ -272,80 +261,30 @@ INPUT.boldbutton { font-family:system; }
 <$ endif $>
 				<input type="hidden" name="dDocType" value="CoSignSignatureProfile" />
 				<div class="container">
+					<input type="hidden" name="CoSign.Logic.fields"
+					       value="enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason" />
+					<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign" />
+					<input type="hidden" name="CoSign.SignReasons.fields" value="signReason" />
+					<input type="hidden" name="CoSign.SigProfile.fields"
+												value="fieldName;x;y;width;height;pageNumber;visible;title;showTitle;dateFormat;timeFormat;extTimeformat;signer;date;logo;graphicalImage;initials" />
 
-					<!-- Signature Profile Name -->
-					<div class="row">
+					<input type="hidden" name="CoSign.SigProfile.fieldName" value="newFieldDefault" />
+
+					<!-- Miscellaneous Hidden Fields -->
+					<div class="row" style="display: none">
 						<div class="row-headline">
-							<h1>Signature Profile Name</h1>
+							<h1></h1>
 						</div>
 						<div class="left">
-							<!-- <h1>Signature Profile Name</h1> -->
-							<p>Enter a name and description for this Signature Profile.</p>
+							<p>Workflow Mode - This parameter will affect the UI behaviour.</p>
+							<p>
+								Signature Visibility - Specify whether the CoSign digital signature should be visible in the
+								document file.
+							</p>
 						</div>
 						<div class="right">
-							<h2>Title:</h2>
+							<h2>Workflow Mode:</h2>
 							<p>
-<$ fieldName = 'dDocTitle' $>
-<$ inc( 'cosign_edit_entry' ) $>
-							</p>
-							<h2>Description:</h2>
-							<p>
-<$ fieldName = 'xComments' $>
-<$ inc( 'cosign_memo_entry' ) $>
-							</p>
-							<h2>CoSign Role:</h2>
-							<p>
-<$ exec rsMakeFromList( 'Roles', 'xCoSignRequiredSignatures.options' ) $>
-								<select name="xCoSignRequiredSignatures"<$ if #active.xCoSignRequiredSignatures $> disabled<$ endif $>>
-									<$ loop Roles $>
-									<option<$ if #active.xCoSignRequiredSignatures AND #active.xCoSignRequiredSignatures like #active.row $> selected<$ endif $>><$ #active.row $>
-									<$ endloop $>
-								</select>
-<$ if #active.xCoSignRequiredSignatures $><input type="hidden" name="xCoSignRequiredSignatures" value="<$ #active.xCoSignRequiredSignatures $>" /><$ endif $>
-							</p>
-							<h2>Signature Tag:</h2>
-							<p>
-<$ exec rsMakeFromList( 'Tags', 'xCoSignSignatureTag.options' ) $>
-								<select name="xCoSignSignatureTag"<$ if #active.xCoSignSignatureTag $> disabled<$ endif $>>
-									<$ loop Tags $>
-										<$ if #active.row like 'Externally Signed' $><$ rsNext( 'Tags' ) $><$ endif $>
-									<option<$ if #active.xCoSignSignatureTag AND #active.xCoSignSignatureTag like #active.row $> selected<$ endif $>><$ #active.row $>
-									<$ endloop $>
-								</select>
-<$ if #active.xCoSignSignatureTag $><input type="hidden" name="xCoSignSignatureTag" value="<$ #active.xCoSignSignatureTag $>" /><$ endif $>
-							</p>
-						</div>
-					</div>
-					<div class="separator"></div>
-
-					<!-- Dynamic Signature -->
-					<div class="row">
-						<div class="row-headline">
-							<h1>Dynamic Structure</h1>
-						</div>
-						<input type="hidden" name="CoSign.Logic.fields"
-						       value="enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason" />
-						<div class="left">
-							<!-- <h1>Dynamic Signature</h1> -->
-							<p>PDF only. Specify whether to allow the creation of signature fields dynamically.</p><br />
-							<div style="display: none;">
-								<h1>Workflow Mode</h1>
-								<p>This parameter will affect the UI behaviour.</p><br />
-							</div>
-						</div>
-						<div class="right">
-							<h2>Working Mode:</h2>
-							<p>
-<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'true', radioFieldCaption = 'Ad-Hoc',
-		radioStyle = 'Enable', radioFieldFunction = 'javascript:toggleAdHoc();' $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'false', radioStyle = 'Enable', checked = 1,
-		radioFieldCaption = 'Pre-defined fields', radioFieldFunction = 'javascript:toggleAdHoc();' $>
-<$ inc( 'cosign_radio_entry' ) $>
-							</p><br />
-							<div style="display: none;">
-								<h2>Workflow Mode:</h2>
-								<p>
 <$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'true', radioFieldCaption = 'Yes' $>
 <$ inc( 'cosign_radio_entry' ) $>
 <$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'false', radioFieldCaption = 'No',
@@ -356,99 +295,7 @@ INPUT.boldbutton { font-family:system; }
 <$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'false', radioFieldCaption = 'No',
 		checked = 1 $>
 <$ inc( 'cosign_radio_entry' ) $>
-								</p><br />
-							</div>
-						</div>
-					</div>
-					<div class="separator"></div>
-
-					<!-- Field Name To Sign -->
-					<div class="row" id="NonAdHoc0">
-						<div class="row-headline">
-							<h1>Field Name To Sign</h1>
-						</div>
-						<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign" />
-						<div class="left">
-							<!-- <h1>Field Name To Sign</h1> -->
-							<p>
-								Specifies a name of a signature field in the document.  Unless this parameter is null, the
-								signature applies to this field.
-							</p>
-						</div>
-						<div class="right">
-							<h2>Field Name:</h2>
-							<p>
-<$ fieldName = 'CoSign.SigField.fieldNameToSign' $>
-<$ inc( 'cosign_edit_entry' ) $>
-							</p>
-						</div>
-					</div>
-					<div class="separator" id="NonAdHoc1"></div>
-
-					<!-- Reasons -->
-					<div class="row">
-						<div class="row-headline">
-							<h1>Reasons</h1>
-						</div>
-						<input type="hidden" name="CoSign.SignReasons.fields" value="signReason" />
-						<div class="left">
-							<p>
-								By selecting "Yes" or "No" under "Enforce reasons?" you specify whether a user will need to
-								&nbsp;select a Reason for Signing or be able to enter his/her own unique reason.
-							</p>
-							<p>
-								Define Reasons for Signing that users will select when signing a document.<br />
-								<br />Note:Predefined Reasons for Signing that were entered in the Document Library
-								&nbsp;configuration settings page will be overridden for this Content Type documents by the
-								&nbsp;Reasons for Signing entered here.
-							</p>
-						</div>
-						<div class="right">
-							<h2>Enforce reasons?</h2>
-							<p>
-<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
-		checked = 1 $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
-<$ inc( 'cosign_radio_entry' ) $>
-							</p>
-							<h2>Enable user-defined reason?</h2>
-							<p>
-<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
-		checked = 1 $>
-<$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
-<$ inc( 'cosign_radio_entry' ) $>
-							</p>
-							<h2>Predefined Reasons for Signing</h2>
-							<p>
-<$ exec rsMakeFromList( 'Reasons', 'xCoSignSignatureReasons.options' ) $>
-<$ reasons = getValue( '#local', 'CoSign.SignReasons.signReason' ) $>
-								<select size="6" id="ListOfReasons" multiple="multiple">
-<$ loop Reasons $>
-									<option<$ if #active.reasons AND #active.reasons like ( '*' & #active.row & '*' ) $> selected<$ endif $>><$ #active.row $>
-<$ endloop $>
-								</select>
-								<input type="hidden" name="CoSign.SignReasons.signReason" value="" />
-							</p>
-						</div>
-					</div>
-					<div class="separator"></div>
-
-					<!-- Signature Visibility -->
-					<div class="row" id="AdHoc0">
-						<div class="row-headline">
-							<h1>Signature Visibility</h1>
-						</div>
-						<input type="hidden" name="CoSign.SigProfile.fields"
-													value="fieldName;x;y;width;height;pageNumber;visible;title;showTitle;dateFormat;timeFormat;extTimeformat;signer;date;logo;graphicalImage;initials" />
-						<input type="hidden" name="CoSign.SigProfile.fieldName" value="newFieldDefault" />
-						<div class="left">
-							<!-- <h1>Signature Visibility</h1> -->
-							<p>Specify whether the CoSign digital signature should be visible in the document file.</p>
-							<br />
-						</div>
-						<div class="right">
+							</p><br />
 							<h2>Should CoSign digital signature be visible?</h2>
 							<p>
 <$ fieldName = 'CoSign.SigProfile.visible', fieldValue = 'true', , radioFieldCaption = 'Yes',
@@ -460,97 +307,247 @@ INPUT.boldbutton { font-family:system; }
 							</p>
 						</div>
 					</div>
-					<div class="separator" id="AdHoc1"></div>
+					<div class="separator" style="display: none"></div>
 
-					<!-- Signature Field Details -->
-					<div class="row" id="AdHoc2">
+					<!-- General -->
+					<div class="row">
 						<div class="row-headline">
-							<h1>Signature Field Details</h1>
+							<h1>General</h1>
 						</div>
 						<div class="left">
-							<!-- <h1>Signature Field Details</h1> -->
+							<p>Enter a name and description for this Signature Profile</p>
+						</div>
+						<div class="right">
+							<div style="text-align: left">
+								Signature Profile Name: 
+								<$ fieldName = 'dDocTitle' $><$ inc( 'cosign_edit_entry' ) $>
+							</div><br />
+							<div style="text-align: left">
+								Description: 
+								<$ fieldName = 'xComments' $><$ inc( 'cosign_memo_entry' ) $>
+							</div>
+						</div>
+					</div>
+					<div class="separator"></div>
+
+					<!-- Document Association -->
+					<div class="row">
+						<div class="row-headline">
+							<h1>Document Association</h1>
+						</div>
+						<div class="left">
 							<p>
-								Select the details that will appear in the digital signature field.  You may select any
-								number of elements.
+								CoSign Role - WCC role which will be authorized to use that signature profile
+							</p><br />
+							<p>
+								Signature Tag - This parameter is designed to allow a link between a signature profile and a
+								document. A signature profile will be associated with a document (one or more) that has the
+								same value in its CoSign Signature Tag metadata field
 							</p>
 						</div>
 						<div class="right">
-							<h2>Include&nbsp;Element Name</h2>
+							<div style="text-align: left">
+								CoSign Role: 
+<$ exec rsMakeFromList( 'Roles', 'xCoSignRequiredSignatures.options' ) $>
+								<select name="xCoSignRequiredSignatures"
+<$ if #active.xCoSignRequiredSignatures $> disabled<$ endif $>>
+<$ loop Roles $>
+									<option
+	<$ if #active.xCoSignRequiredSignatures AND #active.xCoSignRequiredSignatures like #active.row $>
+ selected
+	<$ endif $>>
+	<$ #active.row $>
+<$ endloop $>
+								</select>
+<$ if #active.xCoSignRequiredSignatures $>
+								<input type="hidden" name="xCoSignRequiredSignatures" value="
+	<$ #active.xCoSignRequiredSignatures $>" />
+<$ endif $>
+							</div><br />
+							<div style="text-align: left">
+								Signature Tag: 
+<$ exec rsMakeFromList( 'Tags', 'xCoSignSignatureTag.options' ) $>
+								<select name="xCoSignSignatureTag"<$ if #active.xCoSignSignatureTag $> disabled<$ endif $>>
+<$ loop Tags $>
+	<$ if #active.row like 'Externally Signed' $><$ rsNext( 'Tags' ) $><$ endif $>
+									<option
+	<$ if #active.xCoSignSignatureTag AND #active.xCoSignSignatureTag like #active.row $>
+ selected
+	<$ endif $>>
+	<$ #active.row $>
+<$ endloop $>
+								</select>
+<$ if #active.xCoSignSignatureTag $>
+								<input type="hidden" name="xCoSignSignatureTag" value="<$ #active.xCoSignSignatureTag $>" />
+<$ endif $>
+							</div><br /><br />
+						</div>
+					</div>
+					<div class="separator"></div>
+
+					<!-- Signing Behavior -->
+					<div class="row">
+						<div class="row-headline">
+							<h1>Signing Behavior</h1>
+						</div>
+						<div class="left">
 							<p>
+								Enforce reasons? - The user must (if 'Yes') or can (if 'No') include a reason as part of the
+								signing
+							</p><br />
+							<p>
+								Enable user-defined reason? - If 'Yes', the user can use his own reason. If 'No', the user
+								can only select a reason from a pre-defined reason list
+							</p><br />
+							<p>
+								Sign Reasons - Use the Ctrl/Shift buttons in order to apply reasons for this profile
+							</p><br />
+							<p>
+								Pre-defined field should be used in case you want to apply this profile on an existing
+								signature field in a document<br />
+								Ad-Hoc mode will enable the user to dynamically add a signature field to a PDF document.
+								The default settings to this new signature field will be taken based on the following
+								definitions
+							</p><br />
+							<p id="NonAdHoc0">
+								Signature field name - Specify the <b>SAME</b> name as the name of the signature field in
+								the document
+							</p>
+						</div>
+						<div class="right">
+							<div style="text-align: left">
+								Enforce reasons? 
+<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'false', , radioFieldCaption = 'No' $>
+<$ inc( 'cosign_radio_entry' ) $>
+							</div><br />
+							<div style="text-align: left">
+								Enable user-defined reason? 
+<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'true', , radioFieldCaption = 'Yes' $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.allowUserReason', fieldValue = 'false', , radioFieldCaption = 'No',
+		checked = 1 $>
+<$ inc( 'cosign_radio_entry' ) $>
+							</div><br />
+							<div style="text-align: left">
+								Sign Reasons: 
+<$ exec rsMakeFromList( 'Reasons', 'xCoSignSignatureReasons.options' ) $>
+<$ reasons = getValue( '#local', 'CoSign.SignReasons.signReason' ) $>
+								<select size="6" id="ListOfReasons" multiple="multiple">
+<$ loop Reasons $>
+									<option
+	<$ #active.reasons $>
+	<$ #active.row $>
+	<$ #active.reasons like ( '*' & #active.row & '*' ) $>
+	<$ if #active.reasons AND #active.reasons like ( '*' & #active.row & '*' ) $>
+ selected
+	<$ endif $>>
+	<$ #active.row $>
+<$ endloop $>
+								</select>
+								<input type="hidden" name="CoSign.SignReasons.signReason" value="" />
+							</div><br />
+							<div style="text-align: left">
+								Signing Mode: 
+<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'true', radioFieldCaption = 'Ad-Hoc',
+		radioStyle = 'Enable', radioFieldFunction = 'javascript:toggleAdHoc();' $>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'false', radioStyle = 'Enable', checked = 1,
+		radioFieldCaption = 'Pre-defined field (default)', radioFieldFunction = 'javascript:toggleAdHoc();' $>
+<$ inc( 'cosign_radio_entry' ) $>
+							</div><br />
+							<div style="text-align: left" id="NonAdHoc1">
+								Signature field name (only in Pre-defined mode): 
+<$ fieldName = 'CoSign.SigField.fieldNameToSign' $>
+<$ inc( 'cosign_edit_entry' ) $>
+							</div>
+						</div>
+					</div>
+					<div class="separator"></div>
+
+					<!-- Signature Field Appearance Settings -->
+					<div class="row" id="AdHoc0">
+						<div class="row-headline">
+							<h1>Signature Field Appearance Settings</h1>
+						</div>
+						<div class="left">
+							<p>
+								This section enables to define the default appearance settings. The user, as part of his
+								signing, will be able to accept or change these settings
+							</p>
+						</div>
+						<div class="right">
+							<div style="text-align: left">
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.signer', checked = 1,
 		fieldCaption = 'Signed By', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
 								<input type="hidden" name="CoSign.SigProfile.signer" value="" /><br /><br />
-<$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.logo', fieldCaption = 'Logo',
-		fieldCheckValue = 'true' $>
-<$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.logo" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.date', checked = 1,
-		fieldCaption = 'Date\Time', fieldCheckValue = 'true' $>
+		fieldCaption = 'Date &amp; Time', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
 								<input type="hidden" name="CoSign.SigProfile.date" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.graphicalImage', checked = 1,
 		fieldCaption = 'Graphical Signature', fieldCheckValue = 'true' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
 								<input type="hidden" name="CoSign.SigProfile.graphicalImage" value="" /><br /><br />
-<$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.initials',
-		fieldCaption = 'Initials', fieldCheckValue = 'true' $>
-<$ inc( 'cosign_checkbox_entry' ) $>
-								<input type="hidden" name="CoSign.SigProfile.initials" value="" /><br /><br />
 <$ fieldName = 'SignatureFieldDetails', fieldId = 'CoSign.SigProfile.showTitle',
-		fieldCaption = 'Show Title', fieldCheckValue = 'true', checkboxStyle = 'Enable',
+		fieldCaption = 'Show Title', fieldCheckValue = 'true', checkboxStyle = 'Enable', checked = 1,
 		checkboxFieldFunction = 'javascript:toggleTitle()' $>
 <$ inc( 'cosign_checkbox_entry' ) $>
 								<input type="hidden" name="CoSign.SigProfile.showTitle" value="" />
 <$ fieldName = 'CoSign.SigProfile.title' $>
-								Title: <$ inc( 'cosign_edit_entry' ) $><br /><br />
-							</p>
+<$ inc( 'cosign_edit_entry' ) $>
+							</div>
 						</div>
 					</div>
-					<div class="separator" id="AdHoc3"></div>
+					<div class="separator" id="AdHoc1"></div>
 
 					<!-- Signature Size and Location -->
-					<div class="row" id="Visible0" style="display:none;">
+					<div class="row" id="AdHoc2">
 						<div class="row-headline">
 							<h1>Signature Size and Location</h1>
 						</div>
 						<div class="left">
-							<!-- <h1>Signature Size and Location</h1> -->
-							<p>
-								Specify the size and location for the CoSign digital signature. Enter coordinates for X and
-								Y, the width and height for the signature field, as well as the page number that the
-								signature should appear on.
-							</p>
+							<p></p>
 						</div>
 						<div class="right">
-							<h2>Signature Size and Location:</h2>
+							<h2></h2>
+							<p>X coordinate&nbsp;Y coordinate</p>
 							<p>
-<$ fieldName = 'CoSign.SigProfile.x', fieldValue = 50 $>
-								X:<$ inc( 'cosign_edit_entry' ) $><br /><br />
-<$ fieldName = 'CoSign.SigProfile.y', fieldValue = 50 $>
-								Y:<$ inc( 'cosign_edit_entry' ) $><br /><br />
-<$ fieldName = 'CoSign.SigProfile.width', fieldValue = 100 $>
-								Width:<$ inc( 'cosign_edit_entry' ) $><br /><br />
-<$ fieldName = 'CoSign.SigProfile.height', fieldValue = 50 $>
-								Height:<$ inc( 'cosign_edit_entry' ) $><br /><br />
-							</p>
-							<h2>Signature Page:</h2>
+<$ fieldName = 'CoSign.SigProfile.x', fieldDefault = 50, fieldEditWidth = 6, fieldMaxLength = 4 $>
+								<$ inc( 'cosign_edit_entry' ) $>
+<$ fieldName = 'CoSign.SigProfile.y', fieldDefault = 50, fieldEditWidth = 6, fieldMaxLength = 4 $>
+								<$ inc( 'cosign_edit_entry' ) $>
+							</p><br />
+							<p>Width&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Height</p>
 							<p>
-<$ fieldName = 'sPage', radioStyle = 'Enable', fieldValue = '', radioFieldCaption = 'Page Number',
+<$ fieldName = 'CoSign.SigProfile.width', fieldDefault = 100, fieldEditWidth = 6, fieldMaxLength = 4 $>
+								<$ inc( 'cosign_edit_entry' ) $>
+<$ fieldName = 'CoSign.SigProfile.height', fieldDefault = 50, fieldEditWidth = 6, fieldMaxLength = 4 $>
+								<$ inc( 'cosign_edit_entry' ) $>
+							</p><br />
+							<p>On page</p>
+							<p>
+<$ fieldName = 'sPage', fieldId = 'CoSign.SigProfile.pageNumber', radioStyle = 'Enable',
+		fieldValue = '', radioFieldCaption = 'Page Number',
 		radioFieldFunction = 'javascript:togglePageNumber();' $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.SigProfile.pageNumber', setReadOnly = 1, fieldDefault = 1 $>
-<$ inc( 'cosign_edit_entry' ) $><br /><br />
-<$ fieldName = 'sPage', fieldValue = '-2', radioFieldCaption = 'Penultimate Page',
+<$ fieldName = 'CoSign.SigProfile.pageNumber', setReadOnly = 1, fieldDefault = 1,
+		fieldEditWidth = 1, fieldMaxLength = 4 $>
+<$ inc( 'cosign_edit_entry' ) $>
+<$ fieldName = 'sPage', fieldId = 'CoSign.SigProfile.pageNumber', fieldValue = '-2',
+		radioFieldCaption = 'Penultimate (value = -2)',
 		radioFieldFunction = 'javascript:togglePageNumber();' $>
-<$ inc( 'cosign_radio_entry' ) $><br /><br />
-<$ fieldName = 'sPage', fieldValue = '-1', radioFieldCaption = 'Last Page',
-		radioFieldFunction = 'javascript:togglePageNumber();'	$>
+<$ inc( 'cosign_radio_entry' ) $>
+<$ fieldName = 'sPage',  fieldId = 'CoSign.SigProfile.pageNumber', fieldValue = '-1',
+		radioFieldCaption = 'Last', radioFieldFunction = 'javascript:togglePageNumber();', checked = 1	$>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p>
 						</div>
 					</div>
-					<div class="separator" id="Visible1" style="display:none;"></div>
+					<div class="separator" id="AdHoc3"></div>
 
 					<!-- Time/Date Appearance Format -->
 					<div class="row" id="AdHoc4">
@@ -558,7 +555,6 @@ INPUT.boldbutton { font-family:system; }
 							<h1>Time/Date Appearance Format</h1>
 						</div>
 						<div class="left">	
-							<!-- <h1>Time/Date Appearance Format</h1> -->
 							<p>
 								Specify how the CoSign digital signature time and date information will appear.  Notations
 								are described in the list below.
@@ -605,9 +601,6 @@ INPUT.boldbutton { font-family:system; }
 <$ include std_page_end $>
 <$ if isTrue( getValue( '#local', 'CoSign.Logic.allowAdHoc' ) ) $>
 		<script>toggleAdHoc();</script>
-<$ endif $>
-<$ if isTrue( getValue( '#local', 'CoSign.SigProfile.visible' ) ) $>
-		<script>toggleVisible();</script>
 <$ endif $>
 	</body>
 </html>
