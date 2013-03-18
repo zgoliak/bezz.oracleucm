@@ -414,7 +414,7 @@ public class XMLUtils {
 				int i = 0;
 				Node arg1Child = null;
 				int j = 0;
-				while( arg0Child = arg0Children.item( i ) != null ) {
+				while( ( arg0Child = arg0Children.item( i ) ) != null ) {
 //				for( int i = 0; i < arg0Children.getLength(); i++ ) {
 //					arg0Child = arg0Children.item( i );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg0Child.getNodeName() +
@@ -425,7 +425,7 @@ public class XMLUtils {
 				}
 				if( arg0Child == null ) return -1;
 				NodeList arg1Children = ( ( Element ) arg1 ).getChildNodes();
-				while( arg1Child = arg1Children.item( i ) != null ) {
+				while( ( arg1Child = arg1Children.item( i ) ) != null ) {
 //				for( int j = 0; j < arg1Children.getLength(); j++ ) {
 //					arg1Child = arg1Children.item( j );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg1Child.getNodeName() +
