@@ -3,6 +3,7 @@ package com.bezzotech.oracleucm.arx.common;
 import intradoc.common.CommonDataConversion;
 import intradoc.common.Errors;
 import intradoc.common.ExecutionContext;
+import intradoc.common.LocaleUtils;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.common.StringUtils;
@@ -211,7 +212,9 @@ public class CMUtils {
 		Report.trace( "bezzotechcosign", "Entering retrieveSigProfilesFilePath", null );
 		DataBinder binder = new DataBinder();
 		if( m_binder.getLocal( "CoSignProfile" ) != null ) {
-			binder.putLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ),
+			DataResultSet drset = new DataResultSet();
+			drset.copy( getProfileWithMatchingTagAndUserRoles( m_binder.getLocal( "CoSignProfile" ) ) );
+/*			binder.putLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ),
 					m_binder.getLocal( "CoSignProfile" ) );
 			ResultSet rset = createResultSet( "QsignatureProfileID", binder );
 			DataResultSet drset = new DataResultSet();
@@ -248,13 +251,13 @@ public class CMUtils {
 				found = false;
 				Report.debug( "bezzotechcosign", "Current: " + drset.getCurrentRow() + "\n\tRows: " +
 						drset.getNumRows(), null );
-			} while( drset.isRowPresent() );
+			} while( drset.isRowPresent() );*/
 			if( drset.getNumRows() <= 0 ) {
 				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
 						m_binder.getLocal( "CoSignProfile" ) );
 			} else if( drset.getNumRows() > 1 ) {
-				throw new ServiceException( "The user: " + ud.m_name + ", is assigned to multiple signature" +
-						" profiles for this document.  Please contact your administrator." );
+				throw new ServiceException( "This user is assigned to multiple signature profiles for this " +
+						"document.  Please contact your administrator." );
 			}
 			drset.first();
 			Report.debug( "bezzotechcosign", "Retrieved ResultSet: " + drset.toString(), null );
@@ -287,6 +290,49 @@ public class CMUtils {
 				ud = SecurityUtils.createDefaultAdminUserData();
 		}
 		return ud;
+	}
+
+	/**
+	 *
+		*/
+	public ResultSet getProfileWithMatchingTagAndUserRoles( String profileTag ) throws ServiceException {
+		DataBinder binder = new DataBinder();
+		binder.putLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ), profileTag );
+		ResultSet rset = createResultSet( "QsignatureProfileID", binder );
+		DataResultSet drset = new DataResultSet();
+		drset.copy( rset );
+		Report.debug( "bezzotechcosign", "Rows: " + drset.getNumRows(), null );
+		if( drset.getNumRows() <= 0 ) {
+			throw new ServiceException( "Unable to locate the Sign Request Profile: " + profileTag );
+		}
+
+		Vector userRoles = SecurityUtils.getRoleList( getUserData() );
+		String packageStr = "";
+		boolean found = false;
+		do {
+			String requiredRole = drset.getStringValueByName( "xCoSignRequiredSignatures" );
+			for( int i = 0; i < userRoles.size(); i++ ) {
+				UserAttribInfo uai = ( UserAttribInfo )userRoles.elementAt( i );
+				Report.debug( "bezzotechcosign", "Required Roles: " + requiredRole + "\n\tRole: " +
+						uai.m_attribName + "\n\ttest: " + requiredRole.indexOf( uai.m_attribName ), null );
+				if( requiredRole.indexOf( uai.m_attribName ) >= 0 ) {
+					if( found )
+						throw new ServiceException( "The content " + m_binder.getLocal( "dDocName" ) +
+								" has multiple signature profiles.  Please contact your administrator." );
+					else
+						found = true;
+				}
+			}
+			if( !found ) {
+				drset.deleteCurrentRow();
+				Report.debug( "bezzotechcosign", "Deleted ResultSet Row: " + drset.toString(), null );
+			} else
+				drset.next();
+			found = false;
+			Report.debug( "bezzotechcosign", "Current: " + drset.getCurrentRow() + "\n\tRows: " +
+					drset.getNumRows(), null );
+		} while( drset.isRowPresent() );
+		return drset;
 	}
 
 	/** Execute a service as the current user.
@@ -332,11 +378,20 @@ public class CMUtils {
 		if( sigStatus != null && sigStatus.equals( "sent-to-cosign" ) ) {
 			m_binder.putLocal( "xSignatureStatus", "" );
 			update();
+			DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
+			do {
+				if( drset.getStringValueByName( "dDocName" ).equals( rset.getStringValueByName( "dDocName" ) ) ) {
+					drset.deleteCurrentRow();
+					break;
+				}
+			} while( drset.isRowPresent() );
 		}
 /*  Want to redirect user to Doc_info on Cancel */
 		if( !error.equals( "" ) &&
-				( m_binder.getLocal( "RedirectURL" ) == null || m_binder.getLocal( "RedirectURL" ) == "" ) )
+				( m_binder.getLocal( "RedirectURL" ) == null || m_binder.getLocal( "RedirectURL" ) == "" ) ) {
+			error = LocaleUtils.encodeMessage( error, null );
 			throw new ServiceException( error );
+		}
 	}
 
 	/**

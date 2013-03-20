@@ -3,9 +3,11 @@ package com.bezzotech.oracleucm.arx;
 import intradoc.common.CommonDataConversion;
 import intradoc.common.Errors;
 import intradoc.common.ExecutionContext;
+import intradoc.common.LocaleUtils;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.common.StringUtils;
+import intradoc.common.SystemUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataException;
 import intradoc.data.DataResultSet;
@@ -112,7 +114,7 @@ public class WSC {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
 		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
-//			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
 			m_binder.putLocal( m_appName + ".Logic.enforceFieldToSign", "true" );
 			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
 			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
@@ -525,7 +527,10 @@ public class WSC {
 		Element ele = m_xmlutil.appendChildrenFromEnvironmental( m_appName, m_doc, "Auth", false );
 		if( StringUtils.convertToBool( m_shared.getConfig( "useWCCUserName" ), false ) ) {
 			String username = m_binder.getLocal( "dUser" );
-			if( username == null || username.equals( "" ) ) throw new ServiceException( "csInvalidWCCSession" );
+			if( username == null || username.equals( "" ) ) {
+				String msg = LocaleUtils.encodeMessage( "csIISorCSWADown", null );
+				SystemUtils.error( null, msg );
+			}
 			m_xmlutil.appendTextNodeToChild( m_doc, ele, "username", username );
 		}
 		return ele;

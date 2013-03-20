@@ -1,5 +1,6 @@
 package com.bezzotech.oracleucm.arx;
 
+import intradoc.common.LocaleUtils;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.data.DataBinder;
@@ -273,6 +274,17 @@ public class CoSignServiceHandler extends ServiceHandler {
 
 	/**
 	 *
+		*/
+	public void validateUserAccessToMenu() throws ServiceException {
+		DataResultSet drset = new DataResultSet();
+		drset.copy( m_cmutils.getProfileWithMatchingTagAndUserRoles(
+				m_binder.getLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ) ) ) );
+		if( drset.getNumRows() > 0 )
+			m_binder.putLocal( "userHasRequiredRole", "1" );
+	}
+
+	/**
+	 *
 	 */
 	protected void logHistory( String msg ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
@@ -280,6 +292,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		binder.putLocal( "User", m_binder.getLocal( "dUser" ) );
 		binder.putLocal( "Operation", m_binder.getLocal( "IdcService" ) );
 		if( msg == null ) msg = "";
+	 msg = LocaleUtils.encodeMessage( msg, null );
 		binder.putLocal( "Error", msg );
 		binder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
 		binder.putLocal( "dID", m_binder.getLocal( "dID" ) );

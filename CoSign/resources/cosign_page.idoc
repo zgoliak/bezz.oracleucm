@@ -102,6 +102,9 @@
 	<$ traceLog = traceLog & '###begin cosign_compute_userhasrequiredrole log###' $>
 
 	<$ userHasRequiredRole = 0 $>
+	<$ executeService( 'COSIGN_SHOW_MENU' ) $>
+	[[% Swapping in new service to handle process due to change in orientation
+	 % Now the user''s roles are being compared against the profiles fetched using the content''s tag
 	<$ rsMakeFromString( 'Roles', #active.xCoSignRequiredSignatures ) $>
 	<$ if rsExists( 'Roles' ) $>
 		<$ loop Roles $>
@@ -113,7 +116,7 @@
 		<$ endloop $>
 	<$ else $>
 		<$ userHasRequiredRole = 1 $>
-	<$ endif $>
+	<$ endif $>%]]
 
 	<$ if not delayTrace and ( pageDebug and isTrue( pageDebug ) ) $>
 		<$ trace( traceLog & '\n\t###end cosign_compute_userhasrequiredrole log###', '#console' ) $>

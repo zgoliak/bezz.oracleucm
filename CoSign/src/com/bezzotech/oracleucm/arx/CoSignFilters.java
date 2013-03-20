@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
 public class CoSignFilters implements FilterImplementor {
 	protected static HashSet < String > m_oldContentIds = new HashSet < String > ();
@@ -41,7 +42,7 @@ public class CoSignFilters implements FilterImplementor {
 
 	public int doFilter( Workspace ws, DataBinder db, ExecutionContext ec )
 			throws DataException, ServiceException {
-		Report.trace( "bezzotechcosign", "Entering CoSignFilters.doFilter", null );
+//		Report.trace( "bezzotechcosign", "Entering CoSignFilters.doFilter", null );
 		m_workspace = ws;
 		if( ec == null ) {
 			System.out.println( "Plugin filter called without a context." );
@@ -54,6 +55,7 @@ public class CoSignFilters implements FilterImplementor {
 			return FilterImplementor.CONTINUE;
 		}
 		String s = ( String )obj;
+		// Clear CoSign fields if not a CoSign document and CoSign service
 		if( s.equals( "validateCoSign" ) ) {
 			if( db.getLocal( "IdcService" ) == null || 
 					( db.getLocal( "IdcService" ).contains( "CHECKIN" ) && 
@@ -69,6 +71,7 @@ public class CoSignFilters implements FilterImplementor {
 			}
 			return FINISHED;
 		} else
+		// Grant enhanced permissions when checking in signed document
 		if( s.equals( "alterCoSignRole" ) ) {
 			if(	db.getLocal( "IdcService" ) != null &&
 					db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) {
@@ -78,6 +81,7 @@ public class CoSignFilters implements FilterImplementor {
 			}
 			return FINISHED;
 		} else
+		// CoSign clean-up if document signing not complete
 		if( s.equals( "CoSignFrequentEvent" ) ) {
 			Report.trace( "bezzotechcosign", "Running Frequent Event now!", null );
 
@@ -91,36 +95,13 @@ public class CoSignFilters implements FilterImplementor {
 				if( drset == null ) {
 					drset = new DataResultSet( new String[] { "dDocName", "tsDateTime" } );
 				}
-				// HashSet < String > newContentIds = new HashSet < String > ();
 				if( drset.isEmpty() ) {
 					drset.copy( rset );
-					String removed[] = ResultSetUtils.getFieldListAsStringArray( drset );
-					for( int i = 0; i < removed.length; i++ ) {
-						if( removed[ i ].equalsIgnoreCase( "dDocName" ) ) {
-							List <String> removedL = Arrays.asList( removed );
-							removedL.remove( i );
-							removed = ( String[] )removedL.toArray();
-							break;
-						}
-					}
-					drset.removeFields( removed );
-					String values[] = new String [] { now };
-					String colmns[] = new String [] { "tsDateTime" };
-					ResultSetUtils.addColumnsWithDefaultValues( drset, null, values, colmns );
-				} else
-				{
+				}
+				else {
 					DataResultSet tmpRS = new DataResultSet();
 					tmpRS.copy( rset );
 					do {
-/*					newContentIds.add( rset.getStringValueByName( "dDocName" ) );
-//				}while( rset.next() );
-//				Report.trace( "bezzotechcosign", "Found content names: " + newContentIds.toString(), null );
-//				if( !m_oldContentIds.isEmpty() ) {
-//					Report.trace( "bezzotechcosign", "Known content names: " + m_oldContentIds.toString(), null );
-//					Iterator < String > i = newContentIds.iterator();
-//					while( i.hasNext() ) {
-//						String id = i.next();
-//						if ( m_oldContentIds.contains( id ) ) {*/
 						String id = tmpRS.getStringValueByName( "dDocName" );
 						if( drset.findRow( drset.getFieldInfoIndex( "dDocName" ), id ) != null ) {
 
@@ -134,20 +115,16 @@ public class CoSignFilters implements FilterImplementor {
 							ResultSet diRSet = createResultSet( "QlatestDocInfoByName", update );
 							update.mergeResultSetRowIntoLocalData( diRSet );
 							update.putLocal( "xSignatureStatus", "" );
-							/* update.putLocal( "dID", update.getResultSetValue( diRSet, "dID" ) );
-							// update.putLocal( "dRevLabel", update.getResultSetValue( diRSet, "dRevLabel" ) );
-							// update.putLocal( "dSecurityGroup", update.getResultSetValue( diRSet, "dSecurityGroup" ) );
-							// if( StringUtils.convertToBool( m_shared.getConfig( "UseAccounts" ), false ) )
-								// update.putLocal( "dDocAccount", update.getResultSetValue( diRSet, "dDocAccount" ) );*/
 							serviceDoRequest( "UPDATE_DOCINFO", update, ws );
 							tmpRS.deleteCurrentRow();
-//							i.remove();
 						}
 					} while( tmpRS.next() );
 					drset = tmpRS;
 				}
-//				}
-//				m_oldContentIds = newContentIds;
+				removeColumn( drset, "dDocName" );
+				String values[] = new String [] { now };
+				String colmns[] = new String [] { "tsDateTime" };
+				ResultSetUtils.addColumnsWithDefaultValues( drset, null, values, colmns );
 				m_shared.putResultSet( "CoSignCheckedOutItems", drset );
 			}
 			return FINISHED;
@@ -311,5 +288,23 @@ public class CoSignFilters implements FilterImplementor {
 		service.setUserData( userData );
 		db.putLocal( "IdcService", serviceName );
 		service.doRequest();
+	}
+
+	protected void removeColumns( DataResultSet drset, String columns[] ) {
+		for( int i = 0; i < columns.length; i++ ) {
+			removeColumn( drset, columns[ i ] );
+		}
+	}
+
+	protected void removeColumn( DataResultSet drset, String column ) {
+		Vector <String> colsToRemove =
+				new Vector( Arrays.asList( ResultSetUtils.getFieldListAsStringArray( drset ) ) );
+		for( int i = 0; i < colsToRemove.size(); i++ ) {
+			if( colsToRemove.get( i ).equalsIgnoreCase( column ) ) {
+				colsToRemove.remove( i );
+				break;
+			}
+		}
+		drset.removeFields( Arrays.copyOf( colsToRemove.toArray(), colsToRemove.size(), String[].class ) );
 	}
 }

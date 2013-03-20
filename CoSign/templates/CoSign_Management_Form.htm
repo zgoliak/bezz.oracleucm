@@ -46,7 +46,7 @@ INPUT.boldbutton { font-family:system; }
 			}
 			textarea {
 				overflow: hidden;
-				width: 100%;
+				width: 80%;
 			}
 			.container {
 				width: 1000px;
@@ -156,37 +156,12 @@ INPUT.boldbutton { font-family:system; }
 					checked( 'SignatureFieldDetails', 3, 'CoSign.SigProfile.showTitle' );
 					checked( 'SignatureFieldDetails', 0, 'CoSign.SigProfile.signer' );
 					checked( 'SignatureFieldDetails', 1, 'CoSign.SigProfile.date' );
-//					checked( 'SignatureFieldDetails', 1, 'CoSign.SigProfile.logo' );
 					checked( 'SignatureFieldDetails', 2, 'CoSign.SigProfile.graphicalImage' );
-//					checked( 'SignatureFieldDetails', 4, 'CoSign.SigProfile.initials' );
 					getReasons( 'ListOfReasons', 'CoSign.SignReasons.signReason' );
-/*					if( document.getElementsByName( 'CoSign.SigProfile.visible' )[ 1 ].checked )
-						alterSigProfileLocationValues();
-					else if( document.getElementsByName( 'CoSign.Logic.allowAdHoc' )[ 1 ].checked )
-						alterSigProfileValues();*/
 				} else
 					document.getElementsByName( 'CoSign.SigProfile.fieldName' )[ 0 ].value =
 							document.getElementById( 'CoSign.SigField.fieldNameToSign' ).value;
 			}
-/*			function alterSigProfileValues() {
-				alterValues( [ 'x', 'y', 'width', 'height', 'dateFormat', 'timeFormat' ] );// Do not include pageNumber, value must be great than 0
-			}
-			function alterSigProfileLocationValues() {
-				alterValues( [ 'x', 'y', 'width', 'height' ] );// Do not include pageNumber, value must be great than 0
-			}
-			function alterValues( fields ) {
-				for( var i = 0; i < fields.length; i++ ) {
-					var field = document.getElementsByName( 'CoSign.SigProfile.' + fields[ i ] )[ 0 ];
-					switch( field.type ) {
-						case 'hidden':
-						case 'text':
-						case 'checkbox':
-						case 'radio':
-							field.value = '0';
-							break;
-					}
-				}
-			}*/
 			function getReasons( listId, reasonName ) {
 				var list = document.getElementById( listId ).options;
 				var val = document.getElementsByName( reasonName )[ 0 ].value;
@@ -319,7 +294,7 @@ INPUT.boldbutton { font-family:system; }
 						</div>
 						<div class="right">
 							<div style="text-align: left">
-								Signature Profile Name: 
+								Name: 
 								<$ fieldName = 'dDocTitle' $><$ inc( 'cosign_edit_entry' ) $>
 							</div><br />
 							<div style="text-align: left">
@@ -451,15 +426,15 @@ INPUT.boldbutton { font-family:system; }
 							</div><br />
 							<div style="text-align: left">
 								Signing Mode: 
+<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'false', radioStyle = 'Enable', checked = 1,
+		radioFieldCaption = 'Pre-defined field', radioFieldFunction = 'javascript:toggleAdHoc();' $>
+<$ inc( 'cosign_radio_entry' ) $>
 <$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'true', radioFieldCaption = 'Ad-Hoc',
 		radioStyle = 'Enable', radioFieldFunction = 'javascript:toggleAdHoc();' $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.allowAdHoc', fieldValue = 'false', radioStyle = 'Enable', checked = 1,
-		radioFieldCaption = 'Pre-defined field (default)', radioFieldFunction = 'javascript:toggleAdHoc();' $>
-<$ inc( 'cosign_radio_entry' ) $>
 							</div><br />
 							<div style="text-align: left" id="NonAdHoc1">
-								Signature field name (only in Pre-defined mode): 
+								Signature field name: 
 <$ fieldName = 'CoSign.SigField.fieldNameToSign' $>
 <$ inc( 'cosign_edit_entry' ) $>
 							</div>
@@ -530,19 +505,18 @@ INPUT.boldbutton { font-family:system; }
 							</p><br />
 							<p>On page</p>
 							<p>
-<$ fieldName = 'sPage', fieldId = 'CoSign.SigProfile.pageNumber', radioStyle = 'Enable',
-		fieldValue = '', radioFieldCaption = 'Page Number',
+<$ sPage = getValue( '#active', 'CoSign.SigProfile.pageNumber' ) $>
+<$ fieldName = 'sPage', radioStyle = 'Enable', fieldValue = '', radioFieldCaption = 'Page Number',
 		radioFieldFunction = 'javascript:togglePageNumber();' $>
 <$ inc( 'cosign_radio_entry' ) $>
 <$ fieldName = 'CoSign.SigProfile.pageNumber', setReadOnly = 1, fieldDefault = 1,
 		fieldEditWidth = 1, fieldMaxLength = 4 $>
 <$ inc( 'cosign_edit_entry' ) $>
-<$ fieldName = 'sPage', fieldId = 'CoSign.SigProfile.pageNumber', fieldValue = '-2',
-		radioFieldCaption = 'Penultimate (value = -2)',
+<$ fieldName = 'sPage', fieldValue = '-2', radioFieldCaption = 'Penultimate Page',
 		radioFieldFunction = 'javascript:togglePageNumber();' $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'sPage',  fieldId = 'CoSign.SigProfile.pageNumber', fieldValue = '-1',
-		radioFieldCaption = 'Last', radioFieldFunction = 'javascript:togglePageNumber();', checked = 1	$>
+<$ fieldName = 'sPage', fieldValue = '-1', radioFieldCaption = 'Last Page',
+		radioFieldFunction = 'javascript:togglePageNumber();', checked = 1	$>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p>
 						</div>
@@ -572,7 +546,7 @@ INPUT.boldbutton { font-family:system; }
 						</div>
 						<div class="right">
 							<p>
-<$ fieldName = 'CoSign.SigProfile.dateFormat', fieldDefault = 'MM/dd/yyyy' $>
+<$ fieldName = 'CoSign.SigProfile.dateFormat', fieldDefault = 'MM/dd/yy' $>
 								Date Format:<$ inc( 'cosign_edit_entry' ) $><br /><br />
 <$ fieldName = 'CoSign.SigProfile.timeFormat', fieldDefault = 'hh:mm tt' $>
 								Time Format:<$ inc( 'cosign_edit_entry' ) $><br /><br />

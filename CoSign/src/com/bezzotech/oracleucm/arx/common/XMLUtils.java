@@ -1,9 +1,11 @@
 package com.bezzotech.oracleucm.arx.common;
 
 import intradoc.common.ExecutionContext;
+import intradoc.common.LocaleUtils;
 import intradoc.common.Report;
 import intradoc.common.ServiceException;
 import intradoc.common.StringUtils;
+import intradoc.common.SystemUtils;
 import intradoc.data.DataBinder;
 import intradoc.data.DataResultSet;
 import intradoc.server.Service;
@@ -125,7 +127,9 @@ public class XMLUtils {
 		} catch ( ParserConfigurationException e ) {
 			throwFullError( e );
 		} catch ( SAXException e ) {
-			throwFullError( e );
+			e.printStackTrace();
+			String msg = LocaleUtils.encodeMessage( "csIISorCSWADown", null );
+			SystemUtils.error( e, msg );
 		} catch ( IOException e ) {
 			throwFullError( e );
 		} finally {
@@ -349,7 +353,10 @@ public class XMLUtils {
 	public Element appendTextNodeToChild( Document doc, Element root, String name, String value )
 			throws ServiceException {
 		NodeList nl = root.getElementsByTagName( name );
-		if( nl == null || nl.getLength() == 0 ) throw new ServiceException( "csCoSignNotConfigProperly" );
+		if( nl == null || nl.getLength() == 0 ) {
+			String msg = LocaleUtils.encodeMessage( "csCoSignNotConfigProperly", null );
+			SystemUtils.error( null, msg );
+		}
 		Node n = nl.item( 0 );
 		Text t = doc.createTextNode( value );
 		n.appendChild( t );
@@ -415,27 +422,23 @@ public class XMLUtils {
 				Node arg1Child = null;
 				int j = 0;
 				while( ( arg0Child = arg0Children.item( i ) ) != null ) {
-//				for( int i = 0; i < arg0Children.getLength(); i++ ) {
-//					arg0Child = arg0Children.item( i );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg0Child.getNodeName() +
 							"\n\tSort node name: " + m_sortNodeName, null );
 					if( arg0Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
 						break;
 					i++;
 				}
-				if( arg0Child == null ) return -1;
+				if( arg0Child == null ) return 1;
 				NodeList arg1Children = ( ( Element ) arg1 ).getChildNodes();
 				while( ( arg1Child = arg1Children.item( i ) ) != null ) {
-//				for( int j = 0; j < arg1Children.getLength(); j++ ) {
-//					arg1Child = arg1Children.item( j );
 					Report.debug( "bezzotechcosign", "Comparing node name: " + arg1Child.getNodeName() +
 							"\n\tSort node name: " + m_sortNodeName, null );
 					if( arg1Child.getNodeName().compareTo( m_sortNodeName ) == 0 )
 						break;
 					i++;
 				}
-				if( arg1Child == null ) return 1;
-				return arg0Child.getTextContent().compareTo( arg1Child.getTextContent() );
+				if( arg1Child == null ) return -1;
+				return arg1Child.getTextContent().compareTo( arg0Child.getTextContent() );
 			} else {
 				return ( ( Node ) arg0 ).getNodeName().compareTo( ( ( Node ) arg1 ).getNodeName() );
 			}
