@@ -237,8 +237,8 @@ INPUT.boldbutton { font-family:system; }
 				<input type="hidden" name="dDocType" value="CoSignSignatureProfile" />
 				<div class="container">
 					<input type="hidden" name="CoSign.Logic.fields"
-					       value="enforceFieldToSign;isWorkflowMode;allowAdHoc;allowUserReason;enforceReason" />
-					<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign" />
+					       value="isWorkflowMode;allowAdHoc;allowUserReason;enforceReason" />
+					<input type="hidden" name="CoSign.SigField.fields" value="fieldNameToSign;enforceFieldToSign" />
 					<input type="hidden" name="CoSign.SignReasons.fields" value="signReason" />
 					<input type="hidden" name="CoSign.SigProfile.fields"
 												value="fieldName;x;y;width;height;pageNumber;visible;title;showTitle;dateFormat;timeFormat;extTimeformat;signer;date;logo;graphicalImage;initials" />
@@ -265,9 +265,9 @@ INPUT.boldbutton { font-family:system; }
 <$ fieldName = 'CoSign.Logic.isWorkflowMode', fieldValue = 'false', radioFieldCaption = 'No',
 		checked = 1 $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'true', radioFieldCaption = 'Yes' $>
+<$ fieldName = 'CoSign.SigField.enforceFieldToSign', fieldValue = 'true', radioFieldCaption = 'Yes' $>
 <$ inc( 'cosign_radio_entry' ) $>
-<$ fieldName = 'CoSign.Logic.enforceFieldToSign', fieldValue = 'false', radioFieldCaption = 'No',
+<$ fieldName = 'CoSign.SigField.enforceFieldToSign', fieldValue = 'false', radioFieldCaption = 'No',
 		checked = 1 $>
 <$ inc( 'cosign_radio_entry' ) $>
 							</p><br />
