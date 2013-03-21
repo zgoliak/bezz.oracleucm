@@ -294,7 +294,7 @@ INPUT.boldbutton { font-family:system; }
 						</div>
 						<div class="right">
 							<div style="text-align: left">
-								Name: 
+								Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 								<$ fieldName = 'dDocTitle' $><$ inc( 'cosign_edit_entry' ) $>
 							</div><br />
 							<div style="text-align: left">
@@ -322,7 +322,7 @@ INPUT.boldbutton { font-family:system; }
 						</div>
 						<div class="right">
 							<div style="text-align: left">
-								CoSign Role: 
+								CoSign Role:&nbsp;&nbsp;&nbsp;
 <$ exec rsMakeFromList( 'Roles', 'xCoSignRequiredSignatures.options' ) $>
 								<select name="xCoSignRequiredSignatures"
 <$ if #active.xCoSignRequiredSignatures $> disabled<$ endif $>>
@@ -391,7 +391,7 @@ INPUT.boldbutton { font-family:system; }
 						</div>
 						<div class="right">
 							<div style="text-align: left">
-								Enforce reasons? 
+								Enforce reasons?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <$ fieldName = 'CoSign.Logic.enforceReason', fieldValue = 'true', , radioFieldCaption = 'Yes',
 		checked = 1 $>
 <$ inc( 'cosign_radio_entry' ) $>

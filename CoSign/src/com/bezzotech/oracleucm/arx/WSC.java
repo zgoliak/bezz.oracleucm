@@ -114,7 +114,7 @@ public class WSC {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
 		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
-			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+//			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
 			m_binder.putLocal( m_appName + ".Logic.enforceFieldToSign", "true" );
 			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
 			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
