@@ -104,6 +104,12 @@ public class WSC {
 		m_doc = m_xmlutil.getNewDocument();
 		m_doc_root = m_doc.createElement( "request" );
 		m_doc.appendChild( m_doc_root );
+		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
+			m_binder.putLocal( m_appName + ".SigField.enforceFieldToSign", "true" );
+			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
+			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
+			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
+		}
 		if( !Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) ) {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SigField" ) );
 //			prepareAdHocSigProfileValues();
@@ -113,15 +119,6 @@ public class WSC {
 		if( isSignRequest )
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Document" ) );
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
-		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
-//			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
-Report.debug( "bezzotechcosign", "Binder before: " + m_binder.getLocalData().toString(), null );
-			m_binder.putLocal( m_appName + ".SigField.enforceFieldToSign", "true" );
-			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
-			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
-Report.debug( "bezzotechcosign", "Binder before: " + m_binder.getLocalData().toString(), null );
-			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
-		}
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Logic" ) );
 		if( !isSignRequest )
 			m_doc_root.appendChild(
