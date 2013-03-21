@@ -91,7 +91,7 @@
 				<td>SELECT dDocName
 						FROM Revisions, DocMeta
 						WHERE Revisions.dID = DocMeta.dID AND xSignatureStatus = 'sent-to-cosign'
-						AND dIsCheckedOut = 1</td>
+						AND dIsCheckedOut = 1 AND Revisions.dRevRank = 0 AND Revisions.dStatus <> 'DELETED'</td>
 				<td></td>
 			</tr>
 		</table>
