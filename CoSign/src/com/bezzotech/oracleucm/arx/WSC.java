@@ -115,9 +115,11 @@ public class WSC {
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SignReasons" ) );
 		if( m_binder.getLocal( "dWorkflowState" ) != "" ) {
 //			m_binder.putLocal( m_appName + ".Logic.isWorkflowMode", "true" );
+Report.debug( "bezzotechcosign", "Binder before: " + m_binder.getLocalData().toString(), null );
 			m_binder.putLocal( m_appName + ".SigField.enforceFieldToSign", "true" );
 			m_binder.putLocal( m_appName + ".RejectReasons.fields", "rejectReason" );
 			m_binder.putLocal( m_appName + ".RejectReasons.rejectReason", "None" );
+Report.debug( "bezzotechcosign", "Binder before: " + m_binder.getLocalData().toString(), null );
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "RejectReasons" ) );
 		}
 		m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "Logic" ) );
@@ -243,11 +245,14 @@ public class WSC {
 			DataResultSet drset = new DataResultSet();
 			drset.copy( rset );
 			drset.first();
-			int statusCode = Integer.parseInt( drset.getStringValueByName( "status" ) );
+			int statusCode = Integer.parseInt( drset.getStringValueByName( "validationStatus" ) );
 			String status;
 			if( statusCode == 0 ) status = "Valid";
 			else if(statusCode == 1 ) status = "Invalid";
-			else status = "Not Signed";
+			else if(statusCode == 2 ) status = "Error";
+			else if(statusCode == 3 ) status = "Incomplete";
+			else if(statusCode == 4 ) status = "Unknown";
+			else status = "Empty";
 			m_binder.putLocal( "xSignatureStatus", status );
 			if( !status.equals( "Not Signed" ) ) {
 				m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
@@ -290,11 +295,14 @@ public class WSC {
 		drset.copy( rset );
 		drset.first();
 		m_binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
-		int statusCode = Integer.parseInt( drset.getStringValueByName( "status" ) );
+		int statusCode = Integer.parseInt( drset.getStringValueByName( "validationStatus" ) );
 		String status;
 		if( statusCode == 0 ) status = "Valid";
 		else if(statusCode == 1 ) status = "Invalid";
-		else status = "Not Signed";
+		else if(statusCode == 2 ) status = "Error";
+		else if(statusCode == 3 ) status = "Incomplete";
+		else if(statusCode == 4 ) status = "Unknown";
+		else status = "Empty";
 		m_binder.putLocal( "xSignatureStatus", status );
 		if( statusCode > 0 ) {
 			m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
