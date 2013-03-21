@@ -238,11 +238,7 @@ public class WSC {
 			m_binder.putLocal( "primaryFile:path", file );
 			m_binder.putLocal( "dExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );
 			m_binder.putLocal( "dWebExtension", m_binder.getLocal( "CoSign.Document.contentType" ) );
-			ResultSet rset = m_binder.getResultSet( "Fields" );
-			DataResultSet drset = new DataResultSet();
-			drset.copy( rset );
-			drset.first();
-			int statusCode = Integer.parseInt( drset.getStringValueByName( "validationStatus" ) );
+			int statusCode = Integer.parseInt( m_binder.getLocal( "CoSign.Status.validationStatus" ) );
 			String status;
 			if( statusCode == 0 ) status = "Valid";
 			else if(statusCode == 1 ) status = "Invalid";
@@ -251,7 +247,11 @@ public class WSC {
 			else if(statusCode == 4 ) status = "Unknown";
 			else status = "Empty";
 			m_binder.putLocal( "xSignatureStatus", status );
-			if( !status.equals( "Not Signed" ) ) {
+			ResultSet rset = m_binder.getResultSet( "Fields" );
+			DataResultSet drset = new DataResultSet();
+			drset.copy( rset );
+			drset.first();
+			if( drset.getStringValueByName( "status" ).equals( "0" ) ) {
 				m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
 				try {
 					SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
@@ -292,7 +292,8 @@ public class WSC {
 		drset.copy( rset );
 		drset.first();
 		m_binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
-		int statusCode = Integer.parseInt( drset.getStringValueByName( "validationStatus" ) );
+//		int statusCode = Integer.parseInt( drset.getStringValueByName( "validationStatus" ) );
+		int statusCode = Integer.parseInt( m_binder.getLocal( "CoSign.Status.validationStatus" ) );
 		String status;
 		if( statusCode == 0 ) status = "Valid";
 		else if(statusCode == 1 ) status = "Invalid";
@@ -301,7 +302,7 @@ public class WSC {
 		else if(statusCode == 4 ) status = "Unknown";
 		else status = "Empty";
 		m_binder.putLocal( "xSignatureStatus", status );
-		if( statusCode > 0 ) {
+		if( drset.getStringValueByName( "status" ).equals( "0" ) ) {
 			m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
