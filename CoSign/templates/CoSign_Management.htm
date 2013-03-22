@@ -29,7 +29,7 @@
 <$ exec inc('cosign_setup_profile_table_row' ) $>
 <$ exec inc('create_slim_table_row_include' ) $>
 
-<$ rsAppendNewRow( 'SearchResults' ) $>
+[[%<$ rsAppendNewRow( 'SearchResults' ) $>%]]
 <$ loop SearchResults $>
 	<$ include slim_table_row_include $>
 <$ endloop $>

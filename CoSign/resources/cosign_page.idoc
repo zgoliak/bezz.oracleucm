@@ -841,18 +841,19 @@ fieldEditWidth
 <@ dynamicdata CoreMenuItems @>
 id, label, linkType, linkData
 ARX, wwCoSign, ,
-COSIGN, wwCoSignManagement, cgi, IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>
+COSIGN_LIST, wwCoSignManagement, cgi, IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>
+COSIGN_ADD, wwCoSignCreation, cgi, IdcService=COSIGN_MANAGEMENT_FORM<$ include idc_token_url_appending_parameter $>
 <@ end @>
 <@ dynamicdata CoreMenuItemRelationships @>
 <?commatable mergeKey="primaryKey"?>
 parentId, id, loadOrder
 MENU_B, ARX, 1000
-ARX, COSIGN, 10
+ARX, COSIGN_LIST, 10
+ARX, COSIGN_ADD, 10
 <@ end @>
 <@ dynamicdata CoreMenuItemsFlags @>
 id, flags
 ARX, isCoSignAdmin
-COSIGN, isCoSignAdmin
 <@ end @>
  </body>
 </html>
