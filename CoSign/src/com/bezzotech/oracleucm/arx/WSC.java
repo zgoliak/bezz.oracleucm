@@ -632,6 +632,9 @@ public class WSC {
 						Date date = sdf.parse( dateString );
 						queryBinder.putLocalDate( "signingTime", date );
 					}
+					else {
+						queryBinder.putLocalDate( "signingTime", null );
+					}
 				} catch ( ParseException e ) {
 					throwFullError( e );
 				}
