@@ -369,7 +369,7 @@ public class CMUtils {
 		try {
 			m_service.executeService( "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
 		} catch ( DataException e ) {
-			throwFullError( e );
+			throwFullError( e ); // Let's swallow this as that only means we do not need to undo
 		}
 
 		Report.debug( "bezzotechcosign", "Binder after undo: ", null );
@@ -379,12 +379,14 @@ public class CMUtils {
 			m_binder.putLocal( "xSignatureStatus", "" );
 			update();
 			DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
-			do {
-				if( drset.getStringValueByName( "dDocName" ).equals( rset.getStringValueByName( "dDocName" ) ) ) {
-					drset.deleteCurrentRow();
-					break;
+			if( drset != null ) {
+				while( drset.isRowPresent() ) {
+					if( drset.getStringValueByName( "dDocName" ).equals( rset.getStringValueByName( "dDocName" ) ) ) {
+						drset.deleteCurrentRow();
+						break;
+					}
 				}
-			} while( drset.isRowPresent() );
+			}
 		}
 /*  Want to redirect user to Doc_info on Cancel */
 		if( !error.equals( "" ) &&

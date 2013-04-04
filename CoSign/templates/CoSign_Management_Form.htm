@@ -1,4 +1,8 @@
 <$ isNew = 1, isEditMode = 1, isProfileCheckIn = 1 $><$ if #active.dID $><$ isNew = 0 $><$ endif $>
+<$ if isFalse( isNew ) $>
+	<$ executeService( 'COSIGN_LOAD_SIGNREQUEST' ) $>
+	<$ executeService( 'DOC_INFO' ) $>
+<$ endif $>
 <$ include std_doctype_html_decl $>
 	<head>
 <$ include std_html_head_declarations $>
@@ -151,6 +155,22 @@ INPUT.boldbutton { font-family:system; }
 				}
 			}
 			function submitProfile() {
+<$ if isFalse( isNew ) $>
+				var oldValue = "<$ #active.xCoSignRequiredSignatures $>";
+				el = document.getElementsByName( 'xCoSignRequiredSignatures' )[ 0 ];
+				value = el.options[ el.selectedIndex ].value;
+				if( oldValue != value ) {
+					msg = lc( 'wwVerifyMetadataWorkflowChange', 'CoSign Role', oldValue, value );
+					if( confirm( msg ) == false ) { return false; }
+				}
+				var oldValue = "<$ #active.xCoSignSignatureTag $>";
+				el = document.getElementsByName( 'xCoSignSignatureTag' )[ 0 ];
+				value = el.options[ el.selectedIndex ].value;
+				if( oldValue != value ) {
+					msg = lc( 'wwVerifyMetadataWorkflowChange', 'Signature Tag', oldValue, value );
+					if( confirm( msg ) == false ) { return false; }
+				}
+<$ endif $>
 				if( document.getElementById( 'CoSign.Logic.allowAdHoc' ).value ) {
 					getPageNumber();
 					checked( 'SignatureFieldDetails', 3, 'CoSign.SigProfile.showTitle' );
@@ -216,12 +236,8 @@ INPUT.boldbutton { font-family:system; }
 <$ onLoadScript = 'cosign_init();' $>
 <$ include body_def $>
 <$ include std_page_begin $>
-<$ if isFalse( isNew ) $>
-	<$ executeService( 'COSIGN_LOAD_SIGNREQUEST' ) $>
-	<$ executeService( 'DOC_INFO' ) $>
-<$ endif $>
 		<div class="mainContent" >
-			<form method="POST" action="<$ HttpCgiPath $>" onSubmit="submitProfile();">
+			<form method="POST" action="<$ HttpCgiPath $>" onSubmit=" return submitProfile();">
 <$ include idc_token_form_field $>
 <$ if isFalse( isNew ) $>
 				<input type="hidden" name="IdcService" value="COSIGN_CHECKIN_SEL_PROFILE" />
@@ -324,37 +340,31 @@ INPUT.boldbutton { font-family:system; }
 							<div style="text-align: left">
 								CoSign Role:&nbsp;&nbsp;&nbsp;
 <$ exec rsMakeFromList( 'Roles', 'xCoSignRequiredSignatures.options' ) $>
-								<select name="xCoSignRequiredSignatures"
-<$ if #active.xCoSignRequiredSignatures $> disabled<$ endif $>>
-<$ loop Roles $>
+								<select name="xCoSignRequiredSignatures">
+									<option />
+<$ loop Roles $><$ directive trimtext $>
 									<option
 	<$ if #active.xCoSignRequiredSignatures AND #active.xCoSignRequiredSignatures like #active.row $>
- selected
+		<$ ' selected' $>
 	<$ endif $>>
-	<$ #active.row $>
-<$ endloop $>
+	<$ strTrimWs( #active.row ) $></option>
+<$ endloop $><$ directive -trimtext $>
 								</select>
-<$ if #active.xCoSignRequiredSignatures $>
-								<input type="hidden" name="xCoSignRequiredSignatures" value="
-	<$ #active.xCoSignRequiredSignatures $>" />
-<$ endif $>
 							</div><br />
 							<div style="text-align: left">
 								Signature Tag: 
 <$ exec rsMakeFromList( 'Tags', 'xCoSignSignatureTag.options' ) $>
-								<select name="xCoSignSignatureTag"<$ if #active.xCoSignSignatureTag $> disabled<$ endif $>>
-<$ loop Tags $>
-	<$ if #active.row like 'Externally Signed' $><$ rsNext( 'Tags' ) $><$ endif $>
-									<option
+								<select name="xCoSignSignatureTag">
+									<option />
+<$ loop Tags $><$ directive trimtext $>
+	<$ if #active.row like 'Externally Signed' $><$ exec rsNext( 'Tags' ) $><$ endif $>
+									<option 
 	<$ if #active.xCoSignSignatureTag AND #active.xCoSignSignatureTag like #active.row $>
- selected
+		<$ ' selected' $>
 	<$ endif $>>
-	<$ #active.row $>
-<$ endloop $>
+	<$ strTrimWs( #active.row ) $></option>
+<$ endloop $><$ directive -trimtext $>
 								</select>
-<$ if #active.xCoSignSignatureTag $>
-								<input type="hidden" name="xCoSignSignatureTag" value="<$ #active.xCoSignSignatureTag $>" />
-<$ endif $>
 							</div><br /><br />
 						</div>
 					</div>
