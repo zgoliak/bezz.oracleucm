@@ -59,7 +59,7 @@
 				<td>QsignatureProfileID</td>
 				<td>SELECT Revisions.dID dID, xCoSignRequiredSignatures
 						FROM Revisions, DocMeta
-						WHERE Revisions.dID = DocMeta.dID AND Revisions.dRevRank = 0 AND Revisions.dStatus <> 'DELETED'
+						WHERE Revisions.dID = DocMeta.dID AND dRevRank = 0 AND dStatus <> 'DELETED'
 						AND xCoSignSignatureTag = ? AND dDocType = 'CoSignSignatureProfile'</td>
 				<td>xCoSignSignatureTag varchar</td>
 			</tr>
@@ -67,8 +67,8 @@
 				<td>QsignatureCountByName</td>
 				<td>SELECT xSignatureCount
 						FROM Revisions, DocMeta
-						WHERE Revisions.dDocName = ? AND Revisions.dID = DocMeta.dID
-						AND Revisions.dRevRank = 0 AND Revisions.dStatus <> 'DELETED'</td>
+						WHERE Revisions.dDocName = ? AND Revisions.dID = DocMeta.dID AND dRevRank = 0
+						AND dStatus <> 'DELETED'</td>
 				<td>dDocName varchar</td>
 			</tr>
 			<tr>
@@ -81,8 +81,8 @@
 				<td>SELECT *
 						FROM Revisions, DocMeta
 						WHERE Revisions.dID = DocMeta.dID AND xCoSignSignatureTag = ? AND xCoSignRequiredSignatures = ?
-						AND dDocType = 'CoSignSignatureProfile' AND Revisions.dRevRank = 0
-						AND Revisions.dStatus <> 'DELETED'</td>
+						AND dDocType = 'CoSignSignatureProfile' AND dRevRank = 0 AND dStatus <> 'EXPIRED'
+						AND dStatus <> 'DELETED'</td>
 				<td>xCoSignSignatureTag varchar
 						xCoSignRequiredSignatures varchar</td>
 			</tr>
@@ -91,7 +91,7 @@
 				<td>SELECT dDocName
 						FROM Revisions, DocMeta
 						WHERE Revisions.dID = DocMeta.dID AND xSignatureStatus = 'sent-to-cosign'
-						AND dIsCheckedOut = 1 AND Revisions.dRevRank = 0 AND Revisions.dStatus <> 'DELETED'</td>
+						AND dIsCheckedOut = 1 AND dRevRank = 0 AND dStatus <> 'DELETED'</td>
 				<td></td>
 			</tr>
 		</table>

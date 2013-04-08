@@ -341,7 +341,6 @@ INPUT.boldbutton { font-family:system; }
 								CoSign Role:&nbsp;&nbsp;&nbsp;
 <$ exec rsMakeFromList( 'Roles', 'xCoSignRequiredSignatures.options' ) $>
 								<select name="xCoSignRequiredSignatures">
-									<option />
 <$ loop Roles $><$ directive trimtext $>
 									<option
 	<$ if #active.xCoSignRequiredSignatures AND #active.xCoSignRequiredSignatures like #active.row $>
@@ -355,7 +354,6 @@ INPUT.boldbutton { font-family:system; }
 								Signature Tag: 
 <$ exec rsMakeFromList( 'Tags', 'xCoSignSignatureTag.options' ) $>
 								<select name="xCoSignSignatureTag">
-									<option />
 <$ loop Tags $><$ directive trimtext $>
 	<$ if #active.row like 'Externally Signed' $><$ exec rsNext( 'Tags' ) $><$ endif $>
 									<option 
@@ -388,7 +386,7 @@ INPUT.boldbutton { font-family:system; }
 								Sign Reasons - Use the Ctrl/Shift buttons in order to specify reasons for this profile.
 							</p><br />
 							<p>
-								The pre-defined field option should be used if you want to implement this profile on an
+								Signing Mode - The pre-defined field option should be used if you want to implement this profile on an
 								existing signature field in a document.<br />
 								The ad-hoc mode enables the user to dynamically add a signature field to a PDF document. The
 								default settings for this new signature field will be based on the following definitions.
@@ -574,7 +572,7 @@ INPUT.boldbutton { font-family:system; }
 							<input type="submit" value="<$ lc( 'wwSave' ) $>" />
 							<input type="reset" />
 <$ if isFalse( isNew ) $>
-							<input type="button" onclick="window.history.go(-1)" value="<$ lc( 'wwCancel' ) $>" />
+							<input onclick="window.history.go(-1)" type="button" value="<$ lc( 'wwCancel' ) $>" />
 <$ endif $>
 						</div>
 					</div>

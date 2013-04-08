@@ -748,13 +748,35 @@
 <@ dynamichtml cosign_profile_actions @>
  <$ if SearchResults.dID $>
 <a href="<$ HttpCgiPath $>?IdcService=COSIGN_MANAGEMENT_FORM&dID=<$ url( SearchResults.dID ) $>&dDocName=<$ url( SearchResults.dDocName ) $>&idcToken=<$ idcToken $>">
-	<b><span class=xxsmall><$lc("wwEdit")$></span></b>
+	<b><span class=xxsmall><$ lc( "wwEdit" ) $></span></b>
 </a>
 	<$ else $>
 <a href="<$ HttpCgiPath $>?IdcService=COSIGN_MANAGEMENT_FORM&idcToken=<$ idcToken $>">
-	<b><span class=xxsmall><$lc("wwAdd")$></span></b>
+	<b><span class=xxsmall><$ lc( "wwAdd" ) $></span></b>
 </a>
 	<$ endif $>
+	<$ if SearchResults.dInDate and parseDate( SearchResults.dInDate ) < parseDate( dateCurrent() - (60 * 1000 ) ) $>
+<br />
+<a href="javascript:document.delete_<$ SearchResults.dID $>.submit();">
+	<b><span class="xxsmall"><$ lc( "wwDelete" ) $></span></b>
+</a>
+		<$ include cosign_profile_action_delete_form $>
+	<$ endif $>
+<@ end @>
+<@ dynamichtml cosign_profile_action_delete_form @>
+<form action="<$ HttpCgiPath $>" enctype="multipart/form-data" method="POST" name="delete_<$ #active.dID $>">
+	<input name="IdcService" type="hidden" value="UPDATE_DOCINFO_BYFORM" />
+	<input name="idcToken" type="hidden" value="<$ idcToken $>" />
+	<input name="dDocName" type="hidden" value="<$ #active.dDocName $>" />
+	<input name="dID" type="hidden" value="<$ #active.dID $>" />
+	<input name="dRevLabel" type="hidden" value="<$ #active.dRevLabel $>" />
+	<input name="dSecurityGroup" type="hidden" value="<$ #active.dSecurityGroup $>" />
+<$ if UseAccounts AND isTrue( UseAccounts ) $>
+	<input name="dDocAccount" type="hidden" value="<$ #active.dDocAccount $>" />
+<$ endif $>
+	<input name="dOutDate" type="hidden" value="<$ parseDate( dateCurrent() - 1000 ) $>" />
+	<input name="RedirectUrl" type="hidden" value="<$ HttpCgiPath $>?IdcService=COSIGN_MANAGEMENT" />
+</form>
 <@ end @>
 
 [[% Review Signatures Page table includes %]]
@@ -841,8 +863,8 @@ fieldEditWidth
 <@ dynamicdata CoreMenuItems @>
 id, label, linkType, linkData
 ARX, wwCoSign, ,
-COSIGN_LIST, wwCoSignManagement, cgi, IdcService=COSIGN_MANAGEMENT<$ include idc_token_url_appending_parameter $>
-COSIGN_ADD, wwCoSignCreation, cgi, IdcService=COSIGN_MANAGEMENT_FORM<$ include idc_token_url_appending_parameter $>
+COSIGN_LIST, wwCoSignManagement, cgi, IdcService=COSIGN_MANAGEMENT
+COSIGN_ADD, wwCoSignCreation, cgi, IdcService=COSIGN_MANAGEMENT_FORM
 <@ end @>
 <@ dynamicdata CoreMenuItemRelationships @>
 <?commatable mergeKey="primaryKey"?>
