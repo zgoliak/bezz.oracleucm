@@ -44,7 +44,7 @@ public class CMUtils {
 	public DataBinder m_binder;
 
 	protected Service m_service;
-	protected Workspace m_workspace;
+	static protected Workspace m_workspace;
 	protected UserData m_userData;
 
 	protected CMUtils( ExecutionContext context ) throws ServiceException {
@@ -192,7 +192,7 @@ public class CMUtils {
 	/**
 	 *
 	 */
-	public ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
+	static public ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
 		ResultSet rset = null;
 		try {
 			rset = m_workspace.createResultSet( query, binder );
@@ -385,6 +385,7 @@ public class CMUtils {
 						drset.deleteCurrentRow();
 						break;
 					}
+					drset.next();
 				}
 			}
 		}
@@ -463,10 +464,21 @@ public class CMUtils {
 		}
 	}
 
+	static public void serviceDoRequest( String serviceName, DataBinder db, Workspace ws )
+			throws DataException, ServiceException {
+		ServiceManager sm = new ServiceManager();
+		ServiceData sd = sm.getService( serviceName );
+		Service service = sm.getInitializedService( serviceName, db, ws );
+		UserData userData = SecurityUtils.createDefaultAdminUserData();
+		service.setUserData( userData );
+		db.putLocal( "IdcService", serviceName );
+		service.doRequest();
+	}
+
 	/**
 	 *
 	 */
-	protected void throwFullError( Exception e ) throws ServiceException {
+	static protected void throwFullError( Exception e ) throws ServiceException {
 		StringBuilder sb = new StringBuilder();
 		for(StackTraceElement element : e.getStackTrace()) {
 			sb.append(element.toString());

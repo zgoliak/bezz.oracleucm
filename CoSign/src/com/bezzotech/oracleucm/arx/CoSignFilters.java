@@ -1,5 +1,6 @@
 package com.bezzotech.oracleucm.arx;
 
+import com.bezzotech.oracleucm.arx.common.CMUtils;
 import com.bezzotech.oracleucm.arx.shared.SharedObjects;
 
 import intradoc.common.ExecutionContext;
@@ -70,9 +71,9 @@ public class CoSignFilters implements FilterImplementor {
 				db.putLocal( "xSignatureStatus", "" );
 			}
 			return FINISHED;
-		} else
+		}
 		// Grant enhanced permissions when checking in signed document
-		if( s.equals( "alterCoSignRole" ) ) {
+		else if( s.equals( "alterCoSignRole" ) ) {
 			if(	db.getLocal( "IdcService" ) != null &&
 					db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) {
 				UserData userData = ( UserData )ec.getCachedObject( "TargetUserData" );
@@ -80,13 +81,13 @@ public class CoSignFilters implements FilterImplementor {
 				Report.trace(null, "Granting the 'admin' role.", null);
 			}
 			return FINISHED;
-		} else
+		}
 		// CoSign clean-up if document signing not complete
-		if( s.equals( "CoSignFrequentEvent" ) ) {
+		else if( s.equals( "CoSignFrequentEvent" ) ) {
 			Report.trace( "bezzotechcosign", "Running Frequent Event now!", null );
 
 		 // Locate and checkout content that is involved in CoSign for too long
-			ResultSet rset = createResultSet( "QcheckedoutCoSignContent", db );
+			ResultSet rset = CMUtils.createResultSet( "QcheckedoutCoSignContent", db );
 			if( rset != null && !rset.isEmpty() ) {
 				Date dateNow = new Date ();
 				SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MMddyyyy");
@@ -108,14 +109,14 @@ public class CoSignFilters implements FilterImplementor {
 							// item has been in-process for at least 5 minutes: force a timeout
 							DataBinder undo = new DataBinder( db.getEnvironment() );
 							undo.putLocal( "dDocName", id );
-							serviceDoRequest( "UNDO_CHECKOUT_BY_NAME", undo, ws );
+							CMUtils.serviceDoRequest( "UNDO_CHECKOUT_BY_NAME", undo, ws );
 
 							DataBinder update = new DataBinder( db.getEnvironment() );
 							update.putLocal( "dDocName", id );
-							ResultSet diRSet = createResultSet( "QlatestDocInfoByName", update );
+							ResultSet diRSet = CMUtils.createResultSet( "QlatestDocInfoByName", update );
 							update.mergeResultSetRowIntoLocalData( diRSet );
 							update.putLocal( "xSignatureStatus", "" );
-							serviceDoRequest( "UPDATE_DOCINFO", update, ws );
+							CMUtils.serviceDoRequest( "UPDATE_DOCINFO", update, ws );
 							tmpRS.deleteCurrentRow();
 						}
 					} while( tmpRS.next() );
@@ -268,28 +269,6 @@ public class CoSignFilters implements FilterImplementor {
 				!MetaFieldUtils.hasDocMetaDef( metaName ) );
 	}
 */
-	/**
-	 *
-	 */
-	protected ResultSet createResultSet( String query, DataBinder binder )
-			throws DataException, ServiceException {
-		ResultSet rset = null;
-		rset = m_workspace.createResultSet( query, binder );
-		if( rset.isEmpty() ) Report.trace( "bezzotechcosign", "Query returned no results", null );
-		return rset;
-	}
-
-	protected void serviceDoRequest( String serviceName, DataBinder db, Workspace ws )
-			throws DataException, ServiceException {
-		ServiceManager sm = new ServiceManager();
-		ServiceData sd = sm.getService( serviceName );
-		Service service = sm.getInitializedService( serviceName, db, ws );
-		UserData userData = SecurityUtils.createDefaultAdminUserData();
-		service.setUserData( userData );
-		db.putLocal( "IdcService", serviceName );
-		service.doRequest();
-	}
-
 	protected void removeColumns( DataResultSet drset, String columns[] ) {
 		for( int i = 0; i < columns.length; i++ ) {
 			removeColumn( drset, columns[ i ] );

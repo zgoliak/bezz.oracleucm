@@ -35,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
+//import java.util.Enumeration;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.util.Vector;
@@ -284,15 +285,15 @@ public class WSC {
 				m_binder.getResultSetValue( m_binder.getResultSet( "DOC_INFO" ), "dFormat" ) );
 		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
 		parseVerifyResponse( message );
-//		String returnCode = m_binder.getLocal( "CoSign.Error.returnCode" );
-//		if( returnCode == null || Integer.parseInt( returnCode ) == SUCCESS ) {
+//		VerifyResponse verify = VerifyResponse( m_binder );
 		ResultSet rset = m_binder.getResultSet( "Fields" );
+//		if( verify.m_fields == null || verify.m_fields.isEmpty() ) return SUCCESS;
 		if( rset == null || rset.isEmpty() )	return SUCCESS;//throw new ServiceException( "Unable to retrieve valid signatures." );
 		DataResultSet drset = new DataResultSet();
 		drset.copy( rset );
 		drset.first();
 		m_binder.mergeResultSetRowIntoLocalData( m_binder.getResultSet( "DOC_INFO" ) );
-//		int statusCode = Integer.parseInt( drset.getStringValueByName( "validationStatus" ) );
+		// m_binder.putLocal( "xSignatureStatus", verify.getStatus() );
 		int statusCode = Integer.parseInt( m_binder.getLocal( "CoSign.Status.validationStatus" ) );
 		String status;
 		if( statusCode == 0 ) status = "Valid";
@@ -302,16 +303,22 @@ public class WSC {
 		else if(statusCode == 4 ) status = "Unknown";
 		else status = "Empty";
 		m_binder.putLocal( "xSignatureStatus", status );
+		// if( ( ( VerifyResponse.SignatureField )verify.m_fields.get( 0 ) ).getStatus().endsWith( "0" ) ) {
 		if( drset.getStringValueByName( "status" ).equals( "0" ) ) {
+			// m_binder.putLocal( "xSigner",
+					// ( ( VerifyResponse.SignatureField )verify.m_fields.get( 0 ) ).m_signerName );
 			m_binder.putLocal( "xSigner", drset.getStringValueByName( "signerName" ) );
 			try {
 				SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
+				// Date date = sdf.parse(
+						// ( ( VerifyResponse.SignatureField )verify.m_fields.get( 0 ) ).m_signingTime );
 				Date date = sdf.parse( drset.getStringValueByName( "signingTime" ) );
 				m_binder.putLocalDate( "xSignTime", date );
 			} catch ( ParseException e ) {
 				throwFullError( e );
 			}
 		}
+		// m_binder.putLocal( "xSignatureCount", "" + verify.m_count );
 		try {
 			m_binder.putLocal( "xSignatureCount", "" + ResultSetUtils
 					.createFilteredStringArrayForColumn( drset, "fieldName", "status", "0", false, false).length );
@@ -320,11 +327,6 @@ public class WSC {
 		}
 		m_cmutil.update();
 		log();
-//		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
-//			return USER_OPER_CANCELLED;
-//		} else {
-//			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
-//		}
 		return SUCCESS;
 	}
 
@@ -587,27 +589,27 @@ public class WSC {
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.pageNumber" ) == null )
 			m_binder.putLocal( "CoSign.SigDetails.pageNumber", "0" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.dateFormat" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.dateFormat", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.dateFormat", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.timeformat" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.timeformat", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.timeformat", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.graphicalImage" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.graphicalImage", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.graphicalImage", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.signer" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.signer", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.signer", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.date" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.date", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.date", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.initials" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.initials", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.initials", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.logo" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.logo", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.logo", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.showTitle" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.showTitle", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.showTitle", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.showReason" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.showReason", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.showReason", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.title" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.title", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.title", "" );
 		if( m_binder.getAllowMissing( "CoSign.SigDetails.reason" ) == null )
-			m_binder.putLocal( "CoSign.SigDetails.reason", "null" );
+			m_binder.putLocal( "CoSign.SigDetails.reason", "" );
 	}
 
 	/** Inserts Verify response into DB
@@ -618,30 +620,46 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
 		prepareLog();
 		DataBinder queryBinder = m_binder.createShallowCopyWithClones( 1 );
+		// VerifyResponse verify = VerifyResponse( m_binder );
 		ResultSet rset = m_binder.getResultSet( "Fields" );
 		DataResultSet drset = new DataResultSet();
 		drset.copy( rset );
 		drset.first();
+		// Report.debug( "bezzotechcosign", "Verify: " + verify.toString(), null );
+		// Enumeration < VerifyResponse.SignatureField > fEnum = verify.m_fields.elements();
 		try {
-			do {
+			// VerifyResponse.SignatureField field;
+			// for( ; fEnum.hasMoreElements(); field = fEnum.nextElement() ) {
+			while( drset.isRowPresent() ) {
 				queryBinder.mergeResultSetRowIntoLocalData( drset );
-				try {
-					String dateString = queryBinder.getLocal( "signingTime" );
-					if( dateString != null && !dateString.trim().equals( "" ) ) {
+				// field.mergeIntoBinderLocalData( queryBinder );
+				// Report.debug( "bezzotechcosign", "Q Binder after merge: " + queryBinder.toString(), null );
+				String dateString = queryBinder.getAllowMissing( "signingTime" );
+				if( dateString != null && !dateString.trim().equals( "" ) ) {
+					try {
 						SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
 						Date date = sdf.parse( dateString );
 						queryBinder.putLocalDate( "signingTime", date );
+					} catch ( ParseException e ) {
+						throwFullError( e );
 					}
-					else {
-						queryBinder.putLocalDate( "signingTime", null );
-					}
-				} catch ( ParseException e ) {
-					throwFullError( e );
 				}
+				else {
+					queryBinder.putLocal( "signingTime", "" );
+				}
+				if( queryBinder.getAllowMissing( "signReason" ) == null )
+					queryBinder.putLocal( "signReason", "" );
+				if( queryBinder.getAllowMissing( "signerName" ) == null )
+					queryBinder.putLocal( "signerName", "" );
+				if( queryBinder.getAllowMissing( "signerEmail" ) == null )
+					queryBinder.putLocal( "signerEmail", "" );
+				if( queryBinder.getAllowMissing( "certErrorStatus" ) == null )
+					queryBinder.putLocal( "certErrorStatus", "" );
     long seq = IdcCounterUtils.nextValue( m_workspace, "ESIG_SEQ" );
 				queryBinder.putLocal( "sID", Long.toString( seq ) );
 				m_workspace.execute( "IcosignSignatureDetails", queryBinder );
-			}	while( drset.next() );
+				drset.next();
+			}
 		} catch ( DataException e ) {
 		 throwFullError( e );
 		}

@@ -169,6 +169,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 */
 	public void processSignedDocument() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder: ", null );
+		Report.trace( "bezzotechcosign", "HTTP_REFERER: " + this.m_binder.getEnvironmentValue("HTTP_REFERER"), null );
 		String msg = "";
 		int response = 0;
 		m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
@@ -223,7 +224,10 @@ public class CoSignServiceHandler extends ServiceHandler {
 			if( !drset.isEmpty() )
 				m_cmutils.approve();
 		} else
+		{
+			m_binder.putLocal( "hideErrorBackButton", "1" );
 			m_cmutils.rollback( msg );
+		}
 	}
 
 	/**
@@ -246,6 +250,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 			try {
 				response = m_WSC.processVerifyRequest();
 			} catch( Exception e) {
+				Report.debug( "bezzotechcosign", "Returned from WSC on an error: " + e.getMessage(), null );
 				msg = e.getMessage();
 				term = true;
 			}

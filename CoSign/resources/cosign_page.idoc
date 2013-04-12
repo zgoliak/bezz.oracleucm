@@ -711,7 +711,7 @@
 <$ endif $>
 <@ end @>
 <@ dynamichtml cosign_signdocument_url @>
-<$ #env.wscServerAddress $><$ if #env.wscServerPort $>:<$ #env.wscServerPort $><$ endif $>/<$ #env.CoSignServerPath $>/UploadDoc.aspx?sessionID=<$ WSC_Session $>
+<$ #env.wscServerAddress $><$ if #env.wscServerPort $>:<$ #env.wscServerPort $><$ endif $><$ #env.CoSignServerPath $>UploadDoc.aspx?sessionID=<$ WSC_Session $>
 <@ end @>
 
 [[% Profile Management Page table includes %]]

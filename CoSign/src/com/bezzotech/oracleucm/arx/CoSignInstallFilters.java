@@ -18,7 +18,7 @@ public class CoSignInstallFilters implements FilterImplementor {
 	}
 
 	public int doFilter(Workspace ws, DataBinder binder, ExecutionContext cxt)
-		throws DataException, ServiceException {
+			throws DataException, ServiceException {
 		// CS version must be greater than 7.0 to run this install filter.
 		if (getSignificantVersion() <= 6) {
 			return CONTINUE;
