@@ -11,21 +11,30 @@
 				<td>dsdTableName</td>
 				<td>dsdComponentName</td>
 				<td>dsdVersion</td>
+				<td>dsdCheckFlag</td>
+				<td>dsdIsCSTable</td>
+				<td>dsdIsDynamicTable</td>
 			</tr>
 			<tr>
 				<td>CoSignSignatureDetails</td>
 				<td>CoSign</td>
 				<td>3.6.9</td>
+				<td></td>
+				<td>0</td>
+				<td>0</td>
 			</tr>
 			<tr>
 				<td>CoSignHistory</td>
 				<td>CoSign</td>
 				<td>3.6.9</td>
+				<td></td>
+				<td>0</td>
+				<td>0</td>
 			</tr>
 		</table>
 <@end@>
 <@table CoSign.CoSignSignatureDetails@>
-		<table>
+		<table border=1><caption><strong>
 			<tr>
 				<td>dsdColumnName</td>
 				<td>dsdFieldType</td>
@@ -35,7 +44,7 @@
 				<td>dsdDefaultValue</td>
 			</tr>
 			<tr>
-				<td>"sID"</td>
+				<td>sID</td>
 				<td>number</td>
 				<td></td>
 				<td>1</td>
@@ -43,13 +52,18 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"dID"</td>
+				<td>dID</td>
+				<td>number</td>
+				<td></td>
+				<td>1</td>
+				<td>1</td>
+				<td></td>
 			</tr>
 			<tr>
-				<td>"dDocName"</td>
+				<td>dDocName</td>
 			</tr>
 			<tr>
-				<td>"fieldName"</td>
+				<td>fieldName</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -57,7 +71,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"status"</td>
+				<td>status</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -65,7 +79,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"signingTime"</td>
+				<td>signingTime</td>
 				<td>date</td>
 				<td></td>
 				<td>0</td>
@@ -73,7 +87,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"signerEmail"</td>
+				<td>signerEmail</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -81,7 +95,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"signerName"</td>
+				<td>signerName</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -89,7 +103,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"signReason"</td>
+				<td>signReason</td>
 				<td>text</td>
 				<td>200</td>
 				<td>0</td>
@@ -97,7 +111,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"certErrorStatus"</td>
+				<td>certErrorStatus</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -105,7 +119,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"x"</td>
+				<td>x</td>
 				<td>number</td>
 				<td></td>
 				<td>0</td>
@@ -113,7 +127,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"y"</td>
+				<td>y</td>
 				<td>number</td>
 				<td></td>
 				<td>0</td>
@@ -121,7 +135,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"width"</td>
+				<td>width</td>
 				<td>number</td>
 				<td></td>
 				<td>0</td>
@@ -129,7 +143,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"height"</td>
+				<td>height</td>
 				<td>number</td>
 				<td></td>
 				<td>0</td>
@@ -137,7 +151,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"pageNumber"</td>
+				<td>pageNumber</td>
 				<td>number</td>
 				<td></td>
 				<td>0</td>
@@ -145,7 +159,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"dateFormat"</td>
+				<td>dateFormat</td>
 				<td>text</td>
 				<td>40</td>
 				<td>0</td>
@@ -153,7 +167,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"timeFormat"</td>
+				<td>timeFormat</td>
 				<td>text</td>
 				<td>40</td>
 				<td>0</td>
@@ -161,7 +175,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"graphicalImage"</td>
+				<td>graphicalImage</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -169,7 +183,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"signer"</td>
+				<td>signer</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -177,15 +191,15 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"date"</td>
-				<td>date</td>
-				<td></td>
+				<td>signDate</td>
+				<td>text</td>
+				<td>80</td>
 				<td>0</td>
 				<td>0</td>
 				<td></td>
 			</tr>
 			<tr>
-				<td>"initials"</td>
+				<td>initials</td>
 				<td>text</td>
 				<td>10</td>
 				<td>0</td>
@@ -193,7 +207,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"logo"</td>
+				<td>logo</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -201,7 +215,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"showTitle"</td>
+				<td>showTitle</td>
 				<td>text</td>
 				<td>10</td>
 				<td>0</td>
@@ -209,7 +223,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"showReason"</td>
+				<td>showReason</td>
 				<td>text</td>
 				<td>10</td>
 				<td>0</td>
@@ -217,7 +231,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"title"</td>
+				<td>title</td>
 				<td>text</td>
 				<td>80</td>
 				<td>0</td>
@@ -225,7 +239,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"reason"</td>
+				<td>reason</td>
 				<td>text</td>
 				<td>200</td>
 				<td>0</td>
@@ -235,7 +249,7 @@
 		</table>
 <@end@>
 <@table CoSign.CoSignHistory@>
-		<table>
+		<table border=1><caption><strong>
 			<tr>
 				<td>dsdColumnName</td>
 				<td>dsdFieldType</td>
@@ -245,7 +259,7 @@
 				<td>dsdDefaultValue</td>
 			</tr>
 			<tr>
-				<td>"ID"</td>
+				<td>ID</td>
 				<td>number</td>
 				<td></td>
 				<td>1</td>
@@ -253,7 +267,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"User"</td>
+				<td>PerformingUser</td>
 				<td>text</td>
 				<td>50</td>
 				<td>0</td>
@@ -261,7 +275,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"Date"</td>
+				<td>DatePerformed</td>
 				<td>date</td>
 				<td></td>
 				<td>0</td>
@@ -269,7 +283,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"Operation"</td>
+				<td>Operation</td>
 				<td>text</td>
 				<td>50</td>
 				<td>0</td>
@@ -277,7 +291,7 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"Error"</td>
+				<td>ErrorMessage</td>
 				<td>text</td>
 				<td>250</td>
 				<td>0</td>
@@ -285,10 +299,10 @@
 				<td></td>
 			</tr>
 			<tr>
-				<td>"dDocName"</td>
+				<td>dDocName</td>
 			</tr>
 			<tr>
-				<td>"dID"</td>
+				<td>dID</td>
 			</tr>
 		</table>
 <@end@>
@@ -302,17 +316,17 @@
 			<tr>
 				<td>CoSign</td>
 				<td>CoSignSignatureDetails</td>
-				<td>"sID"</td>
+				<td>sID</td>
 			</tr>
 			<tr>
 				<td>CoSign</td>
 				<td>CoSignSignatureDetails</td>
-				<td>"dID"</td>
+				<td>dID</td>
 			</tr>
 			<tr>
 				<td>CoSign</td>
 				<td>CoSignHistory</td>
-				<td>"ID"</td>
+				<td>ID</td>
 			</tr>
 		</table>
 <@end@>
@@ -453,6 +467,22 @@
 				<td></td>
 				<td></td>
 				<td>90060</td>
+			</tr>
+		</table>
+<@end@>
+<@table SystemTable.DocTypes.DefaultValues@>
+		<table border=1><caption><strong>
+			<tr>
+				<td>dsdNameOfColumns</td>
+				<td>dsdColumnsValues</td>
+				<td>dsdLookupColumns</td>
+				<td>dsdVersion</td>
+			</tr>
+			<tr>
+				<td>dDocType,dDescription,dGif</td>
+				<td>CoSignSignatureProfile,wwDocTypeDesc_CoSign,signed_file.png</td>
+				<td>dDocType</td>
+				<td>0</td>
 			</tr>
 		</table>
 <@end@>

@@ -28,6 +28,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
 import com.bezzotech.oracleucm.arx.service.FileStoreUtils;
@@ -378,16 +380,7 @@ public class CMUtils {
 		if( sigStatus != null && sigStatus.equals( "sent-to-cosign" ) ) {
 			m_binder.putLocal( "xSignatureStatus", "" );
 			update();
-			DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
-			if( drset != null ) {
-				while( drset.isRowPresent() ) {
-					if( drset.getStringValueByName( "dDocName" ).equals( rset.getStringValueByName( "dDocName" ) ) ) {
-						drset.deleteCurrentRow();
-						break;
-					}
-					drset.next();
-				}
-			}
+			removeItemFromCoSignCacheTable( rset.getStringValueByName( "dDocName" ) );
 		}
 /*  Want to redirect user to Doc_info on Cancel */
 		if( !error.equals( "" ) &&
@@ -395,6 +388,79 @@ public class CMUtils {
 			error = LocaleUtils.encodeMessage( error, null );
 			throw new ServiceException( error );
 		}
+	}
+
+	public void addItemToCoSignCacheTable( String contentId ) throws ServiceException {
+		Date dateNow = new Date ();
+		SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MMddyyyy");
+		String now = dateformatMMDDYYYY.format( dateNow );
+		DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
+		if( drset == null ) {
+			Report.trace( "bezzotechcosign", "Cache table not established yet, creating new", null );
+			drset = new DataResultSet( new String[] { "dDocName", "tsDateTime" } );
+		}
+		if( !drset.isEmpty() ) {
+			while( drset.isRowPresent() ) {
+				if( drset.getStringValueByName( "dDocName" ).equals( contentId ) ) {
+					drset.deleteCurrentRow();
+					break;
+				}
+				drset.next();
+			}
+		}
+		Vector row = drset.createEmptyRow();
+		Report.debug( "bezzotechcosign", "RS Columns: " + drset.getNumFields() + " - Row size: " + row.size(), null );
+		row.set( 0, contentId );
+		row.set( 1, now );
+		drset.addRow( row );
+		m_shared.putResultSet( "CoSignCheckedOutItems", drset );
+	}
+
+	public void removeItemFromCoSignCacheTable( String contentId ) throws ServiceException {
+		removeItemFromCachedTable( "CoSignCheckedOutItems", contentId );
+	}
+
+	protected void removeItemFromCachedTable( String tableName, String contentId )
+			throws ServiceException {
+		removeRowFromCacheTable( tableName, contentId, "dDocName" );
+	}
+
+	protected void removeRowFromCacheTable( String tableName, String filterValue, String filterName )
+			throws ServiceException {
+		DataResultSet drset = m_shared.getResultSet( tableName, false );
+		if( drset != null && !drset.isEmpty() ) {
+			while( drset.isRowPresent() ) {
+				if( drset.getStringValueByName( filterName ).equals( filterValue ) ) {
+					drset.deleteCurrentRow();
+					break;
+				}
+				drset.next();
+			}
+		}
+		m_shared.putResultSet( "CoSignCheckedOutItems", drset );
+	}
+
+	public boolean itemExistsInCoSignCacheTable( String contentId ) throws ServiceException {
+		return itemExistsInCacheTable( "CoSignCheckedOutItems", contentId );
+	}
+
+	protected boolean itemExistsInCacheTable( String tableName, String contentId )
+			throws ServiceException {
+		return rowExistsInCacheTable( tableName, contentId, "dDocName" );
+	}
+
+	protected boolean rowExistsInCacheTable( String tableName, String filterValue, String filterName )
+			throws ServiceException {
+		DataResultSet drset = m_shared.getResultSet( tableName, false );
+		if( drset != null && !drset.isEmpty() ) {
+			while( drset.isRowPresent() ) {
+				if( drset.getStringValueByName( filterName ).equals( filterValue ) ) {
+					return true;
+				}
+				drset.next();
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -418,6 +484,8 @@ public class CMUtils {
 			m_service.executeService( "INTERNAL_CHECKOUT_SUB" );
 		} catch ( DataException e ) {
 			throwFullError( e );
+		} finally {
+			addItemToCoSignCacheTable( m_binder.getLocal( "dDocName" ) );
 		}
 	}
 

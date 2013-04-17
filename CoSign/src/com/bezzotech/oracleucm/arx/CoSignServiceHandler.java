@@ -170,63 +170,71 @@ public class CoSignServiceHandler extends ServiceHandler {
 	public void processSignedDocument() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder: ", null );
 		Report.trace( "bezzotechcosign", "HTTP_REFERER: " + this.m_binder.getEnvironmentValue("HTTP_REFERER"), null );
-		String msg = "";
-		int response = 0;
-		m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
-		m_binder.putLocal( "dID", "" );
-		if( m_binder.getLocal( "errorMessage" ) != null ) {
-			if( Integer.parseInt( m_binder.getLocal( "returnCode" ) ) == WSC.USER_OPER_CANCELLED ) {
-				String redirectURL = "<$ HttpCgiPath $>?IdcService=DOC_INFO_BY_NAME" +
-						"&RevisionSelectionMethod=LatestReleased&dDocName=" + m_binder.getLocal( "dDocName" );
-			 m_binder.putLocal( "RedirectURL", redirectURL );
+		if( m_cmutils.itemExistsInCoSignCacheTable( m_binder.getLocal( "docId" ) ) ) {
+			String msg = "";
+			int response = 0;
+			m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
+			m_binder.putLocal( "dID", "" );
+			if( m_binder.getLocal( "errorMessage" ) != null ) {
+				if( Integer.parseInt( m_binder.getLocal( "returnCode" ) ) == WSC.USER_OPER_CANCELLED ) {
+					String redirectURL = "<$ HttpCgiPath $>?IdcService=DOC_INFO_BY_NAME" +
+							"&RevisionSelectionMethod=LatestReleased&dDocName=" + m_binder.getLocal( "dDocName" );
+					m_binder.putLocal( "RedirectURL", redirectURL );
+				}
+				msg = m_binder.getLocal( "errorMessage" );
+				m_undo = true;
 			}
-			msg = m_binder.getLocal( "errorMessage" );
-			m_undo = true;
-		}
-		if( !m_undo && m_binder.getLocal( "sessionId" ) == null ) {
-			msg = "csInvalidSessionId";
-			m_undo = true;
-		}
-		if( !m_undo && m_binder.getLocal( "docId" ) == null ) {
-			msg = "csInvalidDocId";
-			m_undo = true;
-		}
+			if( !m_undo && m_binder.getLocal( "sessionId" ) == null ) {
+				msg = "csInvalidSessionId";
+				m_undo = true;
+			}
+			if( !m_undo && m_binder.getLocal( "docId" ) == null ) {
+				msg = "csInvalidDocId";
+				m_undo = true;
+			}
+			try {
+				if( !m_undo ) response = m_WSC.processDownloadRequest();
+			} catch ( Exception e ) {
+				msg += e.getMessage();
+				m_undo = true;
+			}
 
-		try {
-			if( !m_undo ) response = m_WSC.processDownloadRequest();
-		} catch ( Exception e ) {
-			msg += e.getMessage();
-			m_undo = true;
-		}
+			logHistory( msg );
 
-		logHistory( msg );
-
-		DataResultSet drset = new DataResultSet();
-		if( !m_undo && response != WSC.USER_OPER_CANCELLED ) {
-			DataBinder qApproveBinder = new DataBinder();
-			qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
-			ResultSet rset = m_cmutils.createResultSet( "QwfDocInformation", qApproveBinder );
-			drset.copy( rset );
-			Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
-			String stepType = null;
-			if( !drset.isEmpty() ) {
-				stepType = drset.getStringValueByName( "dWfStepType" );
-				if( stepType.indexOf( ":CN:" ) >= 0 ) // allow New Revision
+			DataResultSet drset = new DataResultSet();
+			if( !m_undo && response != WSC.USER_OPER_CANCELLED ) {
+				DataBinder qApproveBinder = new DataBinder();
+				qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
+				ResultSet rset = m_cmutils.createResultSet( "QwfDocInformation", qApproveBinder );
+				drset.copy( rset );
+				Report.debug( "bezzotechcosign", "Resulting Rset: " + drset.toString(), null );
+				String stepType = null;
+				if( !drset.isEmpty() ) {
+					stepType = drset.getStringValueByName( "dWfStepType" );
+					if( stepType.indexOf( ":CN:" ) >= 0 ) // allow New Revision
+						m_binder.putLocal( "dRevLabel",
+								( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
+					else if( stepType.indexOf( ":CE:" ) >= 0 ) {} // allow Edit Revision ZKG: Maybe build in Major/Minor revisioning
+				}
+				else
 					m_binder.putLocal( "dRevLabel",
 							( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
-				else if( stepType.indexOf( ":CE:" ) >= 0 ) {} // allow Edit Revision ZKG: Maybe build in Major/Minor revisioning
-			} else
-				m_binder.putLocal( "dRevLabel",
-						( Integer.parseInt( m_binder.getLocal( "dRevLabel" ) ) + 1 ) + "" );
-			m_cmutils.checkinSel();
-			m_WSC.log();
+				m_cmutils.checkinSel();
+				m_WSC.log();
 
-			if( !drset.isEmpty() )
-				m_cmutils.approve();
-		} else
-		{
+				if( !drset.isEmpty() )
+					m_cmutils.approve();
+				m_cmutils.removeItemFromCoSignCacheTable( m_binder.getLocal( "dDocName" ) );
+			}
+			else {
+				m_binder.putLocal( "hideErrorBackButton", "1" );
+				m_cmutils.rollback( msg );
+			}
+		}
+		else {
+			Report.trace( "bezzotechcosign", "Content item " + m_binder.getLocal( "docId" ) + " was already checked in/rolled back, this was likely the result of a 'Trays' orientation", null );
 			m_binder.putLocal( "hideErrorBackButton", "1" );
-			m_cmutils.rollback( msg );
+			throw new ServiceException( m_binder.getLocal( "errorMessage" ) );
 		}
 	}
 
