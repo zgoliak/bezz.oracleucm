@@ -21,6 +21,7 @@ import intradoc.shared.FilterImplementor;
 import intradoc.shared.SecurityUtils;
 import intradoc.shared.UserData;
 
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -104,7 +105,18 @@ public class CoSignFilters implements FilterImplementor {
 					tmpRS.copy( rset );
 					do {
 						String id = tmpRS.getStringValueByName( "dDocName" );
-						if( drset.findRow( drset.getFieldInfoIndex( "dDocName" ), id ) != null ) {
+						List theRow = drset.findRow( drset.getFieldInfoIndex( "dDocName" ), id );
+						SimpleDateFormat format = new SimpleDateFormat( "MM/dd/yyyy HH:mm:ss" );
+						Date date = null;
+						date = format.parse(
+								( String )theRow.get( drset.getFieldInfoIndex( "tsDateTime" ) ),
+								new ParsePosition( 0 ) );
+
+						// Get msec from each, and subtract.
+						long diff = dateNow.getTime() - date.getTime();
+						long diffMinutes = diff / ( 60 * 1000 ) % 60;
+
+						if( ( theRow != null ) && diff >= 5 ) {
 
 							// item has been in-process for at least 5 minutes: force a timeout
 							DataBinder undo = new DataBinder( db.getEnvironment() );
@@ -130,145 +142,9 @@ public class CoSignFilters implements FilterImplementor {
 			}
 			return FINISHED;
 		}
-/*		if( s.equals( "createCoSignTables" ) ) {
-			createLogTable( ws, loader );
-			createHistoryTable( ws, loader );
-			loader.setDBConfigValue( "ComponentInstall", "CoSign", m_currentVersion, "1" );
-		}
-*/
 		return CONTINUE;
 	}
 
-/*	protected void createMetaFields( Workspace ws ) {
-		String iID = CompInstallUtils.getInstallID( "CoSign" );
-		Properties cData = CompInstallUtils.loadComponentInstallOrConfigData( "CoSign", iID, false );
-		Report.trace( "cosigninstall",
-				( new StringBuilder() )
-						.append( "createMetaFields():  " )
-						.append( "CoSign" )
-						.append( "-" )
-						.append( "configData" )
-						.append( "= " )
-						.append( cData )
-						.append( cData == null || !cData.isEmpty() ? "" : ( new StringBuilder() )
-								.append( "   " ).append( "configData" )
-								.append( ".isEmpty()=true" )
-								.toString())
-						.toString(),
-				null);
-		configureMetaField( ws, cData, "coSignSignatureProfileMetaField",
-				"csCoSignSignatureProfileMetaField", "String", false, "", "", "1", "90000" );
-		configureMetaField( ws, cData, "CoSignSignatureStatus", "csxCoSignSignatureStatus", "String",
-				true, "?", "?", "1", "90010" );
-		configureMetaField( ws, cData, "CoSignSigner", "csxCoSignSigner", "String", false, "", "", "1",
-				"90020" );
-		configureMetaField( ws, cData, "CoSignSignTime", "csxCoSignSignTime", "Date", false, "", "", "1",
-				"90030" );
-		configureMetaField( ws, cData, "CoSignSignatureCount", "csxCoSignSignatureCount", "Int", false,
-				"", "", "1", "90040" );
-		configureMetaField( ws, cData, "CoSignRequiredSignatures", "csxCoSignRequiredSignatures",
-				"BigText", true, "?", "?", "0", "90050" );
-		configureMetaField( ws, cData, "CoSignSignatureReasons", "csxCoSignSignatureReasons", "Memo",
-				true, "?", "?", "0", "90060" );
-	}
-
-	protected void createLogTable( Workspace ws, IdcExtendedLoader iel ) throws ServiceException, DataException {
-		String as[] = ws.getTableList();
-		String s = "CoSignSignatureDetails";
-		int i = StringUtils.findStringIndexEx( as, s, true );
-		if( i < 0 ) {
-			String columns[][] = {
-					{ "sID", "int", "" }, 
-					{ "dID", "varchar", "80" }, 
-					{ "dDocName", "varchar", "80" }, 
-					{ "fieldName", "varchar", "80" }, 
-					{ "status", "varchar", "80" }, 
-					{ "signingTime", "date", "" }, 
-					{ "signerEmail", "varchar", "80" }, 
-					{ "signerName", "varchar", "80" }, 
-					{ "signReason", "varchar", "200" }, 
-					{ "certErrorStatus", "varchar", "80" }, 
-					{ "x", "int", "" }, 
-					{ "y", "int", "" }, 
-					{ "width", "int", "" }, 
-					{ "height", "int", "" }, 
-					{ "pageNumber", "int", "" }, 
-					{ "dateFormat", "varchar", "40" }, 
-					{ "timeformat", "varchar", "40" }, 
-					{ "graphicalImage", "varchar", "80" }, 
-					{ "signer", "varchar", "80" }, 
-					{ "signdate", "date", "" }, 
-					{ "initials", "varchar", "10" }, 
-					{ "logo", "varchar", "80" }, 
-					{ "showTitle", "varchar", "10" }, 
-					{ "showReason", "varchar", "10" }, 
-					{ "title", "varchar", "80" }, 
-					{ "reason", "varchar", "200" }
-			};
-			iel.createTable( s, columns, new String[] { "sID", "dID" } );
-			Report.trace( "cosigninstall", "createLogTable() create table: " + s, null );
-//			IdcCounterUtils.registerCounter( ws, "CoSignSignatureDetailsID", -1L, 1 );
-			CompInstallUtils.addIndex( ws, s, "sID" );
-			m_indexGenerator.generateIndexes( s );
-//			updateConfigTable( s );
-		}
-	}
-	
-	protected void createHistoryTable( Workspace ws, IdcExtendedLoader iel ) throws ServiceException, DataException {
-		String as[] = ws.getTableList();
-		String s = "CoSignHistory";
-		int i = StringUtils.findStringIndexEx( as, s, true );
-		if( i < 0 ) {
-			String columns[][] = {
-					{ "ID", "int", "" },
-					{ "User", "varchar", "50" },
-					{ "Date", "date", "" },
-					{ "Operation", "varchar", "50" },
-					{ "Error", "varchar", "250" },
-					{ "dDocName", "varchar", "80" },
-					{ "dID", "varchar", "80" }
-			};
-			iel.createTable( s, columns, new String[] { "ID" } );
-			Report.trace( "cosigninstall", "createHistoryTable() create table: " + s, null );
-//			IdcCounterUtils.registerCounter( ws, "CoSignHistoryID", -1L, 1 );
-			CompInstallUtils.addIndex( ws, s, "ID" );
-			m_indexGenerator.generateIndexes( s );
-		}
-	}
-
-	private void configureMetaField( Workspace ws, Properties configData, String configuredMetaName,
-			String caption, String type, boolean isOptionList, String optionListKey, String optListType,
-			String indexed, String order ) throws ServiceException, DataException {
-		String metaName = m_shared.getConfig( configuredMetaName );
-		if( metaName == null || metaName.length() < 1 ) {
-			metaName = configData.getProperty( configuredMetaName );
-			if( metaName == null || metaName.length() < 1 ) {
-				Report.trace( "cosigninstall",
-						( new StringBuilder() )
-								.append( "configureMetaField: " )
-								.append( configuredMetaName )
-								.append( ", can not find configured value. Metafield not created." )
-								.toString(),
-						null);
-				return;
-			}
-		}
-		Properties propsMetafieldInfo = new Properties();
-		propsMetafieldInfo.put( "dCaption", caption );
-//		propsMetafieldInfo.put( "dType", "Text" );
-		propsMetafieldInfo.put( "dIsRequired", "0" );
-		propsMetafieldInfo.put( "dIsEnabled", "1" );
-		propsMetafieldInfo.put( "dIsSearchable", indexed );
-//		propsMetafieldInfo.put( "dIsOptionList", "1" );
-//		propsMetafieldInfo.put( "dDefaultValue", "FALSE" );
-//		propsMetafieldInfo.put( "dOptionListKey", "view://Folders.TrueFalseView" );
-//		propsMetafieldInfo.put( "dOptionListType", optListType );
-		propsMetafieldInfo.put( "dOrder", order );
-		propsMetafieldInfo.put( "dComponentName", "CoSign" );
-		MetaFieldUtils.updateMetaDataFromProps( ws, null, propsMetafieldInfo, metaName,
-				!MetaFieldUtils.hasDocMetaDef( metaName ) );
-	}
-*/
 	protected void removeColumns( DataResultSet drset, String columns[] ) {
 		for( int i = 0; i < columns.length; i++ ) {
 			removeColumn( drset, columns[ i ] );
