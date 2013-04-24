@@ -189,7 +189,7 @@ public class WSC {
 		String message = postRequestToWSC( "UploadDoc.aspx?docId=" +
 				m_binder.getLocal( "CoSign.Document.fileID" ), m_binder.getLocal( "SignRequest" ),
 				"application/x-www-form-urlencoded" );
-		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
+		Report.debug( "bezzotechcosign", "WSC response: " + message, null );
 		parseWSCResponse( message, false );
 		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == SUCCESS ) {
 			m_binder.putLocal( "WSC_Session", m_binder.getLocal( "CoSign.Session.sessionId" ) );
@@ -208,7 +208,7 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering processDownloadRequest", null );
 		String message = postRequestToWSC( "pullSignedDoc.ashx?sessionID=" +
 				m_binder.getLocal( "sessionId" ), null, null );
-		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
+		Report.debug( "bezzotechcosign", "WSC response: " + message, null );
 		parseWSCResponse( message, true );
 		Report.debug( "bezzotechcosign", "Resulting binder: ", null );
 		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == Errors.SUCCESS ) {
@@ -283,7 +283,7 @@ public class WSC {
 		Report.trace( "bezzotechcosign", "Entering processVerifyRequest", null );
 		String message = postStreamToWSC( "VerifyService.aspx", m_binder,
 				m_binder.getResultSetValue( m_binder.getResultSet( "DOC_INFO" ), "dFormat" ) );
-		Report.trace( "bezzotechcosign", "WSC response: " + message, null );
+		Report.debug( "bezzotechcosign", "WSC response: " + message, null );
 		parseVerifyResponse( message );
 //		VerifyResponse verify = VerifyResponse( m_binder );
 		ResultSet rset = m_binder.getResultSet( "Fields" );
@@ -383,7 +383,7 @@ public class WSC {
 			httpCon.setDoOutput( true );
 			httpCon.setRequestMethod( "POST" );
 
-			Report.trace( "bezzotechcosign", "Avialable file size: " + content.m_inStream.available(), null );
+			Report.debug( "bezzotechcosign", "Avialable file size: " + content.m_inStream.available(), null );
 			_out = new BufferedOutputStream( httpCon.getOutputStream() );
 			byte[] baBuffer = new byte[64 * 1024];
 			int len = 0;

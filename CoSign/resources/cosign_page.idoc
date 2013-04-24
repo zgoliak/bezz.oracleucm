@@ -39,15 +39,17 @@
 	<$ traceLog = '###begin custom_docinfo_menus_setup log' $>
 	<$ include super.custom_docinfo_menus_setup $>
 
-	<$ include cosign_compute_userhasrequiredrole $>
-	<$ exec rsAppendNewRow( "PageMenusData" ) $>
-	<$ PageMenusData.nodeId = "SIGN_WITH_COSIGN" $>
-	<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
-	<$ PageMenusData.label = "wwSignWithCoSign" $>
-	<$ PageMenusData.ifClause = "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND  NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" $>
-	<$ PageMenusData.type = "item" $>
-	<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" $>
-	<$ PageMenusData.loadOrder = 10 $>
+	<$ if not ( isTrue( dIsCheckedOut ) OR IsStagingDoc ) $>
+		<$ include cosign_compute_userhasrequiredrole $>
+		<$ exec rsAppendNewRow( "PageMenusData" ) $>
+		<$ PageMenusData.nodeId = "SIGN_WITH_COSIGN" $>
+		<$ PageMenusData.parentId = "CONTENT_ACTIONS" $>
+		<$ PageMenusData.label = "wwSignWithCoSign" $>
+		<$ PageMenusData.ifClause = "isTrue( userHasRequiredRole ) AND userHasRole( 'CoSignSigner' ) AND ( NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), '' ) AND  NOT strEquals( getValue( '#active', #env.coSignSignatureProfileMetaField ), 'Externally Signed' ) )" $>
+		<$ PageMenusData.type = "item" $>
+		<$ PageMenusData.href = "<$ HttpCgiPath $>?IdcService=COSIGN_SIGNDOCUMENT&dDocName=<$ url( dDocName ) $>&dID=<$ url( dID ) $><$ include idc_token_url_appending_parameter $>" $>
+		<$ PageMenusData.loadOrder = 10 $>
+	<$ endif $>
 
 	<$ exec rsAppendNewRow( "PageMenusData" ) $>
 	<$ PageMenusData.nodeId = "REVIEW_SIGNATURES" $>
@@ -836,14 +838,14 @@
 	<$ exec setValue( 'ColumnProperties', 'rowAlign', 'left' ) $>
 <@ end @>
 <@ dynamichtml cosign_setup_verify_table_row @>
-	<$ exec setValue( 'RowData', 'id', '<$ SignatureReview.SID $>' ) $>
-	<$ exec setValue( 'RowData', 'fname', '<$ SignatureReview.FIELDNAME $>' ) $>
-	<$ exec setValue( 'RowData', 'status', '<$ if SignatureReview.STATUS $><$ lc( "wwStatus" & SignatureReview.STATUS ) $><$ endif $>' ) $>
-	<$ exec setValue( 'RowData', 'time', '<$ SignatureReview.SIGNINGTIME $>' ) $>
-	<$ exec setValue( 'RowData', 'email', '<$ SignatureReview.SIGNEREMAIL $>' ) $>
-	<$ exec setValue( 'RowData', 'sname', '<$ SignatureReview.SIGNERNAME $>' ) $>
-	<$ exec setValue( 'RowData', 'reason', '<$ SignatureReview.SIGNREASON $>' ) $>
-	<$ exec setValue( 'RowData', 'estatus', '<$ if SignatureReview.CERTERRORSTATUS $><$ lc( "wwCertErrorStatus" & SignatureReview.CERTERRORSTATUS ) $><$ endif $>' ) $>
+	<$ exec setValue( 'RowData', 'id', '<$ SignatureReview.sID $>' ) $>
+	<$ exec setValue( 'RowData', 'fname', '<$ SignatureReview.fieldName $>' ) $>
+	<$ exec setValue( 'RowData', 'status', '<$ if SignatureReview.status $><$ lc( "wwStatus" & SignatureReview.status ) $><$ endif $>' ) $>
+	<$ exec setValue( 'RowData', 'time', '<$ SignatureReview.signingTime $>' ) $>
+	<$ exec setValue( 'RowData', 'email', '<$ SignatureReview.signerEmail $>' ) $>
+	<$ exec setValue( 'RowData', 'sname', '<$ SignatureReview.signerName $>' ) $>
+	<$ exec setValue( 'RowData', 'reason', '<$ SignatureReview.signReason $>' ) $>
+	<$ exec setValue( 'RowData', 'estatus', '<$ if SignatureReview.certErrorStatus $><$ lc( "wwCertErrorStatus" & SignatureReview.certErrorStatus ) $><$ endif $>' ) $>
 <@ end @>
 
 <@ dynamicdata cosign_set_doevent_for_hourly_event @>

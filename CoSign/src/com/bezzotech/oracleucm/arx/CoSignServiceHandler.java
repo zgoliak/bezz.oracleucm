@@ -68,12 +68,15 @@ public class CoSignServiceHandler extends ServiceHandler {
 		try {
 			_out = new OutputStreamWriter( new FileOutputStream( s2 ), "UTF8" );
 			_out.write( s );
-		} catch( Exception exception ) {
+		}
+		catch( Exception exception ) {
 			m_service.createServiceException( null, exception.getMessage() );
-		} finally {
+		}
+		finally {
 			try {
 				_out.close();
-			} catch ( IOException e ) {
+			}
+			catch ( IOException e ) {
 				throwFullError( e );
 			}
 		}
@@ -91,7 +94,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		try {
 			Thread t = new Thread();
 			t.sleep( Long.parseLong( m_shared.getConfig( "CoSignProfileCheckinDelaySec") ) * 1000 );
-		} catch ( Exception ignore ) {}
+		}
+		catch ( Exception ignore ) {}
 	}
 
 	/**
@@ -127,7 +131,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		DataResultSet drset = new DataResultSet();
 		drset.copy( rset );
 		m_binder.addResultSet( "DOC_INFO", drset );
-		Report.trace( "bezzotechcosign", "Required metadata for Signing Ceremony have been gathered from" +
+		Report.debug( "bezzotechcosign", "Required metadata for Signing Ceremony have been gathered from" +
 				" content item, resulting binder: ", null );
 
 		m_binder.putLocal( "CoSign.Document.content", PLACEHOLDER_CONTENT );
@@ -142,15 +146,18 @@ public class CoSignServiceHandler extends ServiceHandler {
 			SignRequest = "inputXML=" + output;
 			m_binder.putLocal( "SignRequest", SignRequest );
 			response = m_WSC.processSignRequest();
-		} catch ( UnsupportedEncodingException e ) {
+		}
+		catch ( UnsupportedEncodingException e ) {
 			e.printStackTrace();
 			msg += e.getMessage();
 			m_undo = true;
-		} catch ( Exception e ) {
+		}
+		catch ( Exception e ) {
 			e.printStackTrace();
 			msg += e.getMessage();
 			m_undo = true;
-		} finally {
+		}
+		finally {
 			if( m_binder.getLocal( "WSC_Session" ) == null ) {
 				msg += "\n\tCosign returned without a valid session found";
 				m_undo = true;
@@ -160,7 +167,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		logHistory( msg );
 
 		if( m_undo ) {
-			m_cmutils.rollback( msg );
+			m_cmutils.rollback( msg, false );
 		}
 	}
 
@@ -169,40 +176,49 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 */
 	public void processSignedDocument() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder: ", null );
-		Report.trace( "bezzotechcosign", "HTTP_REFERER: " + this.m_binder.getEnvironmentValue("HTTP_REFERER"), null );
-		if( m_cmutils.itemExistsInCoSignCacheTable( m_binder.getLocal( "docId" ) ) ) {
-			String msg = "";
-			int response = 0;
-			m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
-			m_binder.putLocal( "dID", "" );
-			if( m_binder.getLocal( "errorMessage" ) != null ) {
-				if( Integer.parseInt( m_binder.getLocal( "returnCode" ) ) == WSC.USER_OPER_CANCELLED ) {
-					String redirectURL = "<$ HttpCgiPath $>?IdcService=DOC_INFO_BY_NAME" +
-							"&RevisionSelectionMethod=LatestReleased&dDocName=" + m_binder.getLocal( "dDocName" );
-					m_binder.putLocal( "RedirectURL", redirectURL );
-				}
+		Report.debug( "bezzotechcosign", "HTTP_REFERER: " + this.m_binder.getEnvironmentValue("HTTP_REFERER"), null );
+		String msg = "";
+		int response = 0;
+		boolean canceled = false;
+		if( m_binder.getLocal( "errorMessage" ) != null ) {
+			response = Integer.parseInt( m_binder.getLocal( "returnCode" ) );
+			if( response == WSC.USER_OPER_CANCELLED ) {
+				String redirectURL = "<$ HttpCgiPath $>?IdcService=DOC_INFO_BY_NAME" +
+						"&RevisionSelectionMethod=LatestReleased&dDocName=" + m_binder.getLocal( "docId" );
+				m_binder.putLocal( "RedirectUrl", redirectURL );
+				canceled = true;
+			}
+			else {
 				msg = m_binder.getLocal( "errorMessage" );
 				m_undo = true;
 			}
-			if( !m_undo && m_binder.getLocal( "sessionId" ) == null ) {
+		}
+		m_binder.putLocal( "dDocName", m_binder.getLocal( "docId" ) );
+		m_binder.putLocal( "dID", "" );
+		if( m_cmutils.itemExistsInCoSignCacheTable( m_binder.getLocal( "docId" ) ) ) {
+			if( !( m_undo || canceled ) && m_binder.getLocal( "sessionId" ) == null ) {
 				msg = "csInvalidSessionId";
 				m_undo = true;
 			}
-			if( !m_undo && m_binder.getLocal( "docId" ) == null ) {
+			if( !( m_undo || canceled ) && m_binder.getLocal( "docId" ) == null ) {
 				msg = "csInvalidDocId";
 				m_undo = true;
 			}
 			try {
-				if( !m_undo ) response = m_WSC.processDownloadRequest();
-			} catch ( Exception e ) {
+				if( !( m_undo || canceled ) ) response = m_WSC.processDownloadRequest();
+			}
+			catch ( Exception e ) {
 				msg += e.getMessage();
 				m_undo = true;
+			}
+			finally {
+				if( response == WSC.USER_OPER_CANCELLED ) canceled = true;
 			}
 
 			logHistory( msg );
 
 			DataResultSet drset = new DataResultSet();
-			if( !m_undo && response != WSC.USER_OPER_CANCELLED ) {
+			if( !( m_undo || canceled ) ) {
 				DataBinder qApproveBinder = new DataBinder();
 				qApproveBinder.putLocal( "dDocName", m_binder.getLocal( "dDocName" ) );
 				ResultSet rset = m_cmutils.createResultSet( "QwfDocInformation", qApproveBinder );
@@ -228,13 +244,19 @@ public class CoSignServiceHandler extends ServiceHandler {
 			}
 			else {
 				m_binder.putLocal( "hideErrorBackButton", "1" );
-				m_cmutils.rollback( msg );
+				m_cmutils.rollback( msg, canceled );
 			}
 		}
 		else {
-			Report.trace( "bezzotechcosign", "Content item " + m_binder.getLocal( "docId" ) + " was already checked in/rolled back, this was likely the result of a 'Trays' orientation", null );
+			Report.trace( "bezzotechcosign", "Content item " + m_binder.getLocal( "docId" ) + " was already" +
+					" checked in/rolled back, this was likely the result of a 'Trays' orientation\n", null );
 			m_binder.putLocal( "hideErrorBackButton", "1" );
-			throw new ServiceException( m_binder.getLocal( "errorMessage" ) );
+			if( !canceled ) {
+				if( msg.equals( "" ) )
+					msg = "csCoSignSessionTimeOut";
+				msg = LocaleUtils.encodeMessage( msg, null );
+				throw new ServiceException( msg );
+			}
 		}
 	}
 
@@ -257,7 +279,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 			int response = 0;
 			try {
 				response = m_WSC.processVerifyRequest();
-			} catch( Exception e) {
+			}
+			catch( Exception e) {
 				Report.debug( "bezzotechcosign", "Returned from WSC on an error: " + e.getMessage(), null );
 				msg = e.getMessage();
 				term = true;
@@ -279,7 +302,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 	public void readXMLToBinder() throws ServiceException {
 		try {
 			m_WSC.parseSigProfile();
-		} catch ( Exception e ) {
+		}
+		catch ( Exception e ) {
 			e.printStackTrace();
 			throw new ServiceException( e.getMessage() );
 		}
@@ -314,7 +338,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 			long seq = IdcCounterUtils.nextValue( m_workspace, "ESIG_SEQ" );
 			binder.putLocal( "ID", Long.toString( seq ) );
 			m_workspace.execute( "IcosignHistory", binder );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 	}

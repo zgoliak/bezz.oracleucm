@@ -110,16 +110,21 @@ public class CMUtils {
 			_raf = new RandomAccessFile( primaryFilePath, "r" );
 			b = new byte[ ( int )_raf.length() ];
 			_raf.read( b );
-		} catch ( FileNotFoundException e ) {
+		}
+		catch ( FileNotFoundException e ) {
 			throwFullError( e );
-		} catch ( IOException e ) {
+		}
+		catch ( IOException e ) {
 			throwFullError( e );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
-		} finally {
+		}
+		finally {
 			try {
 				_raf.close();
-			} catch ( IOException e ) {
+			}
+			catch ( IOException e ) {
 				throwFullError( e );
 			}
 		}
@@ -138,9 +143,11 @@ public class CMUtils {
 		try {
 			String primaryFilePath = m_fsutil.getFilePath( binder );
 			_content = new BufferedInputStream( new FileInputStream( new File( primaryFilePath ) ) );
-		} catch ( FileNotFoundException e ) {
+		}
+		catch ( FileNotFoundException e ) {
 			throwFullError( e );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 		return _content;
@@ -198,7 +205,8 @@ public class CMUtils {
 		ResultSet rset = null;
 		try {
 			rset = m_workspace.createResultSet( query, binder );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 		if( rset.isEmpty() ) {	Report.trace( "bezzotechcosign", "Query returned no results", null );	}
@@ -216,55 +224,19 @@ public class CMUtils {
 		if( m_binder.getLocal( "CoSignProfile" ) != null ) {
 			DataResultSet drset = new DataResultSet();
 			drset.copy( getProfileWithMatchingTagAndUserRoles( m_binder.getLocal( "CoSignProfile" ) ) );
-/*			binder.putLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ),
-					m_binder.getLocal( "CoSignProfile" ) );
-			ResultSet rset = createResultSet( "QsignatureProfileID", binder );
-			DataResultSet drset = new DataResultSet();
-			drset.copy( rset );
-			Report.debug( "bezzotechcosign", "Rows: " + drset.getNumRows(), null );
 			if( drset.getNumRows() <= 0 ) {
 				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
 						m_binder.getLocal( "CoSignProfile" ) );
 			}
-
-			UserData ud = getUserData();
-			Vector userRoles = SecurityUtils.getRoleList( ud );
-			String packageStr = "";
-			boolean found = false;
-			do {
-				String requiredRole = drset.getStringValueByName( "xCoSignRequiredSignatures" );
-				for( int i = 0; i < userRoles.size(); i++ ) {
-					UserAttribInfo uai = ( UserAttribInfo )userRoles.elementAt( i );
-					Report.debug( "bezzotechcosign", "Required Roles: " + requiredRole + "\n\tRole: " +
-							uai.m_attribName + "\n\ttest: " + requiredRole.indexOf( uai.m_attribName ), null );
-					if( requiredRole.indexOf( uai.m_attribName ) >= 0 ) {
-						if( found )
-							throw new ServiceException( "The content " + m_binder.getLocal( "dDocName" ) +
-									" has multiple signature profiles.  Please contact your administrator." );
-						else
-							found = true;
-					}
-				}
-				if( !found ) {
-					drset.deleteCurrentRow();
-					Report.debug( "bezzotechcosign", "Deleted ResultSet Row: " + drset.toString(), null );
-				} else
-					drset.next();
-				found = false;
-				Report.debug( "bezzotechcosign", "Current: " + drset.getCurrentRow() + "\n\tRows: " +
-						drset.getNumRows(), null );
-			} while( drset.isRowPresent() );*/
-			if( drset.getNumRows() <= 0 ) {
-				throw new ServiceException( "Unable to locate the Sign Request Profile: " +
-						m_binder.getLocal( "CoSignProfile" ) );
-			} else if( drset.getNumRows() > 1 ) {
+			else if( drset.getNumRows() > 1 ) {
 				throw new ServiceException( "This user is assigned to multiple signature profiles for this " +
 						"document.  Please contact your administrator." );
 			}
 			drset.first();
 			Report.debug( "bezzotechcosign", "Retrieved ResultSet: " + drset.toString(), null );
 			binder.mergeResultSetRowIntoLocalData( getDocInfo( drset.getStringValueByName( "dID" ) ) );
-		} else {
+		}
+		else {
 			binder.mergeResultSetRowIntoLocalData( getDocInfo( m_binder.getLocal( "dID" ) ) );
 		}
 		binder.putLocal( FileStoreProvider.SP_RENDITION_ID, FileStoreProvider.R_PRIMARY );
@@ -272,7 +244,8 @@ public class CMUtils {
 		String returnStr = null;
 		try {
 			returnStr = m_fsutil.getFilePath( binder );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 		return returnStr;
@@ -288,7 +261,8 @@ public class CMUtils {
 			if( m_binder.getLocal( "dUser" ) != null ) {
 				if( m_service.fillUserData( m_binder.getLocal( "dUser" ) ) )
 					ud = m_service.getUserData();
-			} else
+			}
+			else
 				ud = SecurityUtils.createDefaultAdminUserData();
 		}
 		return ud;
@@ -328,7 +302,8 @@ public class CMUtils {
 			if( !found ) {
 				drset.deleteCurrentRow();
 				Report.debug( "bezzotechcosign", "Deleted ResultSet Row: " + drset.toString(), null );
-			} else
+			}
+			else
 				drset.next();
 			found = false;
 			Report.debug( "bezzotechcosign", "Current: " + drset.getCurrentRow() + "\n\tRows: " +
@@ -357,7 +332,8 @@ public class CMUtils {
 			}
 			s.setUserData( user );
 			s.doRequest();
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 	}
@@ -365,12 +341,13 @@ public class CMUtils {
 	/**
 	 *
 	 */
-	public void rollback( String error ) throws ServiceException {
+	public void rollback( String error, boolean isRedirect ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
 				"\n\tservice: " + m_binder.getLocal( "IdcService" ) + "\n\tbinder: ", null );
 		try {
 			m_service.executeService( "UNDO_CHECKOUT_BY_NAME_IMPLEMENT" );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e ); // Let's swallow this as that only means we do not need to undo
 		}
 
@@ -383,20 +360,20 @@ public class CMUtils {
 			removeItemFromCoSignCacheTable( rset.getStringValueByName( "dDocName" ) );
 		}
 /*  Want to redirect user to Doc_info on Cancel */
-		if( !error.equals( "" ) &&
-				( m_binder.getLocal( "RedirectURL" ) == null || m_binder.getLocal( "RedirectURL" ) == "" ) ) {
+		if( !error.equals( "" ) && !isRedirect ) {
 			error = LocaleUtils.encodeMessage( error, null );
 			throw new ServiceException( error );
 		}
 	}
 
 	public void addItemToCoSignCacheTable( String contentId ) throws ServiceException {
+		Report.trace( "bezzotechcosign", "Adding " + contentId + " to Global Table", null );
 		Date dateNow = new Date ();
-		SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MMddyyyy");
+		SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat( "MM/dd/yyyy HH:mm" );
 		String now = dateformatMMDDYYYY.format( dateNow );
 		DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
 		if( drset == null ) {
-			Report.trace( "bezzotechcosign", "Cache table not established yet, creating new", null );
+			Report.debug( "bezzotechcosign", "Cache table not established yet, creating new", null );
 			drset = new DataResultSet( new String[] { "dDocName", "tsDateTime" } );
 		}
 		if( !drset.isEmpty() ) {
@@ -417,6 +394,7 @@ public class CMUtils {
 	}
 
 	public void removeItemFromCoSignCacheTable( String contentId ) throws ServiceException {
+		Report.trace( "bezzotechcosign", "Removing " + contentId + " from Global Table", null );
 		removeItemFromCachedTable( "CoSignCheckedOutItems", contentId );
 	}
 
@@ -470,7 +448,8 @@ public class CMUtils {
 		Report.debug( "bezzotechcosign", "Entering update, passed in binder: ", null );
 		try {
 			m_service.executeService( "UPDATE_DOCINFO_SUB" );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 	}
@@ -482,9 +461,11 @@ public class CMUtils {
 		Report.debug( "bezzotechcosign", "Entering checkout, passed in binder: ", null );
 		try {
 			m_service.executeService( "INTERNAL_CHECKOUT_SUB" );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
-		} finally {
+		}
+		finally {
 			addItemToCoSignCacheTable( m_binder.getLocal( "dDocName" ) );
 		}
 	}
@@ -496,7 +477,8 @@ public class CMUtils {
 		Report.debug( "bezzotechcosign", "Entering checkinNew, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_NEW_SUB" );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 	}
@@ -508,7 +490,8 @@ public class CMUtils {
 		Report.debug( "bezzotechcosign", "Entering checkinSel, passed in binder: ", null );
 		try {
 			m_service.executeService( "CHECKIN_SEL_SUB" );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 	}
@@ -527,7 +510,8 @@ public class CMUtils {
 				ResultSetUtils.getValue( m_binder.getResultSet( "WorkflowSteps" ), "dWfStepName" ) );
 		try {
 			m_service.executeService( "WORKFLOW_APPROVE_SUB" );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 	}

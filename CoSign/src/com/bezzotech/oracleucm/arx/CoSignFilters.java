@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Vector;
 
 public class CoSignFilters implements FilterImplementor {
@@ -44,7 +45,6 @@ public class CoSignFilters implements FilterImplementor {
 
 	public int doFilter( Workspace ws, DataBinder db, ExecutionContext ec )
 			throws DataException, ServiceException {
-//		Report.trace( "bezzotechcosign", "Entering CoSignFilters.doFilter", null );
 		m_workspace = ws;
 		if( ec == null ) {
 			System.out.println( "Plugin filter called without a context." );
@@ -79,20 +79,21 @@ public class CoSignFilters implements FilterImplementor {
 					db.getLocal( "IdcService" ).equals( "COSIGN_CHECKIN_SIGNEDDOCUMENT" ) ) {
 				UserData userData = ( UserData )ec.getCachedObject( "TargetUserData" );
 				userData.addAttribute( "role", "admin", "3" );
-				Report.trace(null, "Granting the 'admin' role.", null);
+				Report.trace( "bezzotechcosign", "Granting the 'admin' role.", null );
 			}
 			return FINISHED;
 		}
 		// CoSign clean-up if document signing not complete
 		else if( s.equals( "CoSignFrequentEvent" ) ) {
-			Report.trace( "bezzotechcosign", "Running Frequent Event now!", null );
+			Report.trace( "bezzotechcosign", "Running Clean-up Event now!", null );
 
 		 // Locate and checkout content that is involved in CoSign for too long
 			ResultSet rset = CMUtils.createResultSet( "QcheckedoutCoSignContent", db );
 			if( rset != null && !rset.isEmpty() ) {
 				Date dateNow = new Date ();
-				SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MMddyyyy");
+				SimpleDateFormat dateformatMMDDYYYY = new SimpleDateFormat("MM/dd/yyyy HH:mm");
 				String now = dateformatMMDDYYYY.format( dateNow );
+				Report.debug( "bezzotechcosign", "Timestamp generated: " + now, null );
 				DataResultSet drset = m_shared.getResultSet( "CoSignCheckedOutItems", false );
 				if( drset == null ) {
 					drset = new DataResultSet( new String[] { "dDocName", "tsDateTime" } );
@@ -101,22 +102,24 @@ public class CoSignFilters implements FilterImplementor {
 					drset.copy( rset );
 				}
 				else {
+					Report.debug( "bezzotechcosign", "Cached table: " + drset.toString(), null );
 					DataResultSet tmpRS = new DataResultSet();
 					tmpRS.copy( rset );
 					do {
 						String id = tmpRS.getStringValueByName( "dDocName" );
 						List theRow = drset.findRow( drset.getFieldInfoIndex( "dDocName" ), id );
-						SimpleDateFormat format = new SimpleDateFormat( "MM/dd/yyyy HH:mm:ss" );
-						Date date = null;
-						date = format.parse(
-								( String )theRow.get( drset.getFieldInfoIndex( "tsDateTime" ) ),
-								new ParsePosition( 0 ) );
+						String dateStr = ( String )theRow.get( drset.getFieldInfoIndex( "tsDateTime" ) );
+						Report.debug( "bezzotechcosign", "Timestamp found: " + dateStr, null );
+						Date date = dateformatMMDDYYYY.parse( dateStr, new ParsePosition( 0 ) );
+						Report.debug( "bezzotechcosign", "Timestamp parsed: " + date.toString(), null );
 
 						// Get msec from each, and subtract.
 						long diff = dateNow.getTime() - date.getTime();
 						long diffMinutes = diff / ( 60 * 1000 ) % 60;
+						Report.debug( "bezzotechcosign", "Date difference found: " + diff + " > " + diffMinutes, null );
 
-						if( ( theRow != null ) && diff >= 5 ) {
+						if( ( theRow != null ) && diffMinutes >= 5 ) {
+							Report.trace( "bezzotechcosign", "Removing " + id + " from Global Table", null );
 
 							// item has been in-process for at least 5 minutes: force a timeout
 							DataBinder undo = new DataBinder( db.getEnvironment() );
@@ -138,6 +141,7 @@ public class CoSignFilters implements FilterImplementor {
 				String values[] = new String [] { now };
 				String colmns[] = new String [] { "tsDateTime" };
 				ResultSetUtils.addColumnsWithDefaultValues( drset, null, values, colmns );
+				Report.debug( "bezzotechcosign", "Cached table: " + drset.toString(), null );
 				m_shared.putResultSet( "CoSignCheckedOutItems", drset );
 			}
 			return FINISHED;
