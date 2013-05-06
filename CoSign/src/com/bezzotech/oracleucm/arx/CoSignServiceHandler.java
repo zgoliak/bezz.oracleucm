@@ -313,11 +313,14 @@ public class CoSignServiceHandler extends ServiceHandler {
 	 *
 		*/
 	public void validateUserAccessToMenu() throws ServiceException {
+		Report.trace( "bezzotechcosign", "Entering validateUserAccessToMenu, passed in binder:" + m_binder.toString(), null );
 		DataResultSet drset = new DataResultSet();
-		drset.copy( m_cmutils.getProfileWithMatchingTagAndUserRoles(
-				m_binder.getLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ) ) ) );
-		if( drset.getNumRows() > 0 )
-			m_binder.putLocal( "userHasRequiredRole", "1" );
+		String contentTag = m_binder.getLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ) );
+		if( contentTag != null || !contentTag.equals( "" ) ) {
+			drset.copy( m_cmutils.getProfileWithMatchingTagAndUserRoles( contentTag ) );
+			if( drset.getNumRows() > 0 )
+				m_binder.putLocal( "userHasRequiredRole", "1" );
+		}
 	}
 
 	/**
