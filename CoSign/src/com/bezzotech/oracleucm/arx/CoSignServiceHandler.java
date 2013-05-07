@@ -316,7 +316,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 		Report.trace( "bezzotechcosign", "Entering validateUserAccessToMenu, passed in binder:" + m_binder.toString(), null );
 		DataResultSet drset = new DataResultSet();
 		String contentTag = m_binder.getLocal( m_shared.getConfig( "coSignSignatureProfileMetaField" ) );
-		if( contentTag != null || !contentTag.equals( "" ) ) {
+		if( contentTag != null && !contentTag.equals( "" ) ) {
 			drset.copy( m_cmutils.getProfileWithMatchingTagAndUserRoles( contentTag ) );
 			if( drset.getNumRows() > 0 )
 				m_binder.putLocal( "userHasRequiredRole", "1" );
