@@ -104,6 +104,7 @@
 	<$ traceLog = traceLog & '###begin cosign_compute_userhasrequiredrole log###' $>
 
 	<$ userHasRequiredRole = 0 $>
+	<$ setValue( '#local', #env.coSignSignatureProfileMetaField, getValue( '#active', #env.coSignSignatureProfileMetaField ) ) $>
 	<$ executeService( 'COSIGN_SHOW_MENU' ) $>
 	[[% Swapping in new service to handle process due to change in orientation
 	 % Now the user''s roles are being compared against the profiles fetched using the content''s tag
