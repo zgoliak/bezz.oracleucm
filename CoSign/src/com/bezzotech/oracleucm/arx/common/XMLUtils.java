@@ -67,17 +67,18 @@ public class XMLUtils {
 		}
 	}
 
-	/** Return a working FileStoreUtils object for a service.
-	 * @param context ExecutionContext to find a FileStoreProvider in.
-	 * @throws ServiceException if a FileStoreProvider cannot be found.
-	 * @return a ready-to-use FileStoreUtils object.
+	/** Return a working XMLUtils object for a service.
+	 *  @param context ExecutionContext to find a SharedObject and Service in.
+	 *  @return a ready-to-use XMLUtils object.
 	 */
 	static public XMLUtils getXMLUtils( ExecutionContext context ) {
 		return new XMLUtils( context );
 	}
 
 	/** Generate a blank Document object
-	 *
+	 *  @throws ParserConfigurationException - if a DocumentBuilder cannot be created which satisfies
+	 *  the configuration requested.
+	 *  @return A new instance of a DOM Document object.
 	 */
 	public Document getNewDocument() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getNewDocument", null );
@@ -86,14 +87,20 @@ public class XMLUtils {
 		try {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			dom = documentBuilder.newDocument();
-		} catch ( ParserConfigurationException e ) {
+		}
+		catch ( ParserConfigurationException e ) {
 			throwFullError( e );
 		}
 		return dom;
 	}
 
 	/** Generate Document object from file path
-	 *
+	 *  @param path - The location of the content to be parsed.
+	 *  @throws ParserConfigurationException - if a DocumentBuilder cannot be created which satisfies
+	 *  the configuration requested.
+	 *  @throws IOException - If any IO errors occur.
+	 *  @throws SAXException - If any parse errors occur.
+	 *  @return A new instance of a DOM Document object.
 	 */
 	public Document getExistingDocument( String path ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getExistingDocument, passed in parameter(s):\n\tpath: " +
@@ -103,18 +110,26 @@ public class XMLUtils {
 		try {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			dom = documentBuilder.parse( path );
-		} catch ( ParserConfigurationException e ) {
+		}
+		catch ( ParserConfigurationException e ) {
 			throwFullError( e );
-		} catch ( IOException e ) {
+		}
+		catch ( IOException e ) {
 			throwFullError( e );
-		} catch ( SAXException e ) {
+		}
+		catch ( SAXException e ) {
 			throwFullError( e );
 		}
 		return dom;
 	}
 
 	/** Generate Document object from string content
-	 *
+	 *  @param contents - String creating a new input source with a character stream to be parsed.
+	 *  @throws ParserConfigurationException - if a DocumentBuilder cannot be created which satisfies
+	 *  the configuration requested.
+	 *  @throws IOException - If any IO errors occur.
+	 *  @throws SAXException - If any parse errors occur.
+	 *  @return A new instance of a DOM Document object.
 	 */
 	public Document getNewDocument( String contents ) throws ServiceException {
 		Document dom = null;
@@ -124,33 +139,38 @@ public class XMLUtils {
 			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			_sr = new StringReader( contents );
 			dom = documentBuilder.parse( new InputSource( _sr ) );
-		} catch ( ParserConfigurationException e ) {
+		}
+		catch ( ParserConfigurationException e ) {
 			throwFullError( e );
-		} catch ( SAXException e ) {
+		}
+		catch ( SAXException e ) {
 			e.printStackTrace();
 			String msg = LocaleUtils.encodeMessage( "csIISorCSWADown", null );
 			SystemUtils.error( e, msg );
-		} catch ( IOException e ) {
+		}
+		catch ( IOException e ) {
 			throwFullError( e );
-		} finally {
+		}
+		finally {
 			_sr.close();
 		}
 		return dom;
 	}
 
-	/** Build XML document from binder local properties
+	/** Build DOM document from binder local properties
 	 *
-	 *  appName  - [String] application name for extracting from binder
-	 *  doc      - [Document] XML document to create text node
-	 *  rootName - String - Name of Environmental base to retrieve from binder (this should also be
-	 *    the name of the expect XML Node we will be passing back
-	 *  Note: Environmental variable "fields" will be expected to return the field names available to
-	 *    retrieve
+	 *  @param appName - application name for key lookup
+	 *  @param doc - DOM document to create elements and text node
+	 *  @param rootName - Name for Environmental key lookup and the name of the tag of returned element
 	 *  Note: Environmental variables will be expected to be presented in the following format:
-	 *  {Application Name}.{XML Node name}.{Field Name}
-	 *  Where: "Application Name" will be stored within the application code
-	 *    "XML Node Name" will be determined by the expected XML output
-	 *    "Field Name" will be determined by the expected XML output
+	 *    {appName}.{rootName}.{Field Name}
+	 *    Where: "Application Name" will be stored within the application code
+	 *      "XML Node Name" will be determined by the expected XML output
+	 *      "Field Name" will be determined by the expected XML output
+	 *  @param appendTo - flag to determine root element acquistion method
+	 *  @throws IOException - if any errors occur parsing the found value.
+	 *  @return A new Element object with the <i>nodeName</i> attribute set to <i>rootName</i> with
+	 *    children associated to the found lookup keys
 	 */
 	public Element appendChildrenFromEnvironmental( String appName, Document doc, String rootName,
 			boolean appendTo ) throws ServiceException {
@@ -171,11 +191,13 @@ public class XMLUtils {
 				try {
 					if( Integer.parseInt( fieldValue ) == 0 ) fieldValue = "false";
 					else if( Integer.parseInt( fieldValue ) == 1 ) fieldValue = "true";
-				} catch ( NumberFormatException e ) {}
+				}
+				catch ( NumberFormatException e ) {}
 		Report.debug( "bezzotechcosign", "FieldValue after: " + fieldValue, null );
 				Text text = doc.createTextNode( fieldValue );
 				child.appendChild( text );
-			} catch ( IOException e ) {
+			}
+			catch ( IOException e ) {
 				throwFullError( e );
 			}
 			root.appendChild( child );
@@ -183,21 +205,22 @@ public class XMLUtils {
 		return root;
 	}
 
-	/** Build XML document from binder local properties
+	/** Build DOM document from binder local properties
 	 *
-	 *  appName  - [String] application name for extracting from binder
-	 *  doc      - [Document] XML document to create text node
-	 *  rootName - [String] name of Local base to retrieve from binder (this should also be the name of
-	 *    the expect XML Node we will be passing back
+	 *  @param appName - application name for key lookup
+	 *  @param doc - DOM document to create elements and text node
+	 *  @param rootName - Name for Environmental key lookup and the name of the tag of returned element
 	 *  Note: Local variable "fields" will be expected to return the field names available to retrieve
 	 *  Note: Local variables will be expected to be presented in the following format:
-	 *    		{Application Name}.{XML Node name}.{Field Name}
-	 *  		Where: "Application Name" will be stored within the application code
-	 *    		"XML Node Name" will be determined by the expected XML output
-	 *    		"Field Name" will be determined by the expected XML output
+	 *    {appName}.{rootName}.{Field Name}
+	 *    Where: "Application Name" will be stored within the application code
+	 *      "XML Node Name" will be determined by the expected XML output
+	 *      "Field Name" will be determined by the expected XML output
 	 *
-	 *  Throws [ServiceException] error if not {appName}.{rootName}.fields defined in binder
-	 *  Throws [ServiceException] error if {appName}.{rootName}.fields value is blank
+	 *  @throws ServiceException - error if {appName}.{rootName}.fields not defined in binder or the
+	 *    value is blank
+	 *  @return A new Element object with the <i>nodeName</i> attribute set to <i>rootName</i> with
+	 *    children associated to the found lookup keys
 	 */
 	public Element appendChildrenFromLocal( String appName, Document doc, String rootName )
 			throws ServiceException {
@@ -221,7 +244,8 @@ public class XMLUtils {
 					child.appendChild( text );
 					root.appendChild( child );
 				}
-			} else {
+			}
+			else {
 				Element child = doc.createElement( fieldName );
 				Text text = doc.createTextNode( "&#x200B;" );
 				child.appendChild( text );
@@ -231,11 +255,12 @@ public class XMLUtils {
 		return root;
 	}
 
-	/** Parse XML document at root element down through the named base element
+	/** Parse DOM document at root element down through the named base element
 	 *
-	 *  appName  - [String] application name for extracting from binder
-	 *  root     - [Element] XML node, housing named node to inject in
-	 *  baseName - [String] name of Element under root
+	 *  @param appName - application name for key lookup and insertion
+	 *  @param root - DOM parent node with named node to 
+	 *  @param baseName - name of key lookup, Element under root, and binder return value(s)
+	 *  @param index - index of node under root to extract
 	 */
 	public void parseChildrenToLocal( String appName, Element root, String baseName, int index ) {
 		Report.trace( "bezzotechcosign", "Entering parseChildrenToLocal, passed in parameter(s):" +
@@ -258,18 +283,21 @@ public class XMLUtils {
 		m_binder.putLocal( appName + "." + baseName + ".fields", fields );
 	}
 
+	/** Parse DOM document at root element down through the named parent element
+	 *
+	 *  @param appName - application name for key lookup and insertion
+	 *  @param root - DOM root node with named node to 
+	 *  @param parentName - 
+	 *  @param sortField - name of existing XML node
+	 */
 	public void parseChildrenToResultSet( String appName, Element root, String parentName,
-			String sortField ) throws ServiceException {
+			String sortField ) {
 		Report.trace( "bezzotechcosign", "Entering parseChildrenToResultSet, passed in parameter(s):" +
 				"\n\tappName: " + appName + "\n\troot:\n\tparentName: " + parentName, null );
 		Element parent = ( Element )root.getElementsByTagName( parentName ).item( 0 );
 		MyComparator mc = new MyComparator();
 		mc.setSortNodeName( sortField );
-		Report.debug( "bezzotechcosign", "Sorting nodes by " + sortField + "\n\tCurrent document: " +
-				nodeToString( root ), null );
 		sortChildNodes( parent, false, 1, mc );
-		Report.debug( "bezzotechcosign", "Sorted nodes by " + sortField + "\n\tCurrent document: " +
-				nodeToString( root ), null );
 		NodeList children = parent.getChildNodes();
 		if( children.getLength() > 0 ) {
 			DataResultSet rset = null;
@@ -279,7 +307,6 @@ public class XMLUtils {
 					Element child = ( Element )node;
 					NodeList gchildren = child.getChildNodes();
 					if( rset == null ) {
-
 						// Build result set from XML fields
 						Vector < String > fieldList = new Vector < String > ();
 						for( int j = 0; j < gchildren.getLength(); j++ ) {
@@ -310,9 +337,10 @@ public class XMLUtils {
 		}
 	}
 
-	/** Translate XML Document to string
+	/** Translate DOM Document to string
 	 *
-	 *  doc   - [Document] XML document to create text node
+	 *  @param doc - DOM document
+	 *  @return String representation of DOM document
 	 */
 	public String getStringFromDocument( Document doc ) {
 		Report.trace( "bezzotechcosign", "Entering getStringFromDocument", null );
@@ -328,6 +356,13 @@ public class XMLUtils {
 		return _out.toString();
 	}
 
+	/** Translate DOM Node to string
+	 *
+	 *  @param node - DOM node
+	 *  @throws TransformerException - If an unrecoverable error occurs during the course of the
+	 *    transformation
+	 *  @return String representation of DOM node
+	 */
 	private static String nodeToString( Node node ) throws ServiceException {
 		StringWriter sw = new StringWriter();
 		try {
@@ -335,20 +370,21 @@ public class XMLUtils {
 			t.setOutputProperty( OutputKeys.OMIT_XML_DECLARATION, "yes" );
 			t.setOutputProperty( OutputKeys.INDENT, "yes" );
 			t.transform( new DOMSource( node ), new StreamResult( sw ) );
-		} catch ( TransformerException te ) {
+		}
+		catch ( TransformerException te ) {
 			throw new ServiceException( "nodeToString Transformer Exception" );
 		}
 		return sw.toString();
 	}
 
-	/**	Injects values, as text node, into named node under root element
+	/** Injects values, as text node, into named node under root element
 	 *
-	 *  doc   - [Document] XML document to create text node
-	 *  root  - [Element] XML node, housing named node to inject in
-	 *  name  - [String] Name of element to inject value into
-	 *  value - [String] Text to insert
-	 *
-	 *  Throws [ServiceException] error if named element not found
+	 *  @param doc - DOM document to create text node to be appended
+	 *  @param root - DOM node used to retrieve named node and return results
+	 *  @param name - Name of node to append text node within
+	 *  @param value - Text to append
+	 *  @throws ServiceException - if named element not found
+	 *  @return The passed in Root Node with children, one child will have been updated with a new text
 	 */
 	public Element appendTextNodeToChild( Document doc, Element root, String name, String value )
 			throws ServiceException {
@@ -363,19 +399,12 @@ public class XMLUtils {
 		return root;
 	}
 
-	/**
- 	* Sorts the children of the given node upto the specified depth if
-	 * available
- 	* 
-	 * @param node -
- 	*            node whose children will be sorted
-	 * @param descending -
- 	*            true for sorting in descending order
-	 * @param depth -
- 	*            depth upto which to sort in DOM
-	 * @param comparator -
- 	*           comparator used to sort, if null a default NodeName
-	 *           comparator is used.
+	/** Sorts the children of the given node upto the specified depth if available
+	 *
+	 *  @param node - node whose children will be sorted
+	 *  @param descending - true for sorting in descending order
+	 *  @param depth - depth upto which to sort in DOM
+	 *  @param comparator - comparator used to sort, if null a default NodeName comparator is used.
  	*/
 	protected void sortChildNodes( Node node, boolean descending, int depth, Comparator comparator ) {
 		NodeList childNodeList = node.getChildNodes();
@@ -394,7 +423,8 @@ public class XMLUtils {
 			if( descending ) {
 				//if descending is true, get the reverse ordered comparator
 				Collections.sort( nodes, Collections.reverseOrder( comp ) );
-			} else {
+			}
+			else {
 				Collections.sort( nodes, comp );
 			}
 
@@ -406,6 +436,13 @@ public class XMLUtils {
 	}
 
 	class DefaultNodeNameComparator implements Comparator {
+		/** Compare two DOM nodes using their node names
+		 *  
+		 *  @param arg0 - DOM Node to be compared against
+		 *  @param arg1 - DOM Node to be compared with
+		 *  @return a negative integer, zero, or a positive integer as the first argument is less than,
+		 *    equal to, or greater than the second.
+		 */
 		public int compare( Object arg0, Object arg1 ) {
 			return ( ( Node )arg0 ).getNodeName().compareTo( ( ( Node )arg1 ).getNodeName() );
 		}
@@ -414,6 +451,14 @@ public class XMLUtils {
 	class MyComparator implements Comparator {
 		private String m_sortNodeName;
 
+		/** Compare two DOM nodes using their named child node value
+		 *  
+		 *  @param arg0 - DOM Node to be compared against
+		 *  @param arg1 - DOM Node to be compared with
+		 *  @return a negative integer, zero, or a positive integer as the first argument is less than,
+		 *    equal to, or greater than the second.  A postive integer in the case the first argument is
+		 *    null.  A negative integer in the case the second argument is null.
+		 */
 		public int compare( Object arg0, Object arg1 ) {
 			if( arg0 instanceof Element && arg1 instanceof Element ) {
 				NodeList arg0Children = ( ( Element )arg0 ).getChildNodes();
@@ -439,7 +484,8 @@ public class XMLUtils {
 				}
 				if( arg1Child == null ) return -1;
 				return arg1Child.getTextContent().compareTo( arg0Child.getTextContent() );
-			} else {
+			}
+			else {
 				return ( ( Node ) arg0 ).getNodeName().compareTo( ( ( Node ) arg1 ).getNodeName() );
 			}
 		}

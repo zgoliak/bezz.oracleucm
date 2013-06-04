@@ -60,6 +60,7 @@ public class CMUtils {
 	}
 
 	/** Return a working FileStoreUtils object for a service.
+	 *
 	 * @param context ExecutionContext to find a FileStoreProvider in.
 	 * @throws ServiceException if a FileStoreProvider cannot be found.
 	 * @return a ready-to-use FileStoreUtils object.
@@ -68,8 +69,12 @@ public class CMUtils {
 		return new CMUtils( context );
 	}
 
-	/**
+	/** Retrieves list of environmental values pointing to fields available for extraction
 	 *
+	 *  @param appName - used to prepend Environmental key
+	 *  @param rootName - used to append Environmental key
+	 *  @throws ServiceException - error locating environmental keys or no values are found
+	 *  @return List of environmental name/value pairs based on passed in parameters
 	 */
 	public Vector getEnvironmentalsAsList( String appName, String rootName )
 			throws ServiceException {
@@ -86,8 +91,10 @@ public class CMUtils {
 		return fields;
 	}
 
-	/**
+	/** Retrieves a managed content item's vault file and converts it, using base64 coding, to a string
 	 *
+	 *  @throws ServiceException - errors during conversion to byte array
+	 *  @return String representation of base64 encoded document
 	 */
 	public String getFileAsString() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getFileAsString, passed in parameters:", null );
@@ -95,8 +102,10 @@ public class CMUtils {
 		return CommonDataConversion.uuencode( file, 0, file.length );
 	}
 
-	/**
+	/** Retrieves a managed content item's vault file and converts it to a byte array
 	 *
+	 *  @throws ServiceException - error retrieving and/or converting the managed file
+	 *  @return byte array representation of document
 	 */
 	public byte [] getFileAsByteArray() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getFileAsByteArray, passed in parameters:", null );
@@ -131,8 +140,10 @@ public class CMUtils {
 		return b;
 	}
 
-	/**
+	/** Retrieves a managed content item's vault file and converts it to a buffered input stream
 	 *
+	 *  @throws ServiceException - error retrieving and/or converting the managed file
+	 *  @return buffered input stream representing the document
 	 */
 	public BufferedInputStream getFileAsStream() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getFileAsStream, passed in parameters:", null );
@@ -153,8 +164,11 @@ public class CMUtils {
 		return _content;
 	}
 
-	/**
+	/** Retrieves the DOC_INFO resultset of a dDocName
 	 *
+	 *  @param dDocName - Managed content item's content id
+	 *  @throw ServiceException - error querying for values
+	 *  @return DOC_INFO resultset based on dDocName
 	 */
 	public ResultSet getDocInfoByName( String dDocName ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getDocInfoByName, passed in parameter(s):\n\tdDocName: " +
@@ -164,8 +178,11 @@ public class CMUtils {
 		return createResultSet( "QlatestDocInfoByName", binder );
 	}
 
-	/**
+	/** Retrieves the DOC_INFO resultset of matching dID
 	 *
+	 *  @param dID - Managed content item's dID
+	 *  @throw ServiceException - error querying for values
+	 *  @return DOC_INFO resultset based on dID
 	 */
 	public ResultSet getDocInfo( String dID ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getDocInfo, passed in parameter(s):\n\tdID: " +
@@ -175,8 +192,11 @@ public class CMUtils {
 		return createResultSet( "QdocInfo", binder );
 	}
 
-	/**
+	/** Retrieves the SignatureDetails resultset of matching dID
 	 *
+	 *  @param dID - Managed content item's dID
+	 *  @throw ServiceException - error querying for data
+	 *  @return Resultset containing all signature details from current and previous signings
 	 */
 	public ResultSet getSignatureReview( String dID ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering getSignatureReview, passed in parameter(s):\n\tdID: " +
@@ -186,8 +206,11 @@ public class CMUtils {
 		return createResultSet( "QcosignSignatureDetails", binder );
 	}
 
-	/**
+	/** Retrieves counter representing all valid signatures on content item matching dDocName
 	 *
+	 *  @param dDocName - dDocName of content
+	 *  @throw ServiceException - error executing query
+	 *  @return Metadata value of content items valid signature count
 	 */
 	public int getSignedCounter( String dDocName ) throws ServiceException {
 		DataBinder binder = new DataBinder();
@@ -198,8 +221,13 @@ public class CMUtils {
 		return Integer.parseInt( result );
 	}
 
-	/**
+	/** Executes a parameterized query that returns a result set.
 	 *
+	 *  @param query - Named query to populate binder with
+	 *  @param binder - DataBinder through which the values to fill in the parameters of the query can
+	 *    be extracted.
+	 *  @throws ServiceException - error occurred executing the query
+	 *  @return A result set containing the results of the query.
 	 */
 	static public ResultSet createResultSet( String query, DataBinder binder ) throws ServiceException {
 		ResultSet rset = null;
@@ -213,10 +241,13 @@ public class CMUtils {
 		return rset;
 	}
 
-	/**
-	 *  Query for the particular Sign Request Protocol (SRP) to send, currently we are using a
+	/** Query for the particular Sign Request Protocol (SRP) to send, currently we are using a
 	 *  one-to-one architecture where each SRP only contains a single Signature Profile, so locating
 	 *  the correct profile is as simple as finding its SRP.
+	 *
+	 *  @throws ServiceException - if more or less than 1 Profile is located or issues locating Profile
+	 *    in vault
+	 *  @return Path to Profile in vault directory
 	 */
 	public String retrieveSigProfilesFilePath() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering retrieveSigProfilesFilePath", null );
@@ -251,8 +282,10 @@ public class CMUtils {
 		return returnStr;
 	}
 
-	/**
+	/** Retrieves active user's data
 	 *
+	 *  @throws ServiceException - error retrieving UserData from service
+	 *  @return Object reflecting active User's data
 	 */
 	protected UserData getUserData() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering getUserData", null );
@@ -268,8 +301,12 @@ public class CMUtils {
 		return ud;
 	}
 
-	/**
+	/** Utility method for acquiring Signature Profiles stored within Content Server, filtered against
+	 *  the passed in profileTag and the acting user's Content Server role collection.
 	 *
+	 *  @param profileTag - Content's profile tag to filter profiles against
+	 *  @throws ServiceException - if more or less than 1 Profile is located
+	 *  @return ResultSet containing all Profiles matching names tag and users roles
 		*/
 	public ResultSet getProfileWithMatchingTagAndUserRoles( String profileTag ) throws ServiceException {
 		DataBinder binder = new DataBinder();
@@ -312,34 +349,13 @@ public class CMUtils {
 		return drset;
 	}
 
-	/** Execute a service as the current user.
-	 * @param binder The service request binder
-	 * @throws ServiceException if the service fails.
-	 *  @deprecated
-	 */
-	@Deprecated protected void executeServiceSimple( DataBinder binder ) throws ServiceException {
-		try {
-			ServiceManager sm = new ServiceManager();
-			String serviceName = binder.getLocal( "IdcService" );
-			if( serviceName == null )
-				m_service.createServiceExceptionEx( null, "!csIDCServiceMissing", Errors.RESOURCE_MISCONFIGURED );
-
-			ServiceData sd = sm.getService( serviceName );
-			Service s = sm.getInitializedService( serviceName, binder, m_workspace );
-			UserData user = getUserData();
-			if( user == null ) {
-				user = SecurityUtils.createDefaultAdminUserData();
-			}
-			s.setUserData( user );
-			s.doRequest();
-		}
-		catch ( DataException e ) {
-			throwFullError( e );
-		}
-	}
-
-	/**
+	/** Rolls back all activity and transactions associated with our dDocName that have occurred from
+	 *  the start of the CoSign process.  The check-out is undone, signature status is cleared out,
+	 *  CoSignCheckedOutItems cached resultset is cleared of related row, and error is thrown
 	 *
+	 *  @param error - Error message that is being passed from CoSign server
+	 *  @param isRedirect - boolean flag to handle Content Server trays layout issues
+	 *  @throws ServiceException - errors during undo checkout
 	 */
 	public void rollback( String error, boolean isRedirect ) throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering rollback, passed in parameters:\n\terror: " + error +
@@ -366,6 +382,14 @@ public class CMUtils {
 		}
 	}
 
+	/** Adds new row with dDocName tp CoSignCheckedOutItems caches resultset.  If row exists with data
+	 *  that matches the dDocName it will be removed prior to insertion.  These rows will be used
+	 *  elsewhere to manage Content Server flaws with the trays layout, as well as clean-up of expired
+	 *  CoSign sessons.
+	 *
+	 *  @param contentId - Value to locate then remove in resultset
+	 *  @throws ServiceException - error searching, removing, or adding row from resultset
+	 */
 	public void addItemToCoSignCacheTable( String contentId ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Adding " + contentId + " to Global Table", null );
 		Date dateNow = new Date ();
@@ -386,23 +410,44 @@ public class CMUtils {
 			}
 		}
 		Vector row = drset.createEmptyRow();
-		Report.debug( "bezzotechcosign", "RS Columns: " + drset.getNumFields() + " - Row size: " + row.size(), null );
+		Report.debug( "bezzotechcosign", "RS Columns: " + drset.getNumFields() + " - Row size: " +
+				row.size(), null );
 		row.set( 0, contentId );
 		row.set( 1, now );
 		drset.addRow( row );
 		m_shared.putResultSet( "CoSignCheckedOutItems", drset );
 	}
 
+	/** Updates the CoSignCheckedOutItems cached resultset, by removing the row that matches the
+	 *  passed in dDocName
+	 *
+	 *  @param contentId - Value to locate then remove in resultset
+	 *  @throws ServiceException - error searching and removing row from resultset
+	 */
 	public void removeItemFromCoSignCacheTable( String contentId ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Removing " + contentId + " from Global Table", null );
 		removeItemFromCachedTable( "CoSignCheckedOutItems", contentId );
 	}
 
+	/** Updates named and cached resultset, by removing the row that matches the passed in dDocName
+	 *
+	 *  @param tableName - Name of cached resultset
+	 *  @param contentId - Value to locate then remove in resultset
+	 *  @throws ServiceException - error searching and removing row from resultset
+	 */
 	protected void removeItemFromCachedTable( String tableName, String contentId )
 			throws ServiceException {
 		removeRowFromCacheTable( tableName, contentId, "dDocName" );
 	}
 
+	/** Updates named and cached resultset, by removing the row that matches the passed in filter
+	 *  parameters
+	 *
+	 *  @param tableName - Name of cached resultset
+	 *  @param filterValue - Value to locate then remove in resultset
+	 *  @param filterName - Name of column in resultset value is stored under
+	 *  @throws ServiceException - error searching and removing row from resultset
+	 */
 	protected void removeRowFromCacheTable( String tableName, String filterValue, String filterName )
 			throws ServiceException {
 		DataResultSet drset = m_shared.getResultSet( tableName, false );
@@ -418,15 +463,37 @@ public class CMUtils {
 		m_shared.putResultSet( "CoSignCheckedOutItems", drset );
 	}
 
+	/** Determines whether dDocName column contains value within the CoSignCheckedOutItems cached
+	 *  resultset
+	 *
+	 *  @param contentId - dDocName to locate in result set
+	 *  @throws ServiceException - error searching resultset
+	 *  @return true if value found in column, otherwise false
+	 */
 	public boolean itemExistsInCoSignCacheTable( String contentId ) throws ServiceException {
 		return itemExistsInCacheTable( "CoSignCheckedOutItems", contentId );
 	}
 
+	/** Determines whether dDocName column contains value within a cached table
+	 *
+	 *  @param tableName - Name of cached result set
+	 *  @param contentId - dDocName to locate in result set
+	 *  @throws ServiceException - error searching resultset
+	 *  @return true if value found in column, otherwise false
+	 */
 	protected boolean itemExistsInCacheTable( String tableName, String contentId )
 			throws ServiceException {
 		return rowExistsInCacheTable( tableName, contentId, "dDocName" );
 	}
 
+	/** Determines whether filtered column contains value within a cached table
+	 *
+	 *  @param tableName - Name of cached resultset
+	 *  @param filterValue - Value to locate in resultset
+	 *  @param filterName - Name of column in resultset value is stored under
+	 *  @throws ServiceException - error searching resultset
+	 *  @return true if value found in column, otherwise false
+	 */
 	protected boolean rowExistsInCacheTable( String tableName, String filterValue, String filterName )
 			throws ServiceException {
 		DataResultSet drset = m_shared.getResultSet( tableName, false );
@@ -441,8 +508,9 @@ public class CMUtils {
 		return false;
 	}
 
-	/**
+	/** Executes Update sub-service from execution databinder
 	 *
+	 *  @throws ServiceException - error during sub-Service execution
 	 */
 	public void update() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering update, passed in binder: ", null );
@@ -454,8 +522,10 @@ public class CMUtils {
 		}
 	}
 
-	/**
+	/** Executes Check Out sub-service from execution databinder, then adds the content item to the
+	 *  cache table CoSignCheckedOutItems for later clean-up or Content Server trays handling
 	 *
+	 *  @throws ServiceException - error during sub-Service execution
 	 */
 	public void checkout() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkout, passed in binder: ", null );
@@ -470,8 +540,9 @@ public class CMUtils {
 		}
 	}
 
-	/**
+	/** Executes Check-in New sub-service from execution databinder
 	 *
+	 *  @throws ServiceException - error during sub-Service execution
 	 */
 	public void checkinNew() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkinNew, passed in binder: ", null );
@@ -483,8 +554,9 @@ public class CMUtils {
 		}
 	}
 
-	/**
+	/** Executes Check-in Select sub-service from execution databinder
 	 *
+	 *  @throws ServiceException - error during sub-Service execution
 	 */
 	public void checkinSel() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering checkinSel, passed in binder: ", null );
@@ -496,8 +568,9 @@ public class CMUtils {
 		}
 	}
 
-	/**
+	/** Executes Workflow Approval sub-service from execution databinder
 	 *
+	 *  @throws ServiceException - error during sub-Service execution
 	 */
 	public void approve() throws ServiceException {
 		Report.debug( "bezzotechcosign", "Entering approve, passed in binder: ", null );
@@ -516,6 +589,13 @@ public class CMUtils {
 		}
 	}
 
+	/** Executes named service, this process alters the databinder with results
+	 *  
+	 *  @param serviceName - Name of service to execute
+	 *  @param ws - Service workspace for DB interaction
+	 *  @param db - Service DataBinder
+	 *  @throws ServiceException - error during Service execution
+	 */
 	static public void serviceDoRequest( String serviceName, DataBinder db, Workspace ws )
 			throws DataException, ServiceException {
 		ServiceManager sm = new ServiceManager();
@@ -527,8 +607,8 @@ public class CMUtils {
 		service.doRequest();
 	}
 
-	/**
-	 *
+	/** Prints out error message and stack trace from caught exceptions and throws them as message in
+	 *  ServiceException
 	 */
 	static protected void throwFullError( Exception e ) throws ServiceException {
 		StringBuilder sb = new StringBuilder();

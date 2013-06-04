@@ -40,12 +40,9 @@ public class CoSignInstallFilters implements FilterImplementor {
 			return CONTINUE;
 		}
 		param = ( String )paramObj;
-
 		Service s = null;
 		IdcExtendedLoader loader = null;
-
 		boolean isProvisional = SharedObjects.getEnvValueAsBoolean( "IsProvisionalServer", false );
-
 		if( cxt instanceof IdcExtendedLoader ) {
 			loader = ( IdcExtendedLoader ) cxt;
 			if( ws == null ) {
@@ -57,7 +54,6 @@ public class CoSignInstallFilters implements FilterImplementor {
 			loader = ( IdcExtendedLoader )ComponentClassFactory.createClassInstance( "IdcExtendedLoader",
 					"intradoc.server.IdcExtendedLoader", "!csCustomInitializerConstructionError" );
 		}
-
 		/* Called after environment data has been loaded and directory locations
 		 * have been determined but before database has been accessed.
 			*/
@@ -93,6 +89,10 @@ public class CoSignInstallFilters implements FilterImplementor {
 		return CONTINUE;
 	}
 
+	/** Retrieves the version of the Content Server
+	 *
+	 *  @return Content Server version
+	 */
 	protected int getSignificantVersion() {
 		String strVersion=SystemUtils.getProductVersionInfo();
 		int nIndex=strVersion.indexOf( "." );
@@ -102,8 +102,12 @@ public class CoSignInstallFilters implements FilterImplementor {
 		return( Integer.valueOf( strVersion ).intValue() );
 	}
 
-	protected void doCheckDatabase( IdcExtendedLoader iel, Workspace ws, DataBinder db,
-			ExecutionContext ec ) throws DataException, ServiceException {
+	/** Prepare database for use with CoSign connector
+	 *
+	 *  @throws DataException - Error initializing Database connection
+	 *  @throws ServiceException - Error during check and creation of sequence
+	 */
+	protected void doCheckDatabase() throws DataException, ServiceException {
 		trace( false, "doCheckDatabase", "Function entry ,,," );
 		initDBConnection();
 		try {
@@ -120,6 +124,11 @@ public class CoSignInstallFilters implements FilterImplementor {
 		trace( false, "doCheckDatabase", "Normal exit ..." );
 	}
 
+	/** Initialize Database connectivity for filter
+	 *
+	 *  @throws ServiceException - error accessing System Database
+	 *  @throws ServiceException - provider does not exist
+	 */
 	private void initDBConnection() throws ServiceException {
 		trace( false, "initDBConnection", "Checking SystemDatabase Provider" );
 		Provider p = Providers.getProvider( "SystemDatabase" );
@@ -136,6 +145,11 @@ public class CoSignInstallFilters implements FilterImplementor {
 		}
 	}
 
+	/** Confirms existence of counter and creates if no confirmation
+	 *
+	 *  @param counterName - Name of counter to check or add
+	 *  @throws DataException - error retrieving counter
+	 */
 	private void checkAndCreateCounter( String counterName ) throws DataException {
 		int blockSize = 1;
 		trace( false, "checkAndCreateCounter",
@@ -188,8 +202,13 @@ public class CoSignInstallFilters implements FilterImplementor {
 			System.out.println( fullMsg );
 	}
 
-	protected int doInstall( IdcExtendedLoader loader, Workspace ws, DataBinder binder,
-			ExecutionContext cxt ) {
+	/** Prepare database for use with CoSign connector
+	 *
+	 *  @param ws - Service workspace for DB interaction
+	 *  @param db - Service DataBinder
+	 *  @return success on completion
+	 */
+	protected int doInstall( Workspace ws, DataBinder db ) {
 		trace( false, "doInstall", "Function entry ,,," );
 		String compName = "CoSign";
 		if( binder == null )
@@ -248,6 +267,13 @@ public class CoSignInstallFilters implements FilterImplementor {
 		return 0;
 	}
 
+	/** Confirms existence of role
+	 *  
+	 *  @param strRole - Name of role to confirm
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws DataException - error during SQL statements
+	 *  @return true if role is found, false otherwise
+	 */
 	protected boolean hasRole( String strRole, Workspace ws ) throws DataException {
 		DataBinder db = new DataBinder();
 		db.putLocal( "dRoleName", strRole );
@@ -255,6 +281,15 @@ public class CoSignInstallFilters implements FilterImplementor {
 		return !rs.isEmpty();
 	}
 
+	/** Updates existing Role to Content Server security
+	 *
+	 *  @param strRole - Name of role to update
+	 *  @param strSecurityGroup - Name of security group to update against role
+	 *  @param nPrivilege - bit level setting for role privilege of security group
+	 *  @param strDisplayName - Display string of role
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws ServiceException - error during EDIT_ROLE service call
+	 */
 	protected void updateRole( String strRole, String strSecurityGroup, long nPrivilege,
 			String strDisplayName, Workspace ws ) throws ServiceException {
 		DataBinder db = new DataBinder();
@@ -265,6 +300,13 @@ public class CoSignInstallFilters implements FilterImplementor {
 		CompInstallUtils.executeService( ws, "EDIT_ROLE", db );
 	}
 
+	/** Adds new Role to Content Server security
+	 *  
+	 *  @param strRole - Name of role to add
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws ServiceException - error during ADD_ROLE service call
+	 *  @throws DataException - error during SQL Insert statement
+	 */
 	protected void addRole( String strRole, Workspace ws ) throws ServiceException, DataException {
 		DataBinder db = new DataBinder();
 		db.putLocal( "dRoleName", strRole );
@@ -273,6 +315,13 @@ public class CoSignInstallFilters implements FilterImplementor {
 		ws.executeSQL( ( new StringBuilder() ).append( "insert into UserSecurityAttributes (dUserName, dAttributeName, dAttributeType,dAttributePrivilege) values ('sysadmin', '" ).append( strRole ).append( "', 'role', 15)" ).toString() );
 	}
 
+	/** Confirms existence of Role on sysadmin user and creates if no confirmation
+	 *  
+	 *  @param strRole - Name of role to check or add
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws ServiceException - error retrieving list of User Security Attributes for sysadmin
+	 *  @throws DataException - error during SQL statements
+	 */
 	protected void checkAndAddRoleToSysadmin( String strRole, Workspace ws )
 			throws ServiceException, DataException {
 		String query = ( new StringBuilder() ).append( "SELECT * FROM UserSecurityAttributes WHERE dUserName = 'sysadmin' AND dAttributeType = 'role' AND dAttributeName = '" ).append( strRole ).append( "'" ).toString();
@@ -281,6 +330,13 @@ public class CoSignInstallFilters implements FilterImplementor {
 			ws.executeSQL( ( new StringBuilder() ).append( "insert into UserSecurityAttributes (dUserName, dAttributeName, dAttributeType,dAttributePrivilege) values ('sysadmin', '" ).append( strRole ).append( "', 'role', 15)" ).toString() );
 	}
 
+	/** Confirms existence of security group
+	 *  
+	 *  @param strSecurityGroup - Name of security group to confirm
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws DataException - error during SQL statements
+	 *  @return true is security group is found, false otherwise
+	 */
 	protected boolean hasSecurityGroup( String strSecurityGroup, Workspace ws ) throws DataException {
 		DataBinder db = new DataBinder();
 		db.putLocal( "dGroupName", strSecurityGroup );
@@ -288,7 +344,15 @@ public class CoSignInstallFilters implements FilterImplementor {
 		return !rs.isEmpty();
 	}
 
-	protected void addSecurityGroup( String strSecurityGroup, String strRoleName, Workspace ws ) throws ServiceException {
+	/** Adds new Role to Content Server security
+	 *
+	 *  @param strSecurityGroup - Name of security group to add
+	 *  @param strRoleName - Name of role to associate with security group
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws ServiceException - error during ADD_GROUP service call
+	 */
+	protected void addSecurityGroup( String strSecurityGroup, String strRoleName, Workspace ws )
+			throws ServiceException {
 		DataBinder db = new DataBinder();
 		db.putLocal( "dGroupName", strSecurityGroup );
 		db.putLocal( "dDescription", strSecurityGroup );
@@ -297,7 +361,15 @@ public class CoSignInstallFilters implements FilterImplementor {
 		CompInstallUtils.executeService( ws, "ADD_GROUP", db );
 	}
 
-	public static void addToOptionList( Workspace workspace, String s, String as[] )
+	/** Adds new value(s) to named Option List
+	 *
+	 *  @param s - Name of option list to be modified
+	 *  @param as - Array of values to be added to option list
+	 *  @param ws - Service workspace for DB interaction
+	 *  @throws DataException - error setting option list
+	 *  @throws ServiceException - error getting option list
+	 */
+	public static void addToOptionList( Workspace ws, String s, String as[] )
 			throws ServiceException, DataException {
 		boolean flag = false;
 		Vector vector = SharedObjects.getOptList( s );
@@ -339,6 +411,11 @@ public class CoSignInstallFilters implements FilterImplementor {
 		}
 	}
 
+	/** Retrieves Option List Key from DocMetaDefinition table
+	 *  
+	 *  @param s - Name of metadata field with Option List key
+	 *  @return Option List key name from metadata field
+	 */
 	public static String getDocMetaDefOptionListKey( String s ) {
 		DataResultSet dataresultset = SharedObjects.getTable( "DocMetaDefinition" );
 		if( dataresultset.isEmpty() )

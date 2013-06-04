@@ -87,8 +87,10 @@ public class WSC {
 		return m_cmutil;
 	}
 
-	/**
+	/** Generates Sign Request XML by first parsing the managed content profile then assembling using
+	 *  local binder properties and environmental properties
 	 *
+	 *  @return String representation of Sign Request XML
 	 */
 	public String buildSignRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering buildSignRequest", null );
@@ -96,8 +98,11 @@ public class WSC {
 		return buildSigProfile( true );
 	}
 
-	/**
+	/** Generates Signature Profile XML string from binder and environmental properties
 	 *
+	 *  @param isSignRequest - Flag representing whether to build the XML for a Signature Request or a
+	 *    check-in
+	 *  @return String representation of Signature Profile XML
 	 */
 	public String buildSigProfile( boolean isSignRequest ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering buildSigProfile, passed in parameters:" +
@@ -114,7 +119,8 @@ public class WSC {
 		if( !Boolean.parseBoolean( m_binder.getLocal( m_appName + ".Logic.allowAdHoc" ) ) ) {
 			m_doc_root.appendChild( m_xmlutil.appendChildrenFromLocal( m_appName, m_doc, "SigField" ) );
 //			prepareAdHocSigProfileValues();
-		} else {
+		}
+		else {
 			m_doc_root.appendChild( buildSigProfilesElement() );
 		}
 		if( isSignRequest )
@@ -130,8 +136,9 @@ public class WSC {
 		return m_xmlutil.getStringFromDocument( m_doc );
 	}
 
-	/**
+	/** Parses responses from Verify server and places the details in the local binder
 	 *
+	 *  @param response - CoSign response string
 	 */
 	public void parseVerifyResponse( String response ) throws ServiceException {
 		m_doc = m_xmlutil.getNewDocument( response );
@@ -139,7 +146,7 @@ public class WSC {
 		parseVerify();
 	}
 
-	/**
+	/** Parses the managed content Signature Profile XML to the binder local properties
 	 *
 	 */
 	public void parseSigProfile() throws ServiceException {
@@ -149,7 +156,7 @@ public class WSC {
 		parseSigProfileEx();
 	}
 
-	/**
+	/** Parses the Signature Profile XML to binder local properties
 	 *
 	 */
 	public void parseSigProfileEx() {
@@ -162,8 +169,11 @@ public class WSC {
 			parseSigProfiles();
 	}
 
-	/**
+	/** Parses responses from CoSign server and placed the details in the local binder
 	 *
+	 *  @param response - CoSign response string
+	 *  @param isFullResponse - Flag determining if this response if a Pull request (true) or a 
+	 *    UploadDoc request (false)
 	 */
 	protected void parseWSCResponse( String response, boolean isFullResponse ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering parseWSCResponse, passed in parameters:\n\tresponse: " +
@@ -181,8 +191,9 @@ public class WSC {
 		}
 	}
 
-	/**
+	/** Initiates the UploadDoc request then parses the response to be handled later
 	 *
+	 *  @return CoSign status response, or 0 if everything completed successfully
 	 */
 	public int processSignRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignRequest", null );
@@ -193,16 +204,22 @@ public class WSC {
 		parseWSCResponse( message, false );
 		if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == SUCCESS ) {
 			m_binder.putLocal( "WSC_Session", m_binder.getLocal( "CoSign.Session.sessionId" ) );
-		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
+		}
+		else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
 			return USER_OPER_CANCELLED;
-		} else {
+		}
+		else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
 		return SUCCESS;
 	}
 
-	/**
+	/** Initiates the Pull request then parses the response to be stored in the database and to update
+	 *  the content
+	 *
 	 *  Note: Concern over possible syncing issues
+	 *
+	 *  @return CoSign status response, or 0 if everything completed successfully
 	 */
 	public int processDownloadRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processDownloadRequest", null );
@@ -221,14 +238,18 @@ public class WSC {
 			try {
 				_bos = new BufferedOutputStream( new FileOutputStream( file ) );
 				_bos.write( buffer, 0, bytesRead );
-			} catch ( FileNotFoundException e ) {
+			}
+			catch ( FileNotFoundException e ) {
 				throwFullError( e );
-			} catch ( IOException e ) {
+			}
+			catch ( IOException e ) {
 				throwFullError( e );
-			} finally {
+			}
+			finally {
 				try {
 					_bos.close();
-				} catch ( IOException e ) {
+				}
+				catch ( IOException e ) {
 					throwFullError( e );
 				}
 			}
@@ -258,26 +279,34 @@ public class WSC {
 					SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
 					Date date = sdf.parse( drset.getStringValueByName( "signingTime" ) );
 					m_binder.putLocalDate( "xSignTime", date );
-				} catch ( ParseException e ) {
+				}
+				catch ( ParseException e ) {
 					throwFullError( e );
 			 }
 			}
 			try {
 				m_binder.putLocal( "xSignatureCount", "" + ResultSetUtils
 						.createFilteredStringArrayForColumn( drset, "fieldName", "status", "0", false, false).length );
-			} catch ( DataException e ) {
+			}
+			catch ( DataException e ) {
 				throwFullError( e );
 			}
-		} else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
+		}
+		else if( Integer.parseInt( m_binder.getLocal( "CoSign.Error.returnCode" ) ) == USER_OPER_CANCELLED ) {
 			return USER_OPER_CANCELLED;
-		} else {
+		}
+		else {
 			throw new ServiceException( m_binder.getLocal( "CoSign.Error.errorMessage" ) );
 		}
 		return Errors.SUCCESS;
 	}
 
-	/**
+	/** Initiates the Verify request then parses the response to be stored in the database and to update
+	 *  the content
 	 *
+	 *  Note: Was working on exporting Verify code to a class object, halted for now
+	 *
+	 *  @return CoSign status response, or 0 if everything completed successfully
 	 */
 	public int processVerifyRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processVerifyRequest", null );
@@ -314,7 +343,8 @@ public class WSC {
 						// ( ( VerifyResponse.SignatureField )verify.m_fields.get( 0 ) ).m_signingTime );
 				Date date = sdf.parse( drset.getStringValueByName( "signingTime" ) );
 				m_binder.putLocalDate( "xSignTime", date );
-			} catch ( ParseException e ) {
+			}
+			catch ( ParseException e ) {
 				throwFullError( e );
 			}
 		}
@@ -322,7 +352,8 @@ public class WSC {
 		try {
 			m_binder.putLocal( "xSignatureCount", "" + ResultSetUtils
 					.createFilteredStringArrayForColumn( drset, "fieldName", "status", "0", false, false).length );
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 			throwFullError( e );
 		}
 		m_cmutil.update();
@@ -330,8 +361,11 @@ public class WSC {
 		return SUCCESS;
 	}
 
-	/**
+	/** Initializes calls to CoSign server, by compiling URL
 	 *
+	 *  @param urlQueryString - postpended string on generated URL
+	 *  @param content - Databinder hosting a buffered input stream representation of content to be signed
+	 *  @param contentType - Requests content type
 	 */
 	protected String postStreamToWSC( String urlQueryString, DataBinder content, String contentType )
 			throws ServiceException {
@@ -346,8 +380,11 @@ public class WSC {
 		return response;
 	}
 
-	/**
+	/** Initializes calls to Verify server, by compiling URL
 	 *
+	 *  @param urlQueryString - postpended string on generated URL
+	 *  @param content - String representation of content to be signed
+	 *  @param contentType - Requests content type
 	 */
 	protected String postRequestToWSC( String urlQueryString, String content, String contentType )
 			throws ServiceException {
@@ -363,9 +400,12 @@ public class WSC {
 		return response;
 	}
 
-	/**
-	 *  Note: CoSign running over SSL
-	 *  Note: Handling read in case of Socket lag
+	/** Calls passed in URL with request made from streamed content and document type
+	 *
+	 *  Note: 
+	 *    This is intended for requests directed at the CoSign server
+	 *    CoSign running over SSL
+	 *    Handling read in case of Socket lag
 	 */
 	protected String postRequestBinder( String iUrl, DataBinder content, String iContentType )
 			throws ServiceException {
@@ -393,7 +433,8 @@ public class WSC {
 			_out.flush();
 			if( httpCon.getResponseCode() <= 400 ) {
 				_is = httpCon.getInputStream();
-			} else {
+			}
+			else {
 				/* error from server */
 				_is = httpCon.getErrorStream();
 			}
@@ -402,28 +443,34 @@ public class WSC {
 			while ( ( strBuffer = _read.readLine() ) != null ) {
 				response.append( strBuffer );
 			}
-		} catch ( MalformedURLException e ) {
+		}
+		catch ( MalformedURLException e ) {
 			throwFullError( e );
-		} catch ( ProtocolException e ) {
+		}
+		catch ( ProtocolException e ) {
 			throwFullError( e );
-		} catch ( IOException e ) {
+		}
+		catch ( IOException e ) {
 			throwFullError( e );
-		} finally {
+		}
+		finally {
 			try {
 				content.m_inStream.close();
 				_out.close();
 				_is.close();
 				_read.close();
 				httpCon.disconnect();
-			} catch ( IOException e ) {
+			}
+			catch ( IOException e ) {
 				throwFullError( e );
 			}
 		}
 		return response.toString();
 	}
 
-	/**
+	/** Calls passed in URL with request made from String representation of document and document type
 	 *
+	 *  Note: This is intended for Verify requests
 	 */
 	protected String postRequestString( String iUrl, String iContent, String iContentType )
 			throws ServiceException {
@@ -460,7 +507,8 @@ public class WSC {
 
 			if( httpCon.getResponseCode() <= 400 ) {
 				_is = httpCon.getInputStream();
-			} else {
+			}
+			else {
 				/* error from server */
 				_is = httpCon.getErrorStream();
 			}
@@ -469,28 +517,37 @@ public class WSC {
 			while( ( strBuffer = _read.readLine() ) != null ) {
 				response.append( strBuffer );
 			}
-		} catch ( MalformedURLException e ) {
+		}
+		catch ( MalformedURLException e ) {
 			throwFullError( e );
-		} catch ( ProtocolException e ) {
+		}
+		catch ( ProtocolException e ) {
 			throwFullError( e );
-		} catch ( UnsupportedEncodingException e ) {
+		}
+		catch ( UnsupportedEncodingException e ) {
 			throwFullError( e );
-		} catch ( IOException e ) {
+		}
+		catch ( IOException e ) {
 			throwFullError( e );
-		} finally {
+		}
+		finally {
 			try {
 				if( _in != null )	_in.close();
 				if( _out != null )	_out.close();
 				_is.close();
 				_read.close();
 				httpCon.disconnect();
-			} catch ( IOException e ) {
+			}
+			catch ( IOException e ) {
 				throwFullError( e );
 			}
 		}
 		return response.toString();
 	}
 
+	/** Removes base Profile Signature fields in local binder
+	 *
+	 */
 	protected void prepareAdHocSigProfileValues() {
 		Report.trace( "bezzotechcosign", "Entering prepareAdHocSigProfileValues", null );
 		String [] alter = { "fieldName", ".SigField.fieldNameToSign" };
@@ -512,8 +569,8 @@ public class WSC {
 		}
 	}
 
-	/**
-	 *
+	/** Generates XML Element Sig Profiles from binder local properties
+	 *  <SigProfiles><SigProfile>...</SigProfile></SigProfiles>
 	 */
 	protected Element buildSigProfilesElement() throws ServiceException {
 		Element root = m_doc.createElement( "SigProfiles" );
@@ -528,8 +585,8 @@ public class WSC {
 	 *  If environmental variable useWCCUserName is set to TRUE, we inject dUser value into username
 	 *  text node
 	 *
-	 *  Throws ServiceException - dUser value is missing from session
-	 *  Throws ServiceException - Auth Element was not built properly for injection
+	 *  @throws ServiceException - dUser value is missing from session
+	 *  @throws ServiceException - Auth Element was not built properly for injection
 	 */
 	protected Element buildAuthElement() throws ServiceException {
 		Element ele = m_xmlutil.appendChildrenFromEnvironmental( m_appName, m_doc, "Auth", false );
@@ -545,7 +602,7 @@ public class WSC {
 	}
 
 	/** Parse SigProfile XML response to binder local properties
-	 *  <SigProfiles><SigProfil>...</SigProfile></SigProfiles>
+	 *  <SigProfiles><SigProfile>...</SigProfile></SigProfiles>
 	 */
 	protected void parseSigProfiles() {
 		Element root = ( Element )m_doc_root.getElementsByTagName( "SigProfiles" ).item( 0 );
@@ -567,7 +624,8 @@ public class WSC {
 		m_xmlutil.parseChildrenToLocal( m_appName, root, "Status", 0 );
 		try {
 			m_xmlutil.parseChildrenToResultSet( m_appName, root, "Fields", "signingTime" );
-		} catch ( Exception e ) {
+		}
+		catch ( Exception e ) {
 			throwFullError( e );
 			// Swallow error, if no Fields is returned likely there is an error with WSC
 		}
@@ -614,7 +672,7 @@ public class WSC {
 
 	/** Inserts Verify response into DB
 	 *
-	 *  Throws ServiceException - error occurred during query action
+	 *  @throw ServiceException - error occurred during query action
 	 */
 	protected void log() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
@@ -640,7 +698,8 @@ public class WSC {
 						SimpleDateFormat sdf = new SimpleDateFormat( m_shared.getConfig( "CoSignDateFormat" ) );
 						Date date = sdf.parse( dateString );
 						queryBinder.putLocalDate( "signingTime", date );
-					} catch ( ParseException e ) {
+					}
+					catch ( ParseException e ) {
 						throwFullError( e );
 					}
 				}
@@ -660,7 +719,8 @@ public class WSC {
 				m_workspace.execute( "IcosignSignatureDetails", queryBinder );
 				drset.next();
 			}
-		} catch ( DataException e ) {
+		}
+		catch ( DataException e ) {
 		 throwFullError( e );
 		}
 	}

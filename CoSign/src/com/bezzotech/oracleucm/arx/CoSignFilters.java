@@ -43,6 +43,14 @@ public class CoSignFilters implements FilterImplementor {
 		m_shared = null;
 	}
 
+	/** Hook into content server functionality during validateStandard, alterUserCredentials, and
+	 *  checkScheduledEvents hooks.
+	 *
+	 *  During validateStandard, validateCoSign determines non-CoSign content and clears out CoSign values
+	 *  During alterUserCredentials, alterCoSign boosts user permissions allowing them to sign a document
+	 *  During checkScheduledEvents, CoSignFrequentEvent cleans up CS from stale (longer than 5min)
+	 *    signing sessions
+	 */
 	public int doFilter( Workspace ws, DataBinder db, ExecutionContext ec )
 			throws DataException, ServiceException {
 		m_workspace = ws;
@@ -149,13 +157,23 @@ public class CoSignFilters implements FilterImplementor {
 		return CONTINUE;
 	}
 
-	protected void removeColumns( DataResultSet drset, String columns[] ) {
+	/** Removes all columns of a result set other than the named column(s)
+	 *  
+	 *  @param drset - Result set to be purged
+	 *  @param columns - Column(s) to be left remaining when complete
+	 */
+	protected void removeColumnsNotNamed( DataResultSet drset, String columns[] ) {
 		for( int i = 0; i < columns.length; i++ ) {
-			removeColumn( drset, columns[ i ] );
+			removeColumnNotNamed( drset, columns[ i ] );
 		}
 	}
 
-	protected void removeColumn( DataResultSet drset, String column ) {
+	/** Removes all columns of a result set other than the named column
+	 *  
+	 *  @param drset - Result set to be purged
+	 *  @param column - Column to be left remaining when complete
+	 */
+	protected void removeColumnNotNamed( DataResultSet drset, String column ) {
 		Vector <String> colsToRemove =
 				new Vector( Arrays.asList( ResultSetUtils.getFieldListAsStringArray( drset ) ) );
 		for( int i = 0; i < colsToRemove.size(); i++ ) {

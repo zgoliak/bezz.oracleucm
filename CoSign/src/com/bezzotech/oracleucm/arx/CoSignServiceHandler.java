@@ -56,8 +56,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_workspace = s.getWorkspace();
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_CHECKIN_NEW_PROFILE and COSIGN_CHECKIN_SEL_PROFILE services.  Here 
+	 *  the service generates and checks in the signature profile.
 	 */
 	public void generateCoSignProfile() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering generateCoSignProfile, passed in binder:", null );
@@ -98,8 +98,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		catch ( Exception ignore ) {}
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_CHECKIN_NEW_PROFILE service.  Here the service handles validation
+	 *  of the newly created signature profiles uniqueness.
 		*/
 	public void validateUniqueProfile() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering validateUniqueProfile, passed in binder:", null );
@@ -112,8 +112,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 					rset.getStringValueByName( "dDocTitle" ) + "(" + rset.getStringValueByName( "dDocName" ) + ")" );
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_SIGNDOCUMENT service.  This service begins the entire process of
+	 *  digital signing with A.R.X. CoSign.
 	 */
 	public void processSignRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignRequest, passed in binder:", null );
@@ -171,8 +171,9 @@ public class CoSignServiceHandler extends ServiceHandler {
 		}
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_CHECKIN_SIGNEDDOCUMENT service.  This service handles the response
+	 *  from A.R.X. CoSign to check-in the signed document, store the response data, and then pass the
+	 *  off to where ever they were heading.
 	 */
 	public void processSignedDocument() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processSignedDocument, passed in binder: ", null );
@@ -260,8 +261,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		}
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_VERIFYSIGNATURES service.  Used to retrieve responses stored on a
+	 *  document or in database about signature fields.
 	 */
 	public void processReviewRequest() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering processReviewRequest, passed in binder:", null );
@@ -296,8 +297,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		m_binder.addResultSet( "SignatureReview", drset );
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_LOAD_SIGNREQUEST service.  Used to load signature request
+	 *  configurations for review and or edit.
 	 */
 	public void readXMLToBinder() throws ServiceException {
 		try {
@@ -309,8 +310,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		}
 	}
 
-	/**
-	 *
+	/** Method in support of COSIGN_SHOW_MENU service.  Used to determine menu visibility and
+	 *  accessibility.
 		*/
 	public void validateUserAccessToMenu() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering validateUserAccessToMenu, passed in binder:" + m_binder.toString(), null );
@@ -323,8 +324,10 @@ public class CoSignServiceHandler extends ServiceHandler {
 		}
 	}
 
-	/**
+	/** Logs all transactional attempts and any errors that may have occured
 	 *
+	 *  @param msg - possible error message that may have occurred during transaction
+	 *  @throw ServiceException - error executing SQL
 	 */
 	protected void logHistory( String msg ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );
@@ -347,8 +350,8 @@ public class CoSignServiceHandler extends ServiceHandler {
 		}
 	}
 
-	/**
-	 *
+	/** Prints out error message and stack trace from caught exceptions and throws them as message in
+	 *  ServiceException
 	 */
 	protected void throwFullError( Exception e ) throws ServiceException {
 		StringBuilder sb = new StringBuilder();
