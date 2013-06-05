@@ -145,7 +145,7 @@ public class CoSignFilters implements FilterImplementor {
 					} while( tmpRS.next() );
 					drset = tmpRS;
 				}
-				removeColumn( drset, "dDocName" );
+				removeColumnNotNamed( drset, "dDocName" );
 				String values[] = new String [] { now };
 				String colmns[] = new String [] { "tsDateTime" };
 				ResultSetUtils.addColumnsWithDefaultValues( drset, null, values, colmns );

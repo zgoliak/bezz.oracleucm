@@ -327,7 +327,7 @@ public class CoSignServiceHandler extends ServiceHandler {
 	/** Logs all transactional attempts and any errors that may have occured
 	 *
 	 *  @param msg - possible error message that may have occurred during transaction
-	 *  @throw ServiceException - error executing SQL
+	 *  @throws ServiceException - error executing SQL
 	 */
 	protected void logHistory( String msg ) throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );

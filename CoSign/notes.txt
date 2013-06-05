@@ -1,22 +1,26 @@
 ##Navigate to development folder##
 cd Documents\GitHub\bezz.oracleucm\CoSign\
-##Compile Java code in src directory and place in classes directory using the WCC IdcServer.jar library dependency##
-\Oracle\Middleware\jdk160_29\bin\javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar;classes src\com\bezzotech\oracleucm\arx\*.java src\com\bezzotech\oracleucm\arx\common\*.java src\com\bezzotech\oracleucm\arx\service\*.java src\com\bezzotech\oracleucm\arx\shared\*.java
-##Compress compiled Java code into library##
-\Oracle\Middleware\jdk160_29\bin\jar cfv classes.jar -C classes .
-##Compress source Java code into library##
-\Oracle\Middleware\jdk160_29\bin\jar cfv classes_src.jar -C src .
-##Move compiled jar to active server component folder
+##Compile Java code in src directory and place in classes directory using the WCC IdcServer.jar library dependency## i.e. \Oracle\Middleware\jdk160_29\bin\
+javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar;classes src\com\bezzotech\oracleucm\arx\*.java src\com\bezzotech\oracleucm\arx\common\*.java src\com\bezzotech\oracleucm\arx\service\*.java src\com\bezzotech\oracleucm\arx\shared\*.java
+##Compile Java Docs and place in javadocs directory## i.e. \Oracle\Middleware\jdk160_29\bin\
+javadoc -d javadoc -sourcepath src -classpath classes;..\..\..\Software\idcserver.jar com.bezzotech.oracleucm.arx com.bezzotech.oracleucm.arx.shared com.bezzotech.oracleucm.arx.common com.bezzotech.oracleucm.arx.service
+##Compress compiled Java code into library## i.e. \Oracle\Middleware\jdk160_29\bin\
+jar cfv classes.jar -C classes .
+##Compress source Java code into library## i.e. \Oracle\Middleware\jdk160_29\bin\
+jar cfv classes_src.jar -C src .
+##Compress Java Docs into library## i.e. \Oracle\Middleware\jdk160_29\bin\
+jar cfv classes_javadoc.jar -C javadoc .
+##Move compiled jars to active server component folder##
 copy *.jar \Oracle\Middleware\user_projects\domains\UCM2\ucm\cs\custom\CoSign\
-##Compile component using Component Wizard applet from here forth
-#Note: Update Component Version Number in the following locations:
+##Compile component using Component Wizard applet from here forth##
+#Note: Update Component Version Number in the following locations:#
 \$ComponentDir$\CoSign.hda or 
-#Only modify version in Java is major release and new installation procedures are required
+#Only modify version in Java is major release and new installation procedures are required#
 \$ComponentDir$\src\com\bezzotech\oracleucm\arx\CoSignInstallFilter.java > public CoSignInstallFilter.java
 
 cd Documents\GitHub\bezz.oracleucm\CoSign\
 \Oracle\Middleware\jdk160_29\bin\javac -s src -d classes -cp \Oracle\Middleware\Oracle_ECM1\ucm\idc\jlib\idcserver.jar;classes src\com\bezzotech\oracleucm\arx\*.java src\com\bezzotech\oracleucm\arx\common\*.java src\com\bezzotech\oracleucm\arx\service\*.java src\com\bezzotech\oracleucm\arx\shared\*.java
 \Oracle\Middleware\jdk160_29\bin\jar cfv classes.jar -C classes .
 \Oracle\Middleware\jdk160_29\bin\jar cfv classes_src.jar -C src .
+\Oracle\Middleware\jdk160_29\bin\jar cfv classes_javadoc.jar -C javadoc .
 copy *.jar \Oracle\Middleware\user_projects\domains\UCM2\ucm\cs\custom\CoSign\
-y

@@ -73,8 +73,8 @@ public class CoSignInstallFilters implements FilterImplementor {
 		else if( param.equals( "extraAfterServicesLoadInit" ) && !isProvisional ) {
 			trace( false, "doFilter", "Called with 'extraAfterServicesLoadInit'" );
 			if( ws != null ) {
-				doCheckDatabase( loader, ws, binder, cxt );
-				doInstall( loader, ws, binder, cxt );
+				doCheckDatabase();
+				doInstall( loader, ws, binder );
 			}
 		}
 		// Called after loading cached tables.
@@ -206,18 +206,19 @@ public class CoSignInstallFilters implements FilterImplementor {
 	 *
 	 *  @param ws - Service workspace for DB interaction
 	 *  @param db - Service DataBinder
+	 *  @param iel - Loader
 	 *  @return success on completion
 	 */
-	protected int doInstall( Workspace ws, DataBinder db ) {
+	protected int doInstall( IdcExtendedLoader iel, Workspace ws, DataBinder db ) {
 		trace( false, "doInstall", "Function entry ,,," );
 		String compName = "CoSign";
-		if( binder == null )
-			binder = new DataBinder();
+		if( db == null )
+			db = new DataBinder();
 		try {
-			String install = loader.getDBConfigValue( "ComponentInstall", compName, "" );
+			String install = iel.getDBConfigValue( "ComponentInstall", compName, "" );
 			if( install == null )
-				install = loader.getDBConfigValue( "ComponentInstall", compName, "0" );
-			String update = loader.getDBConfigValue( "ComponentUpdate", compName, m_strInstallVersion );
+				install = iel.getDBConfigValue( "ComponentInstall", compName, "0" );
+			String update = iel.getDBConfigValue( "ComponentUpdate", compName, m_strInstallVersion );
 			boolean isSchemaEnabled = SharedObjects.getEnvValueAsBoolean( "EnableSchemaPublish", false );
 			if( update == null || install == null || update.equals( "0" ) ) {
 				if( isSchemaEnabled )
@@ -233,9 +234,9 @@ public class CoSignInstallFilters implements FilterImplementor {
 					if( !hasSecurityGroup( m_strSecurityGroup, ws ) ) {
 						addSecurityGroup( m_strSecurityGroup, m_strAdminRole, ws );
 						if( hasRole( m_strAdminRole, ws ) ) {
-							DataBinder db = new DataBinder();
-							db.putLocal( "dRoleName", m_strAdminRole );
-							ResultSet rs = ws.createResultSet( "QroleDisplayName", db );
+							DataBinder binder = new DataBinder();
+							binder.putLocal( "dRoleName", m_strAdminRole );
+							ResultSet rs = ws.createResultSet( "QroleDisplayName", binder );
 							String displayName = rs.getStringValueByName( "dRoleDisplayName" );
 							updateRole( m_strAdminRole, m_strSecurityGroup, 15L, displayName, ws );
 						}
@@ -254,9 +255,9 @@ public class CoSignInstallFilters implements FilterImplementor {
 						addToOptionList(ws, olKey, SIGNATUR_PROFILE);
 				}
 				update = "1";
-				loader.setDBConfigValue( "ComponentUpdate", compName, m_strInstallVersion, update );
+				iel.setDBConfigValue( "ComponentUpdate", compName, m_strInstallVersion, update );
 				if( install == null )
-					loader.setDBConfigValue( "ComponentInstall", compName, "0", "0" );
+					iel.setDBConfigValue( "ComponentInstall", compName, "0", "0" );
 			}
 		}
 		catch( Exception e ) {
@@ -407,7 +408,7 @@ public class CoSignInstallFilters implements FilterImplementor {
 				s1 = s1 + s5;
 				flag1 = false;
 			}
-			CompInstallUtils.setOptionList( workspace, s, s1 );
+			CompInstallUtils.setOptionList( ws, s, s1 );
 		}
 	}
 

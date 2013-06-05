@@ -672,7 +672,7 @@ public class WSC {
 
 	/** Inserts Verify response into DB
 	 *
-	 *  @throw ServiceException - error occurred during query action
+	 *  @throws ServiceException - error occurred during query action
 	 */
 	protected void log() throws ServiceException {
 		Report.trace( "bezzotechcosign", "Entering log, passed in binder:", null );

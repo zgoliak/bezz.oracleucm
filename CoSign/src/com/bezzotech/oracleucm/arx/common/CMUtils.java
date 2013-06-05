@@ -167,7 +167,7 @@ public class CMUtils {
 	/** Retrieves the DOC_INFO resultset of a dDocName
 	 *
 	 *  @param dDocName - Managed content item's content id
-	 *  @throw ServiceException - error querying for values
+	 *  @throws ServiceException - error querying for values
 	 *  @return DOC_INFO resultset based on dDocName
 	 */
 	public ResultSet getDocInfoByName( String dDocName ) throws ServiceException {
@@ -181,7 +181,7 @@ public class CMUtils {
 	/** Retrieves the DOC_INFO resultset of matching dID
 	 *
 	 *  @param dID - Managed content item's dID
-	 *  @throw ServiceException - error querying for values
+	 *  @throws ServiceException - error querying for values
 	 *  @return DOC_INFO resultset based on dID
 	 */
 	public ResultSet getDocInfo( String dID ) throws ServiceException {
@@ -195,7 +195,7 @@ public class CMUtils {
 	/** Retrieves the SignatureDetails resultset of matching dID
 	 *
 	 *  @param dID - Managed content item's dID
-	 *  @throw ServiceException - error querying for data
+	 *  @throws ServiceException - error querying for data
 	 *  @return Resultset containing all signature details from current and previous signings
 	 */
 	public ResultSet getSignatureReview( String dID ) throws ServiceException {
@@ -209,7 +209,7 @@ public class CMUtils {
 	/** Retrieves counter representing all valid signatures on content item matching dDocName
 	 *
 	 *  @param dDocName - dDocName of content
-	 *  @throw ServiceException - error executing query
+	 *  @throws ServiceException - error executing query
 	 *  @return Metadata value of content items valid signature count
 	 */
 	public int getSignedCounter( String dDocName ) throws ServiceException {
